@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Input } from "@/components/ui/input";
 
 // ponytail: client-side substring filter over already-loaded rows. No search infra,
 // no pagination — a few dozen rows total.
@@ -31,12 +32,11 @@ export function Directory({
 
   return (
     <div className="space-y-3">
-      <input
+      <Input
         type="search"
         value={q}
         onChange={(e) => setQ(e.target.value)}
         placeholder="ค้นหา…"
-        className="w-full rounded-[14px] border border-line px-4 py-2.5 text-[16px]"
         aria-label="ค้นหา"
       />
 

@@ -13,5 +13,6 @@ export function RegisterSW() {
     }
     navigator.serviceWorker.register("/sw.js").catch(() => {});
   }, []);
+
   return null;
 }

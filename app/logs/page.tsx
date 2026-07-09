@@ -2,6 +2,8 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { addWeight } from "./actions";
 import { RecordTabs } from "./record-tabs";
 
@@ -13,7 +15,7 @@ export default function Logs() {
       <label>
         <span>น้ำหนักวันนี้</span>
         <div className="unit-input">
-          <input name="kg" type="number" step="0.1" min="1" max="400" inputMode="decimal" required />
+          <Input className="pr-[58px]" name="kg" type="number" step="0.1" min="1" max="400" inputMode="decimal" required />
           <b>กก.</b>
         </div>
       </label>
@@ -21,11 +23,11 @@ export default function Logs() {
         <span>ความดันโลหิต (ไม่บังคับ)</span>
         <div className="form-grid">
           <div className="unit-input">
-            <input name="systolic" type="number" min="40" max="300" inputMode="numeric" placeholder="ตัวบน" aria-label="ความดันตัวบน" />
+            <Input className="pr-[58px]" name="systolic" type="number" min="40" max="300" inputMode="numeric" placeholder="ตัวบน" aria-label="ความดันตัวบน" />
             <b>บน</b>
           </div>
           <div className="unit-input">
-            <input name="diastolic" type="number" min="30" max="200" inputMode="numeric" placeholder="ตัวล่าง" aria-label="ความดันตัวล่าง" />
+            <Input className="pr-[58px]" name="diastolic" type="number" min="30" max="200" inputMode="numeric" placeholder="ตัวล่าง" aria-label="ความดันตัวล่าง" />
             <b>ล่าง</b>
           </div>
         </div>
@@ -33,17 +35,17 @@ export default function Logs() {
       <label>
         <span>ชีพจร (ไม่บังคับ)</span>
         <div className="unit-input">
-          <input name="pulse" type="number" min="20" max="250" inputMode="numeric" placeholder="เช่น 72" />
+          <Input className="pr-[58px]" name="pulse" type="number" min="20" max="250" inputMode="numeric" placeholder="เช่น 72" />
           <b>ครั้ง/นาที</b>
         </div>
       </label>
       <label>
         <span>วันที่บันทึก</span>
-        <input name="date" type="date" />
+        <Input name="date" type="date" />
       </label>
       <label>
         <span>จดเพิ่มได้ (ไม่บังคับ)</span>
-        <textarea name="note" rows={2} placeholder="เช่น ชั่งก่อนอาหารเช้า" />
+        <Textarea name="note" rows={2} placeholder="เช่น ชั่งก่อนอาหารเช้า" />
       </label>
       <button type="submit" className="btn-primary">เก็บลงสมุด</button>
     </form>

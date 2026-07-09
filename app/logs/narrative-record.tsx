@@ -3,6 +3,8 @@
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { organizeNarrativeAction, saveObservations } from "./actions";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { AI_DISCLAIMER } from "@/lib/disclaimer";
 
 type Item = { category: string; text: string; severity: number };
@@ -47,20 +49,18 @@ export function NarrativeRecord() {
     });
   }
 
-  const cls = "w-full rounded-xl border border-line bg-ivory px-4 py-3";
-
   return (
     <div className="space-y-4 rounded-2xl border border-line bg-card p-5">
       <p className="text-muted-foreground">
         พูดหรือพิมพ์สั้น ๆ ได้เลย เดี๋ยว AI ช่วยจัดเข้าหมวดให้
       </p>
 
-      <textarea
+      <Textarea
         value={story}
         onChange={(e) => setStory(e.target.value)}
         rows={4}
         placeholder="เช่น ช่วงนี้แม่กินน้อยลง ดื่มน้ำน้อย แล้วก็ตื่นเข้าห้องน้ำบ่อย"
-        className={cls}
+        className="bg-ivory"
       />
 
       <div className="flex flex-wrap gap-2">
@@ -92,21 +92,21 @@ export function NarrativeRecord() {
             <div key={i} className="space-y-1 rounded-xl border border-line bg-card p-3">
               <div className="flex items-center gap-2">
                 <span className={`size-3 shrink-0 rounded-full ${sevColor(it.severity)}`} title={`ความควรใส่ใจ ${it.severity}/10`} aria-hidden />
-                <input
+                <Input
                   value={it.category}
                   onChange={(e) =>
                     setItems((arr) => arr!.map((x, j) => (j === i ? { ...x, category: e.target.value } : x)))
                   }
-                  className="w-full rounded-lg border border-line bg-ivory px-3 py-1.5 text-sm font-bold"
+                  className="min-h-0 rounded-lg bg-ivory px-3 py-1.5 text-sm font-bold"
                 />
               </div>
-              <textarea
+              <Textarea
                 value={it.text}
                 onChange={(e) =>
                   setItems((arr) => arr!.map((x, j) => (j === i ? { ...x, text: e.target.value } : x)))
                 }
                 rows={2}
-                className="w-full rounded-lg border border-line bg-ivory px-3 py-1.5"
+                className="min-h-0 rounded-lg bg-ivory px-3 py-1.5 text-sm"
               />
               <button
                 type="button"

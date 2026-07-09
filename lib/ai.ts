@@ -6,6 +6,19 @@ const provider = createOpenAICompatible({
   name: "gemma-med",
   baseURL: process.env.AI_BASE_URL!,
   apiKey: process.env.AI_API_KEY,
+  // ponytail: thinking models (e.g. ThaiLLM/Qwen3) route their answer into `reasoning`,
+  // leaving streamed `content` empty. reasoning_effort:"none" disables that at the /v1 layer.
+  // Harmless for non-thinking models — Ollama ignores the field. Injected for every caller.
+  fetch: async (url, init) => {
+    if (typeof init?.body === "string" && String(url).includes("/chat/completions")) {
+      try {
+        const b = JSON.parse(init.body);
+        b.reasoning_effort ??= "none";
+        init = { ...init, body: JSON.stringify(b) };
+      } catch {}
+    }
+    return fetch(url, init);
+  },
 });
 
 // The disclaimer the UI always renders under AI output (AGENTS.md rule 3).
@@ -19,7 +32,8 @@ const SYSTEM_PROMPT = `คุณคือผู้ช่วยเรียบเ
 - ใช้เฉพาะข้อมูลที่ให้มา ห้ามเดาหรือเติมข้อมูลที่ไม่มี
 - เขียนสั้น กระชับ อ่านง่าย เป็นหัวข้อ ด้วยน้ำเสียงอ่อนโยน
 - ถ้าข้อมูลไม่พอ ให้บอกว่ายังไม่มีข้อมูลในส่วนนั้น
-- เรื่องสิทธิ/บริการ: อ้างอิงได้เฉพาะรายการที่ระบบตรวจสอบสิทธิให้มาแล้วเท่านั้น ห้ามตัดสินเองว่าใครมีสิทธิหรือไม่ ห้ามเดาบริการที่ไม่ได้ให้มา`;
+- เรื่องสิทธิ/บริการ: อ้างอิงได้เฉพาะรายการที่ระบบตรวจสอบสิทธิให้มาแล้วเท่านั้น ห้ามตัดสินเองว่าใครมีสิทธิหรือไม่ ห้ามเดาบริการที่ไม่ได้ให้มา
+- โรคที่ "อาจเกี่ยวข้อง": เป็นการชวนสังเกตจากอาการ ไม่ใช่การวินิจฉัย ให้เขียนทำนอง "อาการนี้อาจเกี่ยวข้องกับ X ควรให้คุณหมอตรวจยืนยัน" ห้ามระบุว่าผู้ป่วยเป็นโรคนั้นแน่นอน`;
 
 export type SummaryData = {
   name: string;
@@ -30,6 +44,7 @@ export type SummaryData = {
   visits: { symptom?: string | null; medsReceived?: string | null; nextAppointment?: string | null; at: Date }[];
   coverage?: string | null; // สิทธิการรักษา เช่น บัตรทอง
   rights?: string | null; // บริการที่มีสิทธิ (คำนวณ deterministic จาก lib/rights.ts แล้ว)
+  suspected?: string | null; // โรคที่ระบบสังเกตจากอาการว่าอาจเกี่ยวข้อง (ยังไม่ยืนยัน)
 };
 
 function buildUserPrompt(d: SummaryData): string {
@@ -49,6 +64,8 @@ function buildUserPrompt(d: SummaryData): string {
     }
   }
   if (d.coverage) lines.push(`สิทธิการรักษา: ${d.coverage}`);
+  // Suspected diseases come from a deterministic symptom heuristic — NOT confirmed.
+  if (d.suspected) lines.push(`อาการที่ระบบสังเกตว่าอาจเกี่ยวข้องกับ (ยังไม่ยืนยัน ควรให้หมอตรวจ): ${d.suspected}`);
   // Rights are pre-decided deterministically — the model only references them, never decides.
   if (d.rights) lines.push(`บริการที่มีสิทธิ (ระบบตรวจสอบสิทธิให้แล้ว): ${d.rights}`);
   lines.push("\nช่วยเรียบเรียงข้อมูลข้างต้นเป็นสรุปสั้น ๆ สำหรับเล่าให้คุณหมอฟัง อ้างอิงสิทธิ/บริการที่ให้มาได้ถ้าเกี่ยวข้อง");
@@ -79,14 +96,18 @@ const CARE_SYSTEM = `คุณช่วยร่างหัวข้อ "คู
 กฎ:
 - เสนอเป็นข้อ ๆ สั้น ๆ เรื่องการกิน การเดิน การนอน และการใช้ยาตามที่ให้มา
 - ห้ามวินิจฉัยโรคหรือสั่งยา เป็นเพียงแนวทางดูแลทั่วไปที่ครอบครัวปรับได้
-- อ้างอิงเฉพาะโรคและยาที่ให้มา`;
+- อ้างอิงเฉพาะโรคและยาที่ให้มา
+- เรื่องสิทธิ/บริการ: ถ้ามีบริการที่มีสิทธิที่ช่วยการดูแลได้ ให้แนะนำสั้น ๆ ว่าไปใช้บริการนั้นได้ อ้างอิงเฉพาะรายการที่ระบบตรวจสอบสิทธิให้มาแล้ว ห้ามตัดสินสิทธิเองหรือเดา`;
 
 function buildCarePrompt(d: SummaryData): string {
-  return [
+  const lines = [
     `ผู้ป่วย: ${d.name}${d.diseases ? ` (${d.diseases})` : ""}`,
     `ยาที่ใช้: ${d.meds.length ? d.meds.map((m) => m.name).join(", ") : "ไม่มีข้อมูล"}`,
-    "ช่วยร่างหัวข้อคู่มือดูแลสั้น ๆ ให้ครอบครัวนำไปปรับแก้",
-  ].join("\n");
+  ];
+  if (d.coverage) lines.push(`สิทธิการรักษา: ${d.coverage}`);
+  if (d.rights) lines.push(`บริการที่มีสิทธิ (ระบบตรวจสอบสิทธิให้แล้ว): ${d.rights}`);
+  lines.push("ช่วยร่างหัวข้อคู่มือดูแลสั้น ๆ ให้ครอบครัวนำไปปรับแก้ แนะนำบริการที่มีสิทธิได้ถ้าเกี่ยวข้อง");
+  return lines.join("\n");
 }
 
 export function streamCareSuggestions(data: SummaryData) {

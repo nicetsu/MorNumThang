@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useAiStream } from "@/lib/use-ai-stream";
+import { Textarea } from "@/components/ui/textarea";
 import { AI_DISCLAIMER } from "@/lib/disclaimer";
 import { saveCareGuide } from "@/app/guide/actions";
 
@@ -39,13 +40,13 @@ export function CareEditor({ initial }: { initial: string }) {
         </p>
       )}
 
-      <textarea
+      <Textarea
         name="careGuide"
         value={value}
         onChange={(e) => setValue(e.target.value)}
         rows={10}
         placeholder="สิ่งที่ม้าทำได้ และวิธีช่วยให้สบายตัว…"
-        className="w-full rounded-xl border border-line bg-ivory px-4 py-3"
+        className="bg-ivory"
       />
 
       <button type="submit" className="btn-primary">

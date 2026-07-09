@@ -4,6 +4,8 @@ export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { completeAppointment, rescheduleAppointment, addVisitNote } from "../actions";
 import { ShareButton } from "@/components/share-button";
 
@@ -80,8 +82,8 @@ export default async function AppointmentDetail({
           <summary className="cursor-pointer font-bold text-teal">เลื่อนนัด</summary>
           <form action={rescheduleAppointment} className="mt-2 flex items-end gap-2">
             <input type="hidden" name="id" value={appt.id} />
-            <input name="date" type="date" required className="flex-1 rounded-xl border border-line bg-ivory px-3 py-2" />
-            <input name="time" type="time" className="rounded-xl border border-line bg-ivory px-3 py-2" />
+            <Input name="date" type="date" required className="min-h-10 flex-1 rounded-xl bg-ivory px-3 text-base" />
+            <Input name="time" type="time" className="min-h-10 rounded-xl bg-ivory px-3 text-base" />
             <button type="submit" className="min-h-10 rounded-xl bg-teal px-4 font-bold text-white">เลื่อน</button>
           </form>
         </details>
@@ -92,15 +94,15 @@ export default async function AppointmentDetail({
         <div className="section-heading"><h3>บันทึกการรักษาจากนัดนี้</h3></div>
         <label>
           <span>อาการหรือโรคที่หมอบอก</span>
-          <textarea name="symptom" rows={2} placeholder="เช่น ความดันสูงเล็กน้อย ปรับยาเพิ่ม" />
+          <Textarea name="symptom" rows={2} placeholder="เช่น ความดันสูงเล็กน้อย ปรับยาเพิ่ม" />
         </label>
         <label>
           <span>ยาที่ได้รับมา</span>
-          <textarea name="medsReceived" rows={2} placeholder="เช่น ยาความดัน 1 เม็ดเช้า" />
+          <Textarea name="medsReceived" rows={2} placeholder="เช่น ยาความดัน 1 เม็ดเช้า" />
         </label>
         <label>
           <span>นัดครั้งถัดไป (ถ้ามี)</span>
-          <input name="nextAppointment" placeholder="เช่น อีก 1 เดือน" />
+          <Input name="nextAppointment" placeholder="เช่น อีก 1 เดือน" />
         </label>
         <button type="submit" className="btn-primary">เก็บบันทึกการรักษา</button>
       </form>

@@ -5,10 +5,12 @@ import { format } from "date-fns";
 import { th } from "date-fns/locale";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Input } from "@/components/ui/input";
 import { addAppointment } from "../actions";
 
 type Followup = { note: string; place: string | null };
 
+// ponytail: shared by the date PopoverTrigger only — the real fields use <Input>, whose default matches these tokens.
 const inputCls =
   "min-h-[54px] w-full rounded-[14px] border border-line bg-white px-4 text-[18px] outline-none focus:border-teal";
 
@@ -55,12 +57,12 @@ export function AppointmentForm({
 
       <label>
         <span>เรื่องที่นัด</span>
-        <input name="note" required value={note} onChange={(e) => setNote(e.target.value)} placeholder="เช่น ติดตามอายุรกรรมหัวใจ" className={inputCls} />
+        <Input name="note" required value={note} onChange={(e) => setNote(e.target.value)} placeholder="เช่น ติดตามอายุรกรรมหัวใจ" />
       </label>
 
       <label>
         <span>โรงพยาบาลหรือสถานที่</span>
-        <input name="place" list="hospitals" value={place} onChange={(e) => setPlace(e.target.value)} placeholder="เลือกหรือพิมพ์โรงพยาบาล" className={inputCls} />
+        <Input name="place" list="hospitals" value={place} onChange={(e) => setPlace(e.target.value)} placeholder="เลือกหรือพิมพ์โรงพยาบาล" />
         <datalist id="hospitals">
           {hospitals.map((h) => <option key={h} value={h} />)}
         </datalist>
@@ -93,7 +95,7 @@ export function AppointmentForm({
         </label>
         <label>
           <span>เวลา</span>
-          <input name="time" type="time" className={inputCls} />
+          <Input name="time" type="time" />
         </label>
       </div>
 

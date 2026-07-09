@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { isAllergic } from "@/lib/allergy";
+import { Input } from "@/components/ui/input";
 import { Combobox } from "@/components/combobox";
 import { addMedication, type MedState } from "./actions";
 
@@ -50,14 +51,14 @@ export function MedForm({ allergies, drugs }: { allergies: string[]; drugs: stri
         <label>
           <span>ครั้งละ</span>
           <div className="unit-input">
-            <input name="dose" type="number" min="0.5" step="0.5" defaultValue="1" />
+            <Input className="pr-[58px]" name="dose" type="number" min="0.5" step="0.5" defaultValue="1" />
             <b>เม็ด</b>
           </div>
         </label>
         <label>
           <span>วันละ</span>
           <div className="unit-input">
-            <input name="perDay" type="number" min="1" defaultValue="1" />
+            <Input className="pr-[58px]" name="perDay" type="number" min="1" defaultValue="1" />
             <b>ครั้ง</b>
           </div>
         </label>
@@ -77,7 +78,7 @@ export function MedForm({ allergies, drugs }: { allergies: string[]; drugs: stri
       <label>
         <span>จำนวนที่เหลือ (ไม่บังคับ)</span>
         <div className="unit-input">
-          <input name="remaining" type="number" min="0" placeholder="เช่น 30" />
+          <Input className="pr-[58px]" name="remaining" type="number" min="0" placeholder="เช่น 30" />
           <b>เม็ด</b>
         </div>
       </label>
