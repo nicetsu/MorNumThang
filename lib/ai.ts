@@ -27,6 +27,8 @@ export type SummaryData = {
   meds: { name: string; schedule?: string | null }[];
   weights: { kg: number; at: Date; note?: string | null }[];
   visits: { symptom?: string | null; medsReceived?: string | null; nextAppointment?: string | null; at: Date }[];
+  coverage?: string | null; // สิทธิการรักษา เช่น บัตรทอง
+  rights?: string | null; // บริการที่มีสิทธิ (คำนวณ deterministic จาก lib/rights.ts แล้ว)
 };
 
 function buildUserPrompt(d: SummaryData): string {
@@ -45,7 +47,10 @@ function buildUserPrompt(d: SummaryData): string {
       if (bits.length) lines.push(`- ${bits.join(" · ")}`);
     }
   }
-  lines.push("\nช่วยเรียบเรียงข้อมูลข้างต้นเป็นสรุปสั้น ๆ สำหรับเล่าให้คุณหมอฟัง");
+  if (d.coverage) lines.push(`สิทธิการรักษา: ${d.coverage}`);
+  // Rights are pre-decided deterministically — the model only references them, never decides.
+  if (d.rights) lines.push(`บริการที่มีสิทธิ (ระบบตรวจสอบสิทธิให้แล้ว): ${d.rights}`);
+  lines.push("\nช่วยเรียบเรียงข้อมูลข้างต้นเป็นสรุปสั้น ๆ สำหรับเล่าให้คุณหมอฟัง อ้างอิงสิทธิ/บริการที่ให้มาได้ถ้าเกี่ยวข้อง");
   return lines.join("\n");
 }
 

@@ -160,6 +160,16 @@
   body {
     @apply text-foreground;
     background: #ede8de;
+    /* Native-app feel: no pull-to-refresh bounce, no blue tap flash. */
+    overscroll-behavior-y: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  /* Let text in content select, but not chrome (header/nav/buttons). */
+  .app-header,
+  .bottom-nav,
+  button {
+    -webkit-user-select: none;
+    user-select: none;
   }
 }
 
