@@ -1,9 +1,10 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Sarabun } from "next/font/google";
 import "./globals.css";
 import { AppHeader } from "@/components/app-header";
 import { BottomNav } from "@/components/bottom-nav";
 import { Toaster } from "@/components/ui/sonner";
+import { RegisterSW } from "@/components/register-sw";
 
 const sarabun = Sarabun({
   variable: "--font-sans",
@@ -14,6 +15,15 @@ const sarabun = Sarabun({
 export const metadata: Metadata = {
   title: "หมอนำทาง",
   description: "สมุดสุขภาพช่วยลูกดูแลม้า",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: { capable: true, statusBarStyle: "default", title: "หมอนำทาง" },
+  icons: { apple: "/apple-icon-180.png" },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#1F6E63",
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({
@@ -31,6 +41,7 @@ export default function RootLayout({
           <BottomNav />
         </div>
         <Toaster />
+        <RegisterSW />
       </body>
     </html>
   );
