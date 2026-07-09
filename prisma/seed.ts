@@ -1,8 +1,7 @@
 import { PrismaClient } from "../app/generated/prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
+import { pgAdapter } from "../lib/db";
 
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
-const prisma = new PrismaClient({ adapter });
+const prisma = new PrismaClient({ adapter: pgAdapter() });
 
 // ponytail: one seeded patient ("ม้า") mirroring the prototype. Grows as slices land.
 async function main() {
