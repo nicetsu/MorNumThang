@@ -9,64 +9,51 @@ const contacts = [
 
 export default function Urgent() {
   return (
-    <div className="space-y-5 py-2">
-      <Link href="/" className="inline-block min-h-10 font-bold text-teal">
-        ← สมุดของม้า
-      </Link>
+    <div className="space-y-4">
+      <Link href="/" className="back-link">← สมุดของม้า</Link>
       <div>
-        <p className="text-sm text-muted-foreground">เมื่อเกิดเรื่อง</p>
-        <h2 className="text-2xl font-extrabold text-red">ใจเย็น ๆ นะคะ เราไปทีละขั้น</h2>
+        <p className="eyebrow">เมื่อเกิดเรื่อง</p>
+        <h2 className="screen-title !text-red">ใจเย็น ๆ นะคะ<br />เราไปทีละขั้น</h2>
       </div>
 
-      {/* Emergency call — biggest, first */}
-      <a
-        href="tel:1669"
-        className="flex min-h-16 items-center justify-center gap-3 rounded-2xl bg-red p-5 text-2xl font-extrabold text-white"
-      >
-        โทร 1669 · เจ็บป่วยฉุกเฉิน
-      </a>
-
       {/* Step 1 — calm actions */}
-      <article className="rounded-2xl border border-line bg-card p-5">
-        <div className="mb-2 flex items-center gap-2">
-          <span className="flex size-8 items-center justify-center rounded-full bg-teal-soft font-bold text-teal">
-            1
-          </span>
-          <h3 className="text-lg font-bold">ดูแลตอนนี้</h3>
+      <article className="path-card">
+        <span className="path-number absolute left-[18px] top-[18px] grid size-[42px] place-items-center rounded-full bg-teal-soft font-extrabold text-teal">1</span>
+        <div className="pl-[54px]">
+          <small className="text-muted-foreground">ทางที่หนึ่ง</small>
+          <h3 className="text-[26px] font-extrabold text-teal">ดูแลตอนนี้</h3>
+          <ol className="mt-3 list-decimal space-y-2 pl-6">
+            <li>อยู่กับม้าในจุดที่ปลอดภัย</li>
+            <li>จดเวลาเริ่มและสิ่งที่เปลี่ยน</li>
+            <li>เตรียมยาและสมุดของม้าไว้ใกล้ตัว</li>
+          </ol>
         </div>
-        <ol className="list-decimal space-y-1 pl-6">
-          <li>อยู่กับม้าในจุดที่ปลอดภัย</li>
-          <li>จดเวลาเริ่มและสิ่งที่เปลี่ยน</li>
-          <li>เตรียมยาและสมุดของม้าไว้ใกล้ตัว</li>
-        </ol>
       </article>
 
       {/* Step 2 — contacts */}
-      <article className="rounded-2xl border border-line bg-card p-5">
-        <div className="mb-3 flex items-center gap-2">
-          <span className="flex size-8 items-center justify-center rounded-full bg-teal-soft font-bold text-teal">
-            2
-          </span>
-          <h3 className="text-lg font-bold">โทรหามือโปร</h3>
+      <article className="path-card pro">
+        <span className="path-number absolute left-[18px] top-[18px] grid size-[42px] place-items-center rounded-full bg-white font-extrabold text-teal">2</span>
+        <div className="pl-[54px]">
+          <small className="text-muted-foreground">ทางที่สอง</small>
+          <h3 className="text-[26px] font-extrabold text-teal">โทรหามือโปร</h3>
         </div>
-        <div className="space-y-2">
-          {contacts.map((c) => (
-            <a
-              key={c.tel}
-              href={`tel:${c.tel}`}
-              className="flex min-h-14 items-center justify-between gap-3 rounded-xl border border-line p-3"
-            >
-              <span>
-                <strong className="block">{c.name}</strong>
-                <small className="text-muted-foreground">{c.sub}</small>
-              </span>
-              <b className="rounded-lg bg-teal px-4 py-2 text-white">โทร</b>
-            </a>
-          ))}
-        </div>
+        <a href="tel:1669" className="emergency-card mt-3">
+          <strong>1669</strong>
+          <span>เจ็บป่วยฉุกเฉิน<small className="block text-muted-foreground">โทรฟรีตลอด 24 ชม.</small></span>
+          <b>โทร</b>
+        </a>
+        {contacts.map((c) => (
+          <a key={c.tel} href={`tel:${c.tel}`} className="contact-card mt-[10px]">
+            <span>
+              <strong className="block">{c.name}</strong>
+              <small className="text-muted-foreground">{c.sub}</small>
+            </span>
+            <b>โทร</b>
+          </a>
+        ))}
       </article>
 
-      <p className="text-sm text-muted-foreground">
+      <p className="safety-line">
         หมอนำทางช่วยจัดลำดับและเตรียมข้อมูล ไม่ได้ประเมินความฉุกเฉินแทนบุคลากรทางการแพทย์
       </p>
     </div>

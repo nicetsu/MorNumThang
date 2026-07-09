@@ -25,9 +25,9 @@ export default function RootLayout({
     <html lang="th" className={`${sarabun.variable} h-full antialiased`}>
       <body className="min-h-full">
         {/* 430px app shell, mirroring the prototype. */}
-        <div className="mx-auto flex min-h-dvh w-full max-w-[430px] flex-col bg-ivory">
+        <div className="app-shell flex flex-col">
           <AppHeader />
-          <main className="flex-1 px-5 pb-6">{children}</main>
+          <main className="flex-1 px-5 py-6">{children}</main>
           <BottomNav />
         </div>
         <Toaster />

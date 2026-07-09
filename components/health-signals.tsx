@@ -14,6 +14,9 @@ export function HealthSignals() {
 
   if (state === "error") return null; // ponytail: signals are optional, fail quietly.
 
+  // Strip lightweight markdown the model sometimes emits (**bold**, leading "* " bullets).
+  const clean = text.replace(/\*\*/g, "").replace(/^\s*\*\s+/gm, "• ");
+
   return (
     <section className="rounded-2xl border border-line bg-amber-soft p-5">
       <div className="mb-2 flex items-center gap-2">
@@ -21,7 +24,7 @@ export function HealthSignals() {
         <h3 className="font-bold">AI ชวนสังเกต</h3>
       </div>
       <p className="whitespace-pre-line">
-        {state === "loading" && !text ? "กำลังดูแนวโน้มจากบันทึก…" : text}
+        {state === "loading" && !text ? "กำลังดูแนวโน้มจากบันทึก…" : clean}
       </p>
       {text && (
         <p className="mt-3 border-t border-line pt-2 text-xs text-muted-foreground">

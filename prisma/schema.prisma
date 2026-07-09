@@ -13,6 +13,12 @@ datasource db {
 model Patient {
   id           String        @id @default(cuid())
   name         String
+  age          Int? // อายุ
+  coverage     String? // สิทธิการรักษา (เช่น บัตรทอง)
+  hospital     String? // โรงพยาบาลตามสิทธิ์
+  job          String? // อาชีพ / อดีตอาชีพ
+  likes        String? // สิ่งที่ชอบ
+  caregiver    String? // คนดูแลหลัก
   diseases     String? // free text, "·"-separated in UI
   careGuide    String? // editable care instructions
   createdAt    DateTime      @default(now())
@@ -21,12 +27,27 @@ model Patient {
   allergies    Allergy[]
   appointments Appointment[]
   visits       VisitNote[]
+  observations Observation[]
+}
+
+// A narrative observation the caregiver told, AI-organized into a category.
+// The model categorizes only — it does not diagnose (AGENTS.md rule 2).
+model Observation {
+  id        String   @id @default(cuid())
+  patientId String
+  category  String // เช่น การกิน, การนอนและขับถ่าย
+  text      String
+  at        DateTime @default(now())
+  patient   Patient  @relation(fields: [patientId], references: [id])
 }
 
 model WeightLog {
   id        String   @id @default(cuid())
   patientId String
   kg        Float
+  systolic  Int? // ความดันตัวบน
+  diastolic Int? // ความดันตัวล่าง
+  pulse     Int? // ชีพจร
   note      String?
   at        DateTime @default(now())
   patient   Patient  @relation(fields: [patientId], references: [id])
@@ -36,6 +57,10 @@ model Medication {
   id        String  @id @default(cuid())
   patientId String
   name      String
+  dose      Float? // ครั้งละ (เม็ด)
+  perDay    Int? // วันละ (ครั้ง)
+  whenTime  String? // ช่วงเวลา เช่น หลังอาหารเช้า
+  remaining Int? // จำนวนที่เหลือ (เม็ด)
   schedule  String?
   patient   Patient @relation(fields: [patientId], references: [id])
 }
@@ -51,6 +76,7 @@ model Appointment {
   id        String   @id @default(cuid())
   patientId String
   at        DateTime
+  place     String? // โรงพยาบาลหรือสถานที่
   note      String?
   done      Boolean  @default(false)
   patient   Patient  @relation(fields: [patientId], references: [id])

@@ -1,43 +1,93 @@
 // ponytail: per-request DB read — never prerender a stale snapshot.
 export const dynamic = "force-dynamic";
 
+import Link from "next/link";
 import { db } from "@/lib/db";
 
 export default async function Profile() {
   const patient = await db.patient.findFirst();
-
   if (!patient) {
     return <p className="py-8 text-muted-foreground">ยังไม่มีข้อมูลม้าค่ะ</p>;
   }
 
-  return (
-    <div className="space-y-6 py-2">
-      <h2 className="text-2xl font-extrabold text-teal">โปรไฟล์</h2>
+  // Latest vitals come from the most recent body-measurement log.
+  const latest = await db.weightLog.findFirst({
+    where: { patientId: patient.id },
+    orderBy: { at: "desc" },
+  });
 
-      <article className="flex items-center gap-4 rounded-2xl border border-line bg-card p-5">
-        <div className="flex size-16 shrink-0 items-center justify-center rounded-full bg-teal-soft text-xl font-bold text-teal">
-          ม้า
-        </div>
+  return (
+    <div className="space-y-6">
+      <div className="section-heading">
+        <h2 className="screen-title !mb-0">โปรไฟล์</h2>
+        <Link href="/profile/edit" className="!text-clay font-bold">แก้ไข</Link>
+      </div>
+
+      <article className="identity-card">
+        <div className="avatar">ม้า</div>
         <div>
-          <strong className="block text-lg">{patient.name}</strong>
-          {patient.diseases && (
-            <p className="text-sm text-muted-foreground">{patient.diseases}</p>
+          <strong className="block text-[21px]">
+            {patient.name}{patient.age ? ` · ${patient.age} ปี` : ""}
+          </strong>
+          {(patient.coverage || patient.hospital) && (
+            <p className="my-0.5 text-[16px] text-muted-foreground">
+              {[patient.coverage, patient.hospital].filter(Boolean).join(" · ")}
+            </p>
           )}
+          {patient.likes && <small className="block text-[16px] text-muted-foreground">{patient.likes}</small>}
+          {patient.job && <small className="block text-[16px] text-muted-foreground">อาชีพ: {patient.job}</small>}
         </div>
       </article>
 
-      <section>
-        <h3 className="mb-2 text-xl font-bold">คู่มือดูแล</h3>
-        {patient.careGuide ? (
-          <p className="whitespace-pre-line rounded-2xl border border-line bg-card p-4">
-            {patient.careGuide}
-          </p>
-        ) : (
-          <p className="rounded-2xl border border-dashed border-line p-6 text-center text-muted-foreground">
-            ยังไม่มีคู่มือดูแล
-          </p>
-        )}
+      {/* Latest vitals */}
+      <div className="vitals">
+        <article>
+          <small>น้ำหนัก</small>
+          <strong>{latest?.kg ?? "—"}</strong>
+          <em>กก.</em>
+        </article>
+        <article>
+          <small>ความดัน</small>
+          <strong>{latest?.systolic && latest?.diastolic ? `${latest.systolic}/${latest.diastolic}` : "—"}</strong>
+          <em>มม.ปรอท</em>
+        </article>
+        <article>
+          <small>ชีพจร</small>
+          <strong>{latest?.pulse ?? "—"}</strong>
+          <em>ครั้ง/นาที</em>
+        </article>
+      </div>
+
+      {patient.diseases && (
+        <section>
+          <h3 className="section-heading">โรคประจำตัว</h3>
+          <p className="card">{patient.diseases}</p>
+        </section>
+      )}
+
+      <section className="people-section">
+        <h3 className="section-heading">คนดูแล</h3>
+        <div className="contact">
+          <span className="person-avatar">{(patient.caregiver ?? "?").trim().charAt(0)}</span>
+          <span>
+            <strong className="block">{patient.caregiver ?? "ยังไม่ได้ระบุคนดูแล"}</strong>
+            <small className="text-muted-foreground">อัปเดตสมุดของม้า</small>
+          </span>
+        </div>
       </section>
+
+      {patient.hospital && (
+        <section className="people-section">
+          <h3 className="section-heading">โรงพยาบาลในสิทธิ์</h3>
+          <div className="contact">
+            <span className="person-avatar pro">รพ.</span>
+            <span>
+              <strong className="block">{patient.hospital}</strong>
+              <small className="text-muted-foreground">โรงพยาบาลตามสิทธิ์{patient.coverage ? ` · ${patient.coverage}` : ""}</small>
+            </span>
+          </div>
+        </section>
+      )}
     </div>
   );
 }

@@ -11,6 +11,12 @@ async function main() {
   await prisma.patient.create({
     data: {
       name: "แม่สมทรง ใจดี",
+      age: 74,
+      coverage: "บัตรทอง",
+      hospital: "รพ.เจริญกรุงประชารักษ์",
+      job: "เกษียณแล้ว",
+      likes: "ชอบละคร วาไรตี้ และมาสเตอร์เชฟ",
+      caregiver: "เจี๊ยบ · ผู้ดูแลหลัก",
       diseases: "ความดันโลหิตสูง · เบาหวาน",
       allergies: { create: [{ name: "เพนิซิลลิน" }] },
     },

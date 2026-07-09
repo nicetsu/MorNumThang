@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useAiStream } from "@/lib/use-ai-stream";
 import { AI_DISCLAIMER } from "@/lib/disclaimer";
@@ -12,12 +13,14 @@ export function CareEditor({ initial }: { initial: string }) {
   const [value, setValue] = useState(initial);
   const { state, run } = useAiStream("care");
   const suggested = state !== "idle";
+  const router = useRouter();
 
   return (
     <form
       action={async (fd) => {
         await saveCareGuide(fd);
         toast.success("บันทึกคู่มือดูแลแล้ว");
+        router.push("/guide");
       }}
       className="space-y-3"
     >
@@ -25,7 +28,7 @@ export function CareEditor({ initial }: { initial: string }) {
         type="button"
         onClick={() => run((full) => setValue(full))}
         disabled={state === "loading"}
-        className="w-full rounded-xl border border-teal py-3 font-bold text-teal disabled:opacity-60"
+        className="btn-outline disabled:opacity-60"
       >
         {state === "loading" ? "กำลังร่างคำแนะนำ…" : "ขอคำแนะนำจาก AI"}
       </button>
@@ -45,7 +48,7 @@ export function CareEditor({ initial }: { initial: string }) {
         className="w-full rounded-xl border border-line bg-ivory px-4 py-3"
       />
 
-      <button type="submit" className="w-full rounded-xl bg-teal py-3 text-lg font-bold text-white">
+      <button type="submit" className="btn-primary">
         บันทึกคู่มือ
       </button>
     </form>

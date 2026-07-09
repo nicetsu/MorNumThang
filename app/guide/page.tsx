@@ -3,22 +3,39 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { db } from "@/lib/db";
-import { CareEditor } from "@/components/care-editor";
 
+// Care-guide view (prototype screen 19). Edit lives on /guide/edit (screen 14).
 export default async function Guide() {
   const patient = await db.patient.findFirst();
+  // Strip lightweight markdown an AI draft may have left behind.
+  const guide = (patient?.careGuide ?? "")
+    .replace(/^#+\s*/gm, "")
+    .replace(/\*\*/g, "")
+    .replace(/^\s*\*\s+/gm, "• ")
+    .trim();
 
   return (
-    <div className="space-y-4 py-2">
-      <Link href="/meds" className="inline-block font-bold text-teal">
-        ← รักษา
-      </Link>
+    <div className="space-y-4">
+      <Link href="/meds" className="back-link">← รักษา</Link>
       <div>
-        <p className="text-sm text-muted-foreground">คู่มือดูแลม้า · ฉบับบ้านเรา</p>
-        <h2 className="text-2xl font-extrabold text-teal">คู่มือดูแลม้า</h2>
-        <p className="text-muted-foreground">สิ่งที่ม้าทำได้ และวิธีช่วยให้สบายตัว</p>
+        <p className="eyebrow">คู่มือดูแลม้า · ฉบับบ้านเรา</p>
+        <h2 className="screen-title">คู่มือดูแลม้า</h2>
+        <p className="lead">สิ่งที่ม้าทำได้ และวิธีช่วยให้สบายตัว</p>
       </div>
-      <CareEditor initial={patient?.careGuide ?? ""} />
+
+      <article className="care-guide">
+        <div className="section-heading">
+          <h3>วิธีดูแลตอนนี้</h3>
+          <Link href="/guide/edit">แก้ไข</Link>
+        </div>
+        {guide ? (
+          <p className="whitespace-pre-line text-[#5E5647]">{guide}</p>
+        ) : (
+          <p className="text-[#76500E]">
+            ยังไม่มีคู่มือดูแล แตะ “แก้ไข” เพื่อเขียนวิธีดูแลม้า หรือให้ AI ช่วยร่างค่ะ
+          </p>
+        )}
+      </article>
     </div>
   );
 }

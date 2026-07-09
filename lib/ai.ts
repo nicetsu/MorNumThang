@@ -1,5 +1,5 @@
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
-import { streamText } from "ai";
+import { streamText, generateText } from "ai";
 
 // Server-side only. Endpoint + key live in env, never shipped to the client (AGENTS.md rule 1).
 const provider = createOpenAICompatible({
@@ -85,4 +85,40 @@ function buildCarePrompt(d: SummaryData): string {
 
 export function streamCareSuggestions(data: SummaryData) {
   return run(CARE_SYSTEM, buildCarePrompt(data));
+}
+
+// §4 narrative record — organize a free-text story into categorized observations.
+// Categorizes only, never diagnoses.
+const ORGANIZE_SYSTEM = `คุณช่วยจัดเรื่องที่ครอบครัวเล่าเข้าหมวดหมู่ เป็นภาษาไทย
+กฎ:
+- แยกเรื่องที่เล่าออกเป็นข้อ ๆ แต่ละข้อมี "category" (หมวด) และ "text" (สรุปสั้น ๆ)
+- หมวดที่ใช้ได้: การกิน, การนอนและขับถ่าย, การเดิน, ยา, อารมณ์, เรื่องดี, อื่น ๆ
+- ห้ามวินิจฉัยโรคหรือแนะนำยา สรุปเฉพาะสิ่งที่เล่ามา
+- ตอบกลับเป็น JSON array เท่านั้น เช่น [{"category":"การกิน","text":"กินน้อยลง"}] ห้ามมีข้อความอื่น`;
+
+export type OrganizedItem = { category: string; text: string };
+
+export async function organizeNarrative(story: string): Promise<OrganizedItem[]> {
+  const { text } = await generateText({
+    model: provider(process.env.AI_MODEL!),
+    system: ORGANIZE_SYSTEM,
+    prompt: story,
+    temperature: 0.2,
+  });
+
+  // Defensive parse: small local models may wrap or chatter around the JSON.
+  const match = text.match(/\[[\s\S]*\]/);
+  if (match) {
+    try {
+      const arr = JSON.parse(match[0]);
+      const items = (Array.isArray(arr) ? arr : [])
+        .map((x) => ({ category: String(x?.category ?? "อื่น ๆ").trim(), text: String(x?.text ?? "").trim() }))
+        .filter((x) => x.text);
+      if (items.length) return items;
+    } catch {
+      // fall through to fallback
+    }
+  }
+  // Fallback: keep the caregiver's words rather than losing them.
+  return [{ category: "อื่น ๆ", text: story.trim() }];
 }

@@ -8,24 +8,20 @@ const cards = [
 
 export default function MedsHome() {
   return (
-    <div className="space-y-3 py-2">
-      <h2 className="mb-2 text-2xl font-extrabold text-teal">รักษา</h2>
-      {cards.map((c) => (
-        <Link
-          key={c.href}
-          href={c.href}
-          className="flex items-center gap-4 rounded-2xl border border-line bg-card p-4"
-        >
-          <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-teal-soft font-bold text-teal">
-            {c.icon}
-          </span>
-          <span className="flex-1">
-            <strong className="block">{c.title}</strong>
-            <small className="text-muted-foreground">{c.desc}</small>
-          </span>
-          <b className="text-2xl text-muted-foreground">›</b>
-        </Link>
-      ))}
+    <div className="space-y-3">
+      <h2 className="screen-title">รักษา</h2>
+      <div className="grid gap-3">
+        {cards.map((c) => (
+          <Link key={c.href} href={c.href} className="nav-card">
+            <span className="nav-card-icon">{c.icon}</span>
+            <span className="nav-card-body">
+              <strong>{c.title}</strong>
+              <small>{c.desc}</small>
+            </span>
+            <b className="nav-card-arrow">›</b>
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }

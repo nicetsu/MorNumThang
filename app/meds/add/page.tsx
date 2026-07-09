@@ -1,0 +1,64 @@
+// ponytail: per-request DB read — never prerender a stale snapshot.
+export const dynamic = "force-dynamic";
+
+import Link from "next/link";
+import { db } from "@/lib/db";
+import { addAllergy, removeAllergy } from "../list/actions";
+import { MedForm } from "../list/med-form";
+
+// Add-medication screen (prototype screen 8): allergy field + the med form.
+export default async function MedAdd() {
+  const patient = await db.patient.findFirst();
+  if (!patient) {
+    return <p className="py-8 text-muted-foreground">ยังไม่มีข้อมูลม้าค่ะ</p>;
+  }
+  const allergies = await db.allergy.findMany({
+    where: { patientId: patient.id },
+    orderBy: { name: "asc" },
+  });
+
+  return (
+    <div className="space-y-6">
+      <Link href="/meds/list" className="back-link">← ยาของม้า</Link>
+      <div>
+        <p className="eyebrow">เพิ่มเข้ารายการยา</p>
+        <h2 className="screen-title">จดยาที่ใช้อยู่</h2>
+        <p className="lead">จดตามฉลากหรือรายการยาที่ได้รับมานะคะ</p>
+      </div>
+
+      <section>
+        <h3 className="section-heading">ยาที่แพ้</h3>
+        <div className="mb-3 flex flex-wrap gap-2">
+          {allergies.length === 0 ? (
+            <p className="text-muted-foreground">ยังไม่มีข้อมูลยาที่แพ้</p>
+          ) : (
+            allergies.map((a) => (
+              <form key={a.id} action={removeAllergy}>
+                <input type="hidden" name="id" value={a.id} />
+                <button type="submit" className="allergy-chip" aria-label={`ลบ ${a.name}`}>
+                  {a.name}
+                  <span aria-hidden className="grid size-[22px] place-items-center rounded-full bg-[rgba(200,62,62,.15)]">×</span>
+                </button>
+              </form>
+            ))
+          )}
+        </div>
+        <form action={addAllergy} className="flex gap-2">
+          <input
+            name="name"
+            placeholder="เพิ่มยาที่แพ้"
+            className="min-h-[54px] flex-1 rounded-[14px] border border-line bg-white px-4 text-[18px]"
+          />
+          <button type="submit" className="min-h-[54px] rounded-[14px] bg-clay px-5 font-extrabold text-white">
+            เพิ่ม
+          </button>
+        </form>
+        <p className="allergy-note mt-3">
+          <span>!</span> ยาที่แพ้จะถูกล็อกไว้ในรายการ เลือกไม่ได้เพื่อความปลอดภัย
+        </p>
+      </section>
+
+      <MedForm allergies={allergies.map((a) => a.name)} />
+    </div>
+  );
+}

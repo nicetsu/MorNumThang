@@ -16,18 +16,11 @@ export function MedForm({ allergies }: { allergies: string[] }) {
   }, [state.ok]);
 
   return (
-    <form action={action} className="space-y-4 rounded-2xl border border-line bg-card p-5">
-      <label className="block">
-        <span className="mb-1 block font-bold">เลือกยา</span>
-        <select
-          name="name"
-          required
-          defaultValue=""
-          className="w-full rounded-xl border border-line bg-ivory px-4 py-3 text-lg"
-        >
-          <option value="" disabled>
-            — เลือกยา —
-          </option>
+    <form action={action} className="flow-form">
+      <label>
+        <span>เลือกยา</span>
+        <select name="name" required defaultValue="">
+          <option value="" disabled>— เลือกยา —</option>
           {MED_OPTIONS.map((name) => {
             const blocked = isAllergic(name, allergies);
             return (
@@ -39,26 +32,51 @@ export function MedForm({ allergies }: { allergies: string[] }) {
         </select>
       </label>
 
-      <label className="block">
-        <span className="mb-1 block font-bold">เวลา (ไม่บังคับ)</span>
-        <input
-          name="schedule"
-          placeholder="เช่น เช้า · หลังอาหาร"
-          className="w-full rounded-xl border border-line bg-ivory px-4 py-3"
-        />
+      <div className="form-grid">
+        <label>
+          <span>ครั้งละ</span>
+          <div className="unit-input">
+            <input name="dose" type="number" min="0.5" step="0.5" defaultValue="1" />
+            <b>เม็ด</b>
+          </div>
+        </label>
+        <label>
+          <span>วันละ</span>
+          <div className="unit-input">
+            <input name="perDay" type="number" min="1" defaultValue="1" />
+            <b>ครั้ง</b>
+          </div>
+        </label>
+      </div>
+
+      <label>
+        <span>ช่วงเวลาที่ใช้</span>
+        <select name="whenTime" defaultValue="หลังอาหารเช้า">
+          <option>หลังอาหารเช้า</option>
+          <option>ก่อนอาหารเช้า</option>
+          <option>หลังอาหารกลางวัน</option>
+          <option>หลังอาหารเย็น</option>
+          <option>ก่อนนอน</option>
+          <option>ตามแพทย์สั่ง</option>
+        </select>
       </label>
 
-      {state.error && (
-        <p className="rounded-xl bg-red-soft px-4 py-3 font-bold text-red">
-          {state.error}
-        </p>
-      )}
+      <label>
+        <span>จำนวนที่เหลือ (ไม่บังคับ)</span>
+        <div className="unit-input">
+          <input name="remaining" type="number" min="0" placeholder="เช่น 30" />
+          <b>เม็ด</b>
+        </div>
+      </label>
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="w-full rounded-xl bg-teal py-3 text-lg font-bold text-white disabled:opacity-60"
-      >
+      <div className="safety-box">
+        <strong>จดเพื่อช่วยจำเท่านั้น</strong>
+        <p>หมอนำทางจะไม่แนะนำให้หยุด เพิ่ม หรือลดยา หากไม่แน่ใจให้โทรถามแพทย์หรือเภสัชกรค่ะ</p>
+      </div>
+
+      {state.error && <p className="allergy-note">{state.error}</p>}
+
+      <button type="submit" disabled={pending} className="btn-primary">
         เพิ่มยา
       </button>
     </form>

@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { isAllergic } from "@/lib/allergy";
 
@@ -44,8 +45,24 @@ export async function addMedication(
     return { error: `ม้าแพ้ “${name}” — เพิ่มยานี้ไม่ได้เพื่อความปลอดภัย` };
   }
 
-  const schedule = String(formData.get("schedule") ?? "").trim() || null;
-  await db.medication.create({ data: { patientId: pid, name, schedule } });
+  const num = (k: string) => {
+    const n = parseFloat(String(formData.get(k) ?? ""));
+    return Number.isFinite(n) && n > 0 ? n : null;
+  };
+  const whenTime = String(formData.get("whenTime") ?? "").trim() || null;
+
+  await db.medication.create({
+    data: {
+      patientId: pid,
+      name,
+      dose: num("dose"),
+      perDay: num("perDay"),
+      whenTime,
+      remaining: num("remaining"),
+    },
+  });
   revalidatePath("/meds/list");
-  return { ok: `เพิ่ม ${name} แล้ว` };
+  revalidatePath("/");
+  // Back to the schedule so the new med shows in its slot (prototype flow).
+  redirect("/meds/list");
 }

@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { cn } from "@/lib/utils";
 
 // Three top-level tabs, mirroring the prototype's bottom-nav (บันทึก / รักษา / โปรไฟล์).
 const tabs = [
@@ -15,24 +14,13 @@ export function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav
-      aria-label="เมนูสมุด"
-      className="sticky bottom-0 z-10 flex border-t border-line bg-paper"
-    >
+    <nav aria-label="เมนูสมุด" className="bottom-nav">
       {tabs.map((tab) => {
         // "/" only active on exact home; others active on their subtree.
         const active =
           tab.href === "/" ? pathname === "/" : pathname.startsWith(tab.href);
         return (
-          <Link
-            key={tab.href}
-            href={tab.href}
-            aria-current={active ? "page" : undefined}
-            className={cn(
-              "flex-1 py-4 text-center text-xl font-bold",
-              active ? "text-teal" : "text-muted-foreground",
-            )}
-          >
+          <Link key={tab.href} href={tab.href} aria-current={active ? "page" : undefined}>
             {tab.label}
           </Link>
         );

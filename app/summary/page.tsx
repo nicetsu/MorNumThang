@@ -9,19 +9,17 @@ export default function Summary() {
   const { text, state, run } = useAiStream("summary");
 
   return (
-    <div className="space-y-4 py-2">
-      <Link href="/" className="inline-block font-bold text-teal">
-        ← สมุดของม้า
-      </Link>
+    <div className="space-y-4">
+      <Link href="/" className="back-link">← สมุดของม้า</Link>
       <div>
-        <p className="text-sm text-muted-foreground">สำหรับคุณหมอ</p>
-        <h2 className="text-2xl font-extrabold text-teal">สรุปให้หมอ</h2>
+        <p className="eyebrow">สำหรับคุณหมอ</p>
+        <h2 className="screen-title">สรุปให้หมอ</h2>
       </div>
 
       <button
         onClick={() => run()}
         disabled={state === "loading"}
-        className="w-full rounded-xl bg-teal py-3 text-lg font-bold text-white disabled:opacity-60"
+        className="btn-primary"
       >
         {state === "loading" ? "กำลังสรุป…" : state === "idle" ? "สร้างสรุปด้วย AI" : "สรุปใหม่อีกครั้ง"}
       </button>
