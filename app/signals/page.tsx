@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { db } from "@/lib/db";
+import { dotClass, scoreLevel, LEVEL } from "@/lib/severity";
 import { RecordsTabs } from "./records-tabs";
 
 function fmt(at: Date) {
@@ -12,6 +13,16 @@ function fmt(at: Date) {
     hour: "2-digit",
     minute: "2-digit",
   }).format(at);
+}
+
+// Short icon per category for the aeh-cards.
+function iconOf(cat: string): string {
+  if (cat.includes("กิน")) return "กิน";
+  if (cat.includes("นอน")) return "นอน";
+  if (cat.includes("เดิน")) return "เดิน";
+  if (cat.includes("ยา")) return "ยา";
+  if (cat.includes("อารมณ์")) return "ใจ";
+  return "เอ๊ะ";
 }
 
 export default async function Records({
@@ -27,38 +38,47 @@ export default async function Records({
   const { view } = await searchParams;
   const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
-  const [weights, obs, concernCount] = await Promise.all([
+  const [weights, obs, recent] = await Promise.all([
     db.weightLog.findMany({ where: { patientId: patient.id }, orderBy: { at: "desc" } }),
     db.observation.findMany({ where: { patientId: patient.id }, orderBy: { at: "desc" } }),
-    db.observation.count({
-      where: { patientId: patient.id, at: { gte: weekAgo }, category: { not: "เรื่องดี" } },
-    }),
+    db.observation.findMany({ where: { patientId: patient.id, at: { gte: weekAgo } }, select: { severity: true } }),
   ]);
 
-  const level = concernCount === 0 ? 1 : concernCount <= 2 ? 2 : 3;
-  const score = {
-    1: { badge: "ดูแลได้ดี", label: "ระดับ 1 จาก 3 — สบายดี" },
-    2: { badge: "ควรสังเกต", label: "ระดับ 2 จาก 3 — ปานกลาง" },
-    3: { badge: "ควรปรึกษาหมอ", label: "ระดับ 3 จาก 3 — ควรใส่ใจ" },
-  }[level];
+  const level = scoreLevel(recent.map((o) => o.severity));
+  const score = LEVEL[level];
 
   const weightItems = weights.map((w, i) => {
     const prev = weights[i + 1];
-    let trend = "";
+    let trend: { text: string; up: boolean } | null = null;
     if (prev) {
       const d = w.kg - prev.kg;
-      if (Math.abs(d) >= 0.1) trend = ` ${d < 0 ? "↘" : "↗"} ${Math.abs(d).toFixed(1)} กก.`;
+      if (Math.abs(d) >= 0.1) trend = { text: `${d < 0 ? "↘" : "↗"} ${Math.abs(d).toFixed(1)} กก.`, up: d > 0 };
     }
-    return { id: w.id, at: w.at, time: fmt(w.at), label: "น้ำหนัก", text: `${w.kg} กก.${trend}`, dotClass: "" };
+    return { id: w.id, at: w.at, time: fmt(w.at), label: "น้ำหนัก", text: `${w.kg} กก.`, trend, dotClass: "teal" };
   });
   const obsItems = obs.map((o) =>
     o.category === "เรื่องดี"
-      ? { id: o.id, at: o.at, time: fmt(o.at), label: "วันนี้ดี", text: o.text, dotClass: "clay" }
-      : { id: o.id, at: o.at, time: fmt(o.at), label: `เอ๊ะ · ${o.category}`, text: o.text, dotClass: "amber" },
+      ? { id: o.id, at: o.at, time: fmt(o.at), label: "วันนี้ดี", text: o.text, trend: null, dotClass: "green" }
+      : { id: o.id, at: o.at, time: fmt(o.at), label: `เอ๊ะ · ${o.category}`, text: o.text, trend: null, dotClass: dotClass(o.severity) },
   );
   const timeline = [...weightItems, ...obsItems]
     .sort((a, b) => b.at.getTime() - a.at.getTime())
-    .map(({ at: _at, ...rest }) => rest); // drop Date before passing to client
+    .map(({ at: _at, ...rest }) => rest);
+
+  // aeh-cards: concern observations, most severe first.
+  const risk = (s: number | null) => {
+    const v = s ?? 5;
+    return v >= 8
+      ? { label: "เอ๊ะ", cls: "high" }
+      : v >= 4
+        ? { label: "เฝ้าดู", cls: "mid" }
+        : { label: "ปกติ", cls: "low" };
+  };
+  const aeh = obs
+    .filter((o) => o.category !== "เรื่องดี")
+    .sort((a, b) => (b.severity ?? 5) - (a.severity ?? 5))
+    .slice(0, 6)
+    .map((o) => ({ id: o.id, icon: iconOf(o.category), text: o.text, category: o.category, risk: risk(o.severity) }));
 
   return (
     <div className="space-y-4">
@@ -69,6 +89,7 @@ export default async function Records({
       </div>
       <RecordsTabs
         timeline={timeline}
+        aeh={aeh}
         score={score}
         level={level}
         defaultView={view === "signal" ? "signal" : "all"}

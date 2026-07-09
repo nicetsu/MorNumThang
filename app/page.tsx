@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { db } from "@/lib/db";
+import { dotClass, scoreLevel, LEVEL } from "@/lib/severity";
 
 function fmt(at: Date) {
   return new Intl.DateTimeFormat("th-TH", {
@@ -21,13 +22,13 @@ export default async function Home() {
   }
 
   const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-  const [weights, obs, concernCount, nextMed, nextAppt] = await Promise.all([
+  const [weights, obs, recentSev, nextMed, nextAppt] = await Promise.all([
     db.weightLog.findMany({ where: { patientId: patient.id }, orderBy: { at: "desc" }, take: 5 }),
     db.observation.findMany({ where: { patientId: patient.id }, orderBy: { at: "desc" }, take: 5 }),
-    // Deterministic concern count for the score meter (LLM never gates this) — recent
-    // observations in the last 7 days that aren't the "good news" category.
-    db.observation.count({
-      where: { patientId: patient.id, at: { gte: weekAgo }, category: { not: "เรื่องดี" } },
+    // Recent severities feed the doctor-score level (average band). LLM never gates safety.
+    db.observation.findMany({
+      where: { patientId: patient.id, at: { gte: weekAgo } },
+      select: { severity: true },
     }),
     db.medication.findFirst({ where: { patientId: patient.id }, orderBy: { name: "asc" } }),
     db.appointment.findFirst({
@@ -36,29 +37,24 @@ export default async function Home() {
     }),
   ]);
 
-  // Score level 1–3 from concern count (deterministic heuristic, a "ชวนสังเกต" prompt).
-  const level = concernCount === 0 ? 1 : concernCount <= 2 ? 2 : 3;
-  const score = {
-    1: { badge: "ดูแลได้ดี", label: "ระดับ 1 จาก 3 — สบายดี" },
-    2: { badge: "ควรสังเกต", label: "ระดับ 2 จาก 3 — ปานกลาง" },
-    3: { badge: "ควรปรึกษาหมอ", label: "ระดับ 3 จาก 3 — ควรใส่ใจ" },
-  }[level];
+  const level = scoreLevel(recentSev.map((o) => o.severity));
+  const score = LEVEL[level];
 
-  // Weight rows show a trend arrow vs the previous entry (like the prototype).
+  // Weight rows: trend arrow colored — ลดลง=แดง (น่าห่วง), เพิ่มขึ้น=เขียว.
   const weightItems = weights.map((w, i) => {
     const prev = weights[i + 1];
-    let trend = "";
+    let trend: { text: string; up: boolean } | null = null;
     if (prev) {
       const d = w.kg - prev.kg;
-      if (Math.abs(d) >= 0.1) trend = ` ${d < 0 ? "↘" : "↗"} ${Math.abs(d).toFixed(1)} กก.`;
+      if (Math.abs(d) >= 0.1) trend = { text: `${d < 0 ? "↘" : "↗"} ${Math.abs(d).toFixed(1)} กก.`, up: d > 0 };
     }
-    return { id: w.id, at: w.at, label: "น้ำหนัก", text: `${w.kg} กก.${trend}`, dotClass: "" };
+    return { id: w.id, at: w.at, label: "น้ำหนัก", text: `${w.kg} กก.`, trend, dotClass: "teal" as string };
   });
-  // Good news → clay dot + "วันนี้ดี"; concerns → amber dot + "เอ๊ะ ·" prefix.
+  // Good news → clay dot + "วันนี้ดี"; concerns → severity-colored dot + "เอ๊ะ ·" prefix.
   const obsItems = obs.map((o) =>
     o.category === "เรื่องดี"
-      ? { id: o.id, at: o.at, label: "วันนี้ดี", text: o.text, dotClass: "clay" }
-      : { id: o.id, at: o.at, label: `เอ๊ะ · ${o.category}`, text: o.text, dotClass: "amber" },
+      ? { id: o.id, at: o.at, label: "วันนี้ดี", text: o.text, trend: null, dotClass: "green" }
+      : { id: o.id, at: o.at, label: `เอ๊ะ · ${o.category}`, text: o.text, trend: null, dotClass: dotClass(o.severity) },
   );
   const timeline = [...weightItems, ...obsItems]
     .sort((a, b) => b.at.getTime() - a.at.getTime())
@@ -68,7 +64,7 @@ export default async function Home() {
     <div className="space-y-6">
       <h2 className="screen-title">{patient.name}</h2>
 
-      <Link href="/signals?view=signal" className="doctor-score block">
+      <Link href="/signals?view=signal" className={`doctor-score block ${score.cls}`}>
         <div className="score-top">
           <small>จากบันทึก 7 วันนี้ของม้า</small>
           <span className="score-badge">{score.badge}</span>
@@ -132,7 +128,12 @@ export default async function Home() {
                   <span className={`dot ${e.dotClass}`} aria-hidden />
                   <div>
                     <small>{e.label}</small>
-                    <strong>{e.text}</strong>
+                    <strong>
+                      {e.text}
+                      {e.trend && (
+                        <b className={e.trend.up ? "text-[#2f9e44]" : "text-red"}> {e.trend.text}</b>
+                      )}
+                    </strong>
                   </div>
                 </article>
               </Link>

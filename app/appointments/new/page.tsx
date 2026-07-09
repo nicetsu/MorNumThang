@@ -1,8 +1,35 @@
-import Link from "next/link";
-import { addAppointment } from "../actions";
+// ponytail: per-request DB read — never prerender a stale snapshot.
+export const dynamic = "force-dynamic";
 
-// New-appointment form (prototype screen 12).
-export default function NewAppointment() {
+import Link from "next/link";
+import { db } from "@/lib/db";
+import { AppointmentForm } from "./appointment-form";
+
+// New-appointment screen (prototype screen 12) with followup cards from past appointments.
+export default async function NewAppointment() {
+  const patient = await db.patient.findFirst();
+  const appts = await db.appointment.findMany({ orderBy: { at: "desc" } });
+  const facilities = await db.facility.findMany({ orderBy: { name: "asc" } });
+
+  // Followup cards: distinct past appointments (by reason) to reuse.
+  const seen = new Set<string>();
+  const followups = appts
+    .filter((a) => a.note && !seen.has(a.note) && seen.add(a.note))
+    .slice(0, 4)
+    .map((a) => ({ note: a.note!, place: a.place }));
+
+  // Hospital suggestions: places used before + the patient's hospital first (most relevant),
+  // then the seeded Bangkok facilities. de-duped, order preserved.
+  const hospitals = [
+    ...new Set(
+      [
+        ...appts.map((a) => a.place),
+        patient?.hospital,
+        ...facilities.map((f) => f.name),
+      ].filter((h): h is string => !!h),
+    ),
+  ];
+
   return (
     <div className="space-y-4">
       <Link href="/appointments" className="back-link">← นัดของม้า</Link>
@@ -11,32 +38,7 @@ export default function NewAppointment() {
         <h2 className="screen-title">จดนัดใหม่</h2>
         <p className="lead">ใส่เท่าที่มี เดี๋ยวสมุดช่วยรวมไว้ให้ค่ะ</p>
       </div>
-
-      <form action={addAppointment} className="flow-form">
-        <label>
-          <span>เรื่องที่นัด</span>
-          <input name="note" required placeholder="เช่น ติดตามอายุรกรรมหัวใจ" />
-        </label>
-        <label>
-          <span>โรงพยาบาลหรือสถานที่</span>
-          <input name="place" placeholder="เช่น รพ.เจริญกรุงประชารักษ์" />
-        </label>
-        <div className="form-grid">
-          <label>
-            <span>วันที่</span>
-            <input name="date" type="date" required />
-          </label>
-          <label>
-            <span>เวลา</span>
-            <input name="time" type="time" />
-          </label>
-        </div>
-        <label>
-          <span>จดเพิ่มได้ (ไม่บังคับ)</span>
-          <textarea name="extra" rows={3} placeholder="เช่น นำผลเลือดไปด้วย" />
-        </label>
-        <button type="submit" className="btn-primary">เก็บนัดลงสมุด</button>
-      </form>
+      <AppointmentForm followups={followups} hospitals={hospitals} />
     </div>
   );
 }

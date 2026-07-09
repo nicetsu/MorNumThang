@@ -3,8 +3,9 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { db } from "@/lib/db";
-import { addAllergy, removeAllergy } from "../list/actions";
+import { removeAllergy } from "../list/actions";
 import { MedForm } from "../list/med-form";
+import { AllergyForm } from "./allergy-form";
 
 // Add-medication screen (prototype screen 8): allergy field + the med form.
 export default async function MedAdd() {
@@ -12,10 +13,11 @@ export default async function MedAdd() {
   if (!patient) {
     return <p className="py-8 text-muted-foreground">ยังไม่มีข้อมูลม้าค่ะ</p>;
   }
-  const allergies = await db.allergy.findMany({
-    where: { patientId: patient.id },
-    orderBy: { name: "asc" },
-  });
+  const [allergies, drugRows] = await Promise.all([
+    db.allergy.findMany({ where: { patientId: patient.id }, orderBy: { name: "asc" } }),
+    db.drug.findMany({ orderBy: { name: "asc" } }),
+  ]);
+  const drugs = drugRows.map((d) => d.name);
 
   return (
     <div className="space-y-6">
@@ -43,22 +45,13 @@ export default async function MedAdd() {
             ))
           )}
         </div>
-        <form action={addAllergy} className="flex gap-2">
-          <input
-            name="name"
-            placeholder="เพิ่มยาที่แพ้"
-            className="min-h-[54px] flex-1 rounded-[14px] border border-line bg-white px-4 text-[18px]"
-          />
-          <button type="submit" className="min-h-[54px] rounded-[14px] bg-clay px-5 font-extrabold text-white">
-            เพิ่ม
-          </button>
-        </form>
+        <AllergyForm drugs={drugs} />
         <p className="allergy-note mt-3">
           <span>!</span> ยาที่แพ้จะถูกล็อกไว้ในรายการ เลือกไม่ได้เพื่อความปลอดภัย
         </p>
       </section>
 
-      <MedForm allergies={allergies.map((a) => a.name)} />
+      <MedForm allergies={allergies.map((a) => a.name)} drugs={drugs} />
     </div>
   );
 }

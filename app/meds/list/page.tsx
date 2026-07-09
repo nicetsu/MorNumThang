@@ -4,13 +4,17 @@ export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { db } from "@/lib/db";
 
-// The four time-of-day slots (prototype screen 17), always shown.
-const SLOTS: { label: string; hint: string; match: (w: string | null) => boolean }[] = [
-  { label: "เช้า", hint: "หลังอาหารเช้า", match: (w) => !!w?.includes("เช้า") },
-  { label: "กลางวัน", hint: "หลังอาหารกลางวัน", match: (w) => !!w?.includes("กลางวัน") },
-  { label: "เย็น", hint: "หลังอาหารเย็น", match: (w) => !!w?.includes("เย็น") },
-  { label: "ก่อนนอน", hint: "ก่อนเข้านอน", match: (w) => !!w?.includes("ก่อนนอน") },
-];
+// Each meal-timing is its own slot, so "ก่อนอาหาร" and "หลังอาหาร" never merge.
+const WHEN_ORDER = ["ก่อนอาหารเช้า", "หลังอาหารเช้า", "หลังอาหารกลางวัน", "หลังอาหารเย็น", "ก่อนนอน"];
+
+// Short time-of-day label shown big; the exact meal-timing is the small hint.
+function timeOf(w: string): string {
+  if (w.includes("เช้า")) return "เช้า";
+  if (w.includes("กลางวัน")) return "กลางวัน";
+  if (w.includes("เย็น")) return "เย็น";
+  if (w.includes("นอน")) return "ก่อนนอน";
+  return "อื่น ๆ";
+}
 
 export default async function MedSchedule() {
   const patient = await db.patient.findFirst();
@@ -21,8 +25,14 @@ export default async function MedSchedule() {
     where: { patientId: patient.id },
     orderBy: { name: "asc" },
   });
-  const other = meds.filter((m) => !SLOTS.some((s) => s.match(m.whenTime)));
   const dose = (m: (typeof meds)[number]) => (m.dose ? `${m.dose} เม็ด` : "");
+
+  // Build one slot per distinct meal-timing that actually has meds (canonical order first).
+  const slots = WHEN_ORDER.map((when) => ({ when, meds: meds.filter((m) => m.whenTime === when) })).filter(
+    (s) => s.meds.length > 0,
+  );
+  const other = meds.filter((m) => !m.whenTime || !WHEN_ORDER.includes(m.whenTime));
+  if (other.length) slots.push({ when: "ตามแพทย์สั่ง", meds: other });
 
   return (
     <div className="space-y-4">
@@ -38,45 +48,27 @@ export default async function MedSchedule() {
         <Link href="/meds/add">+ เพิ่มยา</Link>
       </div>
 
-      {SLOTS.map((s) => {
-        const inSlot = meds.filter((m) => s.match(m.whenTime));
-        return (
-          <article key={s.label} className="dose-slot">
+      {slots.length === 0 ? (
+        <p className="rounded-[18px] border border-dashed border-line p-6 text-center text-muted-foreground">
+          ยังไม่มีรายการยา
+        </p>
+      ) : (
+        slots.map((s) => (
+          <article key={s.when} className="dose-slot">
             <div className="dose-time">
-              <span>{s.label}</span>
-              <small>{s.hint}</small>
+              <span>{timeOf(s.when)}</span>
+              <small>{s.when}</small>
             </div>
-            {inSlot.length === 0 ? (
-              <p className="dose-empty">— ไม่มียาช่วงนี้ —</p>
-            ) : (
-              <ul className="dose-list">
-                {inSlot.map((m) => (
-                  <li key={m.id}>
-                    <strong>{m.name}</strong>
-                    <small>{dose(m)}</small>
-                  </li>
-                ))}
-              </ul>
-            )}
+            <ul className="dose-list">
+              {s.meds.map((m) => (
+                <li key={m.id}>
+                  <strong>{m.name}</strong>
+                  <small>{dose(m)}</small>
+                </li>
+              ))}
+            </ul>
           </article>
-        );
-      })}
-
-      {other.length > 0 && (
-        <article className="dose-slot">
-          <div className="dose-time">
-            <span>อื่น ๆ</span>
-            <small>ตามแพทย์สั่ง</small>
-          </div>
-          <ul className="dose-list">
-            {other.map((m) => (
-              <li key={m.id}>
-                <strong>{m.name}</strong>
-                <small>{dose(m)}</small>
-              </li>
-            ))}
-          </ul>
-        </article>
+        ))
       )}
 
       {meds.length > 0 && (

@@ -5,7 +5,12 @@ import { toast } from "sonner";
 import { organizeNarrativeAction, saveObservations } from "./actions";
 import { AI_DISCLAIMER } from "@/lib/disclaimer";
 
-type Item = { category: string; text: string };
+type Item = { category: string; text: string; severity: number };
+
+// Dot color by AI severity: 0-3 เขียว, 4-7 เหลือง, 8-10 แดง.
+function sevColor(s: number): string {
+  return s >= 8 ? "bg-red" : s >= 4 ? "bg-amber" : "bg-teal";
+}
 
 const CHIPS = [
   { label: "กินน้อยลง", value: "ช่วงนี้แม่กินน้อยลง" },
@@ -85,13 +90,16 @@ export function NarrativeRecord() {
           <strong className="block text-teal">ตรวจก่อนบันทึก — แก้ไขได้เลยค่ะ</strong>
           {items.map((it, i) => (
             <div key={i} className="space-y-1 rounded-xl border border-line bg-card p-3">
-              <input
-                value={it.category}
-                onChange={(e) =>
-                  setItems((arr) => arr!.map((x, j) => (j === i ? { ...x, category: e.target.value } : x)))
-                }
-                className="w-full rounded-lg border border-line bg-ivory px-3 py-1.5 text-sm font-bold"
-              />
+              <div className="flex items-center gap-2">
+                <span className={`size-3 shrink-0 rounded-full ${sevColor(it.severity)}`} title={`ความควรใส่ใจ ${it.severity}/10`} aria-hidden />
+                <input
+                  value={it.category}
+                  onChange={(e) =>
+                    setItems((arr) => arr!.map((x, j) => (j === i ? { ...x, category: e.target.value } : x)))
+                  }
+                  className="w-full rounded-lg border border-line bg-ivory px-3 py-1.5 text-sm font-bold"
+                />
+              </div>
               <textarea
                 value={it.text}
                 onChange={(e) =>

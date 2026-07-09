@@ -58,6 +58,14 @@ export default async function Profile() {
         </article>
       </div>
 
+      <Link
+        href="/rights"
+        className="flex items-center justify-between rounded-[18px] bg-teal px-5 py-4 font-bold text-white"
+      >
+        <span>ดูสิทธิการรักษาของม้า</span>
+        <span aria-hidden>→</span>
+      </Link>
+
       {patient.diseases && (
         <section>
           <h3 className="section-heading">โรคประจำตัว</h3>
@@ -73,6 +81,7 @@ export default async function Profile() {
             <strong className="block">{patient.caregiver ?? "ยังไม่ได้ระบุคนดูแล"}</strong>
             <small className="text-muted-foreground">อัปเดตสมุดของม้า</small>
           </span>
+          <b className="self-center rounded-lg bg-teal px-4 py-2 font-bold text-white">โทร</b>
         </div>
       </section>
 
@@ -85,6 +94,7 @@ export default async function Profile() {
               <strong className="block">{patient.hospital}</strong>
               <small className="text-muted-foreground">โรงพยาบาลตามสิทธิ์{patient.coverage ? ` · ${patient.coverage}` : ""}</small>
             </span>
+            <b className="self-center rounded-lg bg-teal px-4 py-2 font-bold text-white">โทร</b>
           </div>
         </section>
       )}

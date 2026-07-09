@@ -32,11 +32,19 @@ model Patient {
 
 // A narrative observation the caregiver told, AI-organized into a category.
 // The model categorizes only — it does not diagnose (AGENTS.md rule 2).
+// Drug catalog — the pick-list for adding medications & allergies (no patient relation).
+model Drug {
+  id       String  @id @default(cuid())
+  name     String  @unique
+  category String?
+}
+
 model Observation {
   id        String   @id @default(cuid())
   patientId String
   category  String // เช่น การกิน, การนอนและขับถ่าย
   text      String
+  severity  Int? // 0-10 ความร้ายแรงที่ AI ประเมิน (จุดในเส้นเวลา)
   at        DateTime @default(now())
   patient   Patient  @relation(fields: [patientId], references: [id])
 }
@@ -90,4 +98,55 @@ model VisitNote {
   nextAppointment String?
   at              DateTime @default(now())
   patient         Patient  @relation(fields: [patientId], references: [id])
+}
+
+// --- Health-rights knowledge base (reference/lookup data, seeded from the
+// Health-Navigator spreadsheet). No Patient relations — these are static tables.
+// Eligibility is decided deterministically in lib/rights.ts, never by the LLM. ---
+
+model HealthRight {
+  id            String @id // R001…
+  name          String
+  eligibleUsers String
+  facility      String
+  monthlyCost   String
+  coverageLevel String
+}
+
+model Service {
+  id       String @id // S001…
+  name     String
+  category String
+}
+
+model Agency {
+  id             String @id // A001…
+  name           String
+  responsibility String
+}
+
+model Facility {
+  id       String @id // F001…
+  code     String
+  name     String
+  district String
+  type     String
+  lat      Float?
+  lng      Float?
+}
+
+// The deterministic engine: (right + age + condition) → service, facility, category.
+model RecommendationRule {
+  id          Int    @id @default(autoincrement())
+  serviceName String
+  right       String // "ทุกสิทธิ" | "บัตรทอง" | …
+  facility    String
+  condition   String // free Thai text, parsed in lib/rights.ts
+  category    String
+}
+
+model RequiredDoc {
+  id      Int    @id @default(autoincrement())
+  service String
+  docs    String
 }

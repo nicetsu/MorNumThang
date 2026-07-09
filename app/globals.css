@@ -435,6 +435,12 @@
   .timeline .dot.clay {
     background: var(--clay);
   }
+  .timeline .dot.green {
+    background: #2f9e44;
+  }
+  .timeline .dot.red {
+    background: var(--red);
+  }
   .timeline small,
   .timeline em {
     display: block;
@@ -495,6 +501,37 @@
     border-radius: 19px;
     background: var(--amber-soft);
     color: var(--ink);
+  }
+  /* Box color by average level: 0 white, 1 green, 2 yellow, 3 orange. */
+  .doctor-score.lvl-0 {
+    background: #fff;
+    border-color: var(--line);
+  }
+  .doctor-score.lvl-1 {
+    background: #e8f5ec;
+    border-color: #b7e0c4;
+  }
+  .doctor-score.lvl-2 {
+    background: var(--amber-soft);
+    border-color: #f0d9a6;
+  }
+  .doctor-score.lvl-3 {
+    background: var(--clay-soft);
+    border-color: #e8b8b2;
+  }
+  .doctor-score.lvl-1 .score-badge {
+    background: #2f9e44;
+    color: #fff;
+  }
+  .doctor-score.lvl-3 .score-badge {
+    background: var(--clay);
+    color: #fff;
+  }
+  .doctor-score.lvl-1 .score-meter i.filled {
+    background: #2f9e44;
+  }
+  .doctor-score.lvl-3 .score-meter i.filled {
+    background: var(--clay);
   }
   .doctor-score .score-top {
     display: flex;
@@ -639,6 +676,118 @@
     background: var(--teal-soft);
     color: var(--teal);
     font-size: 16px;
+    font-weight: 800;
+  }
+
+  /* Doctor summary (screen 5) */
+  .translation {
+    padding: 17px;
+    border-radius: 18px;
+  }
+  .translation small {
+    font-weight: 800;
+  }
+  .translation p {
+    margin: 6px 0 0;
+    line-height: 1.55;
+  }
+  .clinical-language {
+    background: var(--teal-soft);
+  }
+  .clinical-language small {
+    color: var(--teal);
+  }
+  .medical-facts {
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: #fff;
+  }
+  .medical-facts > div {
+    padding: 13px 16px;
+  }
+  .medical-facts > div + div {
+    border-top: 1px solid var(--line);
+  }
+  .medical-facts small,
+  .medical-facts strong {
+    display: block;
+  }
+  .medical-facts small {
+    color: var(--muted-foreground);
+    font-size: 16px;
+  }
+  .handoff-hint {
+    text-align: center;
+    color: var(--teal);
+    font-weight: 700;
+  }
+
+  /* AI "เอ๊ะ" analysis cards */
+  .aeh-card {
+    padding: 16px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: #fff;
+  }
+  .aeh-head {
+    display: grid;
+    grid-template-columns: 48px 1fr auto;
+    gap: 12px;
+    align-items: center;
+  }
+  .aeh-head > span {
+    width: 48px;
+    height: 48px;
+    display: grid;
+    place-items: center;
+    border-radius: 15px;
+    background: var(--amber-soft);
+    color: #80570c;
+    font-size: 16px;
+    font-weight: 800;
+  }
+  .aeh-head strong {
+    display: block;
+    color: var(--ink);
+    font-size: 18px;
+    line-height: 1.35;
+  }
+  .aeh-head small {
+    display: block;
+    margin-top: 2px;
+    color: var(--muted-foreground);
+    font-size: 15px;
+  }
+  .aeh-head b.risk {
+    padding: 5px 11px;
+    border-radius: 14px;
+    font-size: 14px;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+  .risk.high {
+    background: var(--clay-soft);
+    color: var(--clay);
+  }
+  .risk.mid {
+    background: var(--amber-soft);
+    color: #94620d;
+  }
+  .risk.low {
+    background: #e8f5ec;
+    color: #2f9e44;
+  }
+  .aeh-tip {
+    margin: 12px 0 0;
+    padding: 12px 14px;
+    border-left: 3px solid var(--teal);
+    border-radius: 8px 12px 12px 8px;
+    background: var(--teal-soft);
+    color: var(--teal-dark);
+    font-size: 16px;
+    line-height: 1.5;
+  }
+  .aeh-tip b {
     font-weight: 800;
   }
   .dose-list {
@@ -821,6 +970,43 @@
     border: 1px solid var(--line);
     border-radius: 19px;
     background: #fff;
+  }
+  .section-subtitle {
+    margin: 5px 0 14px;
+    color: #76500e;
+  }
+  .followup-cards {
+    display: grid;
+    gap: 10px;
+  }
+  .followup-card {
+    width: 100%;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: #fff;
+    text-align: left;
+  }
+  .followup-card strong {
+    display: block;
+    font-size: 17px;
+  }
+  .followup-card small {
+    display: block;
+    margin-top: 2px;
+    color: var(--muted-foreground);
+    font-size: 15px;
+  }
+  .followup-card b {
+    flex: none;
+    color: var(--teal);
+    font-size: 15px;
+    font-weight: 800;
+    white-space: nowrap;
   }
 
   /* allergy chips */

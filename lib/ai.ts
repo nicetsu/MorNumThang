@@ -91,12 +91,18 @@ export function streamCareSuggestions(data: SummaryData) {
 // Categorizes only, never diagnoses.
 const ORGANIZE_SYSTEM = `คุณช่วยจัดเรื่องที่ครอบครัวเล่าเข้าหมวดหมู่ เป็นภาษาไทย
 กฎ:
-- แยกเรื่องที่เล่าออกเป็นข้อ ๆ แต่ละข้อมี "category" (หมวด) และ "text" (สรุปสั้น ๆ)
+- แยกเรื่องที่เล่าออกเป็นข้อ ๆ แต่ละข้อมี "category" (หมวด), "text" (สรุปสั้น ๆ) และ "severity" (ความควรใส่ใจ 0-10)
+- severity: 0-3 = เรื่องทั่วไป/ข่าวดี, 4-7 = ควรเฝ้าดู, 8-10 = ควรใส่ใจมาก/ควรปรึกษาหมอ. เรื่องดีให้ 0-2
 - หมวดที่ใช้ได้: การกิน, การนอนและขับถ่าย, การเดิน, ยา, อารมณ์, เรื่องดี, อื่น ๆ
-- ห้ามวินิจฉัยโรคหรือแนะนำยา สรุปเฉพาะสิ่งที่เล่ามา
-- ตอบกลับเป็น JSON array เท่านั้น เช่น [{"category":"การกิน","text":"กินน้อยลง"}] ห้ามมีข้อความอื่น`;
+- ห้ามวินิจฉัยโรคหรือแนะนำยา severity เป็นแค่การชวนสังเกต ไม่ใช่การวินิจฉัย
+- ตอบกลับเป็น JSON array เท่านั้น เช่น [{"category":"การกิน","text":"กินน้อยลง","severity":6}] ห้ามมีข้อความอื่น`;
 
-export type OrganizedItem = { category: string; text: string };
+export type OrganizedItem = { category: string; text: string; severity: number };
+
+function clampSeverity(v: unknown): number {
+  const n = Math.round(Number(v));
+  return Number.isFinite(n) ? Math.min(10, Math.max(0, n)) : 5; // default medium
+}
 
 export async function organizeNarrative(story: string): Promise<OrganizedItem[]> {
   const { text } = await generateText({
@@ -112,7 +118,11 @@ export async function organizeNarrative(story: string): Promise<OrganizedItem[]>
     try {
       const arr = JSON.parse(match[0]);
       const items = (Array.isArray(arr) ? arr : [])
-        .map((x) => ({ category: String(x?.category ?? "อื่น ๆ").trim(), text: String(x?.text ?? "").trim() }))
+        .map((x) => ({
+          category: String(x?.category ?? "อื่น ๆ").trim(),
+          text: String(x?.text ?? "").trim(),
+          severity: clampSeverity(x?.severity),
+        }))
         .filter((x) => x.text);
       if (items.length) return items;
     } catch {
@@ -120,5 +130,5 @@ export async function organizeNarrative(story: string): Promise<OrganizedItem[]>
     }
   }
   // Fallback: keep the caregiver's words rather than losing them.
-  return [{ category: "อื่น ๆ", text: story.trim() }];
+  return [{ category: "อื่น ๆ", text: story.trim(), severity: 5 }];
 }

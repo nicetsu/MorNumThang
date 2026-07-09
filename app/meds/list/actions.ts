@@ -20,12 +20,14 @@ export async function addAllergy(formData: FormData) {
   if (existing.some((a) => a.name.toLowerCase() === name.toLowerCase())) return;
   await db.allergy.create({ data: { patientId: pid, name } });
   revalidatePath("/meds/list");
+  revalidatePath("/meds/add");
 }
 
 export async function removeAllergy(formData: FormData) {
   const id = String(formData.get("id") ?? "");
   if (id) await db.allergy.delete({ where: { id } });
   revalidatePath("/meds/list");
+  revalidatePath("/meds/add");
 }
 
 export type MedState = { error?: string; ok?: string };
@@ -62,6 +64,7 @@ export async function addMedication(
     },
   });
   revalidatePath("/meds/list");
+  revalidatePath("/meds/add");
   revalidatePath("/");
   // Back to the schedule so the new med shows in its slot (prototype flow).
   redirect("/meds/list");

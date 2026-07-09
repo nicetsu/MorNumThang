@@ -40,14 +40,19 @@ export async function organizeNarrativeAction(story: string): Promise<OrganizedI
   return organizeNarrative(s);
 }
 
-// Persist the reviewed observations the caregiver confirmed.
+// Persist the reviewed observations the caregiver confirmed (with AI severity).
 export async function saveObservations(items: OrganizedItem[]) {
   const clean = items
-    .map((i) => ({ category: i.category.trim() || "อื่น ๆ", text: i.text.trim() }))
+    .map((i) => ({
+      category: i.category.trim() || "อื่น ๆ",
+      text: i.text.trim(),
+      severity: typeof i.severity === "number" ? i.severity : 5,
+    }))
     .filter((i) => i.text);
   if (!clean.length) return;
   const p = await db.patient.findFirstOrThrow();
   await db.observation.createMany({ data: clean.map((i) => ({ ...i, patientId: p.id })) });
   revalidatePath("/logs");
   revalidatePath("/");
+  revalidatePath("/signals");
 }
