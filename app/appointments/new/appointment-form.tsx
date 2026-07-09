@@ -6,6 +6,7 @@ import { th } from "date-fns/locale";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
+import { Combobox } from "@/components/combobox";
 import { addAppointment } from "../actions";
 
 type Followup = { note: string; place: string | null };
@@ -60,13 +61,18 @@ export function AppointmentForm({
         <Input name="note" required value={note} onChange={(e) => setNote(e.target.value)} placeholder="เช่น ติดตามอายุรกรรมหัวใจ" />
       </label>
 
-      <label>
-        <span>โรงพยาบาลหรือสถานที่</span>
-        <Input name="place" list="hospitals" value={place} onChange={(e) => setPlace(e.target.value)} placeholder="เลือกหรือพิมพ์โรงพยาบาล" />
-        <datalist id="hospitals">
-          {hospitals.map((h) => <option key={h} value={h} />)}
-        </datalist>
-      </label>
+      <div>
+        <span className="mb-[7px] block font-extrabold text-[17px] text-teal">โรงพยาบาลหรือสถานที่</span>
+        <Combobox
+          name="place"
+          value={place}
+          onChange={setPlace}
+          options={hospitals.map((h) => ({ value: h, label: h }))}
+          placeholder="เลือกหรือพิมพ์โรงพยาบาล"
+          searchPlaceholder="ค้นหาโรงพยาบาล…"
+          allowCustom
+        />
+      </div>
 
       <div className="form-grid">
         <label>

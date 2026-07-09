@@ -355,8 +355,13 @@
   }
   .form-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    /* minmax(0,…) lets tracks shrink below the child's intrinsic width —
+       iOS <input type="time"> otherwise refuses to shrink and overflows. */
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 10px;
+  }
+  .form-grid > * {
+    min-width: 0; /* let grid items shrink below their content's intrinsic width */
   }
   .unit-input {
     position: relative;

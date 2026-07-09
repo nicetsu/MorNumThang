@@ -25,13 +25,20 @@ self.addEventListener("fetch", (event) => {
   event.respondWith(
     caches.open(CACHE).then((cache) =>
       cache.match(request).then((hit) => {
-        const fresh = fetch(request)
-          .then((res) => {
-            cache.put(request, res.clone()).catch(() => {});
-            return res;
-          })
-          .catch(() => hit); // offline: fall back to whatever we have
-        return hit || fresh; // cached copy now, network only if nothing cached
+        const network = fetch(request).then((res) => {
+          cache.put(request, res.clone()).catch(() => {});
+          return res;
+        });
+
+        if (hit) {
+          network.catch(() => {}); // refresh when online; ignore offline errors
+          return hit;
+        }
+
+        // No cache: must return a Response, not undefined, when offline.
+        return network.catch(
+          () => new Response("Offline", { status: 503, statusText: "Service Unavailable" }),
+        );
       }),
     ),
   );
