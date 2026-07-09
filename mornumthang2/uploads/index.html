@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1F6E63">
+  <title>หมอนำทาง — MVP v1.4</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=24">
+</head>
+<body>
+  <main class="app-shell">
+    <header class="app-header">
+      <a class="brand" href="#" id="brandHome" aria-label="กลับสมุดของม้า">
+        <span class="brand-mark" aria-hidden="true" style="display: none"><i></i><i></i><b></b></span>
+        <span style="color: #1F6E63">หมอนำทาง</span>
+      </a>
+      <button class="urgent-top" type="button" data-screen-link="4" aria-label="เกิดเรื่องแล้ว — ฉุกเฉิน" style="font-weight: 400; padding: 2px; width: 68px; height: 46px; border-radius: 8px">ฉุกเฉิน</button>
+    </header>
+
+    <div class="screen-wrap">
+      <section class="screen active" data-screen="2" aria-labelledby="bookTitle">
+        <h2 id="bookTitle" hidden>นาง สมพร ประเสริศ</h2>
+        <div class="tab-panel active" data-panel="logs">
+          <h2>นาง สมพร ประเสริศ</h2>
+          <div class="care-header" style="display: none">
+            <div><small>สมุดของ</small><strong id="careHeaderName">ม้า</strong></div>
+          </div>
+          <button class="doctor-score" type="button" data-screen-link="15" data-log-target="signal">
+            <div class="score-top"><small>จากบันทึก 7 วันนี้ของม้า</small><span class="score-badge">ควรปรึกษาหมอ</span></div>
+            <div class="score-meter" aria-hidden="true"><i></i><i></i><i></i></div>
+            <strong>ระดับ 2 จาก 3 — ปานกลาง</strong>
+            <em>แตะเพื่อดูผลวิเคราะห์จาก AI →</em>
+          </button>
+          <div class="reminder-cards">
+            <button class="reminder-card" type="button" data-screen-link="17">
+              <small>ยาช่วงถัดไป</small>
+              <strong>ยาความดัน · 1 เม็ด</strong>
+              <span>เย็น · หลังอาหารเย็น</span>
+            </button>
+            <button class="reminder-card appt" type="button" data-screen-link="9">
+              <small>นัดที่จะถึง</small>
+              <strong>อายุรกรรมหัวใจ</strong>
+              <span>พรุ่งนี้ · 09:00 น.</span>
+            </button>
+          </div>
+          <div class="section-heading" style="position: relative"><h3>บันทึกล่าสุด</h3><button type="button" data-screen-link="1" data-record-target="aeh">+ บันทึก</button></div>
+          <div class="timeline">
+            <article class="tap" data-screen-link="15" data-log-target="all" data-event-target="eat-0710"><time>วันนี้ · 08:10</time><span class="dot amber"></span><div><small>เอ๊ะ · การกิน</small><strong>ช่วงนี้กินน้อยลง ดื่มน้ำน้อย</strong><em>ข้อมูลตัวอย่าง</em></div></article>
+            <article class="tap" data-screen-link="15" data-log-target="all" data-event-target="weight-0730"><time>วันนี้ · 07:30</time><span class="dot teal"></span><div><small>น้ำหนัก</small><strong>52.1 กก. <b>↘ 1.8 กก.</b></strong><em>เทียบ 4 สัปดาห์ก่อน · ข้อมูลตัวอย่าง</em></div></article>
+            <article class="tap" data-screen-link="15" data-log-target="all" data-event-target="good-yday"><time>เมื่อวาน</time><span class="dot clay"></span><div><small>วันนี้ดี</small><strong>วันนี้ม้ากินหมดจานเลย เก่งมากค่ะ</strong></div></article>
+          </div>
+        </div>
+        <div class="tab-panel" data-panel="meds">
+          <div class="nav-cards">
+            <button class="nav-card" type="button" data-screen-link="17">
+              <span class="nav-card-icon">ยา</span>
+              <span class="nav-card-body"><strong>ยาที่ต้องทาน</strong><small>ตารางเช้า กลางวัน เย็น และก่อนนอน</small></span>
+              <b class="nav-card-arrow">›</b>
+            </button>
+            <button class="nav-card" type="button" data-screen-link="18">
+              <span class="nav-card-icon">นัด</span>
+              <span class="nav-card-body"><strong>นัดหมอ</strong><small>นัดถัดไปและสิ่งที่ต้องเตรียม</small></span>
+              <b class="nav-card-arrow">›</b>
+            </button>
+            <button class="nav-card" type="button" data-screen-link="19">
+              <span class="nav-card-icon">ดูแล</span>
+              <span class="nav-card-body"><strong>คู่มือดูแลม้า</strong><small>สิ่งที่ม้าทำได้ และวิธีช่วยให้สบายตัว</small></span>
+              <b class="nav-card-arrow">›</b>
+            </button>
+          </div>
+        </div>
+        <div class="tab-panel" data-panel="profile">
+          <article class="identity-card"><div class="avatar large" id="identityAvatar">ม้า</div><div><strong id="identityName">ม้า · 74 ปี</strong><p id="identityMeta">บัตรทอง · รพ.เจริญกรุงประชารักษ์</p><small id="identityLikes">ชอบละคร วาไรตี้ และมาสเตอร์เชฟ</small><small id="identityJob">อาชีพ: เกษียณแล้ว</small></div><button class="identity-edit" type="button" data-screen-link="16">แก้ไข</button></article>
+          <div class="vitals"><article><small>น้ำหนัก</small><strong>52.1</strong><em>กก. ↘</em></article><article><small>ความดัน</small><strong>132/78</strong><em>มม.ปรอท</em></article><article><small>ชีพจร</small><strong>72</strong><em>ครั้ง/นาที</em></article></div>
+          <small class="updated">บันทึกล่าสุดวันนี้ · ข้อมูลตัวอย่าง</small>
+          <article class="people-section"><h3>คนดูแล</h3><button type="button"><span class="person-avatar">จ</span><span><strong>เจี๊ยบ · ผู้ดูแลหลัก</strong><small>อัปเดตสมุดวันนี้</small></span><b>โทร</b></button></article>
+          <article class="people-section"><h3>โรงพยาบาลในสิทธิ์</h3><p>หมอ โรงพยาบาล และหน่วยช่วยเหลือ — กดโทรได้เลย</p><button type="button"><span class="person-avatar pro">รพ.</span><span><strong>รพ.เจริญกรุงประชารักษ์</strong><small>โรงพยาบาลตามสิทธิ์</small></span><b>โทร</b></button></article>
+        </div>
+      </section>
+
+      <section class="screen" data-screen="15" aria-labelledby="allLogsTitle">
+        <button class="back-link" type="button" data-screen-link="2" data-tab-target="logs">← สมุดของม้า</button>
+        <p class="eyebrow">ประวัติการดูแลม้า</p>
+        <h2 id="allLogsTitle">บันทึกของม้า</h2>
+        <div class="tabs small-tabs log-tabs" role="tablist" aria-label="มุมมองบันทึก">
+          <button class="active" role="tab" type="button" data-log-tab="all">สรุปเหตุการณ์</button>
+          <button role="tab" type="button" data-log-tab="signal">ผลวิเคราะห์ · เอ๊ะ</button>
+        </div>
+
+        <div class="log-panel active" data-log-panel="all">
+          <p class="lead">ทุกเรื่องที่ครอบครัวช่วยกันจดไว้ เรียงตามเวลา</p>
+          <div class="timeline">
+            <article data-event="eat-0710"><time>วันนี้ · 08:10</time><span class="dot amber"></span><div><small>เอ๊ะ · การกิน</small><strong>ช่วงนี้กินน้อยลง ดื่มน้ำน้อย</strong><em>ข้อมูลตัวอย่าง</em></div></article>
+            <article data-event="weight-0730"><time>วันนี้ · 07:30</time><span class="dot teal"></span><div><small>น้ำหนัก</small><strong>52.1 กก. <b>↘ 1.8 กก.</b></strong><em>เทียบ 4 สัปดาห์ก่อน</em></div></article>
+            <article data-event="good-yday"><time>เมื่อวาน</time><span class="dot clay"></span><div><small>วันนี้ดี</small><strong>วันนี้ม้ากินหมดจานเลย เก่งมากค่ะ</strong></div></article>
+            <article data-event="sleep-3d"><time>3 วันก่อน · 22:00</time><span class="dot amber"></span><div><small>เอ๊ะ · การนอน</small><strong>ตื่นเข้าห้องน้ำ ~5 ครั้ง/คืน</strong><em>จดต่อเนื่อง 5 คืน</em></div></article>
+            <article data-event="weight-7d"><time>7 วันก่อน · 07:20</time><span class="dot teal"></span><div><small>น้ำหนัก</small><strong>52.4 กก.</strong><em>ชั่งก่อนอาหารเช้า</em></div></article>
+            <article data-event="med-2w"><time>2 สัปดาห์ก่อน</time><span class="dot clay"></span><div><small>ยา</small><strong>ซื้อยาความดันเติมแล้ว</strong></div></article>
+          </div>
+          <button class="primary-button" type="button" data-screen-link="5">สรุปให้หมอ</button>
+        </div>
+
+        <div class="log-panel" data-log-panel="signal">
+          <p class="lead">AI ช่วยดูบันทึก 7 วัน แล้วชี้เรื่องที่ควรใส่ใจให้ค่ะ</p>
+          <div class="doctor-score" style="cursor:default">
+            <div class="score-top"><small>ผลวิเคราะห์จาก AI · จากบันทึก 7 วัน</small><span class="score-badge">ควรปรึกษาหมอ</span></div>
+            <div class="score-meter" aria-hidden="true"><i></i><i></i><i></i></div>
+            <strong>ระดับ 2 จาก 3 — ปานกลาง</strong>
+          </div>
+          <p class="helper"><span>✦</span> <b>“เอ๊ะ”</b> คือเหตุการณ์ที่ AI สังเกตว่าอาจนำไปสู่อาการที่ควรใส่ใจ เป็นการชวนสังเกต ไม่ใช่การวินิจฉัยโรค</p>
+
+          <div class="section-heading"><h3>เหตุการณ์ที่ต้องใส่ใจ</h3></div>
+          <article class="aeh-card">
+            <div class="aeh-head"><span>กิน</span><div><strong>กินน้อยลง · ดื่มน้ำน้อย</strong><small>จด 3 ครั้งใน 7 วัน</small></div><b class="risk high">เอ๊ะ</b></div>
+            <p class="aeh-tip"><b>ควรทำ ·</b> ชวนม้าจิบน้ำบ่อย ๆ แบ่งอาหารเป็นมื้อเล็ก ๆ และจดว่ากินได้แค่ไหนในแต่ละมื้อ</p>
+          </article>
+          <article class="aeh-card">
+            <div class="aeh-head"><span>กก.</span><div><strong>น้ำหนักลด 1.8 กก.</strong><small>ใน 4 สัปดาห์</small></div><b class="risk high">เอ๊ะ</b></div>
+            <p class="aeh-tip"><b>ควรทำ ·</b> ชั่งน้ำหนักสัปดาห์ละครั้งในเวลาเดิม และนำแนวโน้มนี้เล่าให้หมอฟังในนัดหน้า</p>
+          </article>
+          <article class="aeh-card">
+            <div class="aeh-head"><span>คืน</span><div><strong>ตื่นเข้าห้องน้ำ ~5 ครั้ง/คืน</strong><small>จดต่อเนื่อง 5 คืน</small></div><b class="risk mid">เฝ้าดู</b></div>
+            <p class="aeh-tip"><b>ควรทำ ·</b> จดจำนวนครั้งที่ตื่น งดน้ำก่อนนอน 2 ชม. และสังเกตว่ามีอาการอื่นร่วมด้วยไหม</p>
+          </article>
+
+          <p class="helper"><span>i</span> ระบบเทียบจากบันทึกของม้าเอง และยังไม่ได้บอกว่าเป็นโรคอะไร</p>
+          <button class="primary-button" type="button" data-screen-link="5">สรุปให้หมอ</button>
+        </div>
+      </section>
+
+      <section class="screen" data-screen="1" aria-labelledby="recordTitle">
+        <button class="back-link" type="button" data-screen-link="2">← สมุดของม้า</button>
+        <p class="eyebrow" style="display: none">บันทึกลงสมุดของม้า</p>
+        <h2 id="recordTitle">วันนี้อยากจดอะไรดีคะ</h2>
+        <div class="tabs small-tabs record-tabs" role="tablist" aria-label="ประเภทบันทึก">
+          <button class="active" role="tab" type="button" data-record-tab="aeh">เล่าอาการ</button>
+          <button role="tab" type="button" data-record-tab="weight">จดค่าร่างกาย</button>
+        </div>
+
+        <div class="record-panel active" data-record-panel="aeh">
+          <p class="lead">พูดหรือพิมพ์สั้น ๆ ได้เลย เดี๋ยวช่วยจัดเข้าหมวดให้</p>
+          <label class="input-card">
+            <span>เล่าให้ฟัง</span>
+            <textarea id="aehInput" rows="5">ช่วงนี้แม่กินน้อยลง ดื่มน้ำน้อย แล้วก็ตื่นเข้าห้องน้ำประมาณ 5 ครั้งต่อคืน</textarea>
+            <button class="mic-button" type="button" aria-label="พูดเพื่อบันทึกเสียง"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M6 11a6 6 0 0 0 12 0"></path><line x1="12" y1="17" x2="12" y2="21"></line><line x1="9" y1="21" x2="15" y2="21"></line></svg></button>
+          </label>
+          <div class="chips" aria-label="ตัวอย่างเรื่องที่เล่าได้">
+            <button type="button" data-chip="ช่วงนี้แม่กินน้อยลง">กินน้อยลง</button>
+            <button type="button" data-chip="ช่วงนี้แม่เดินไม่เหมือนเดิม">เดินไม่เหมือนเดิม</button>
+            <button type="button" data-chip="ช่วงนี้การนอนของแม่เปลี่ยนไป">นอนเปลี่ยนไป</button>
+            <button type="button" data-chip="วันนี้แม่กินหมดจาน เป็นเรื่องดี">วันนี้มีเรื่องดี</button>
+          </div>
+          <p class="helper"><span>✦</span> เล่าครั้งเดียว ระบบจัดเข้าสมุดให้ถูกหน้า</p>
+          <button class="primary-button" id="organizeButton" type="button">ช่วยจัดลงสมุด</button>
+
+          <div class="organized-result" id="organizedResult" hidden>
+            <div class="result-head"><span>✓</span><div><strong>เก็บไว้แล้วนะคะ</strong><p>ขอบคุณที่ช่วยสังเกต</p></div></div>
+            <article><small>การกิน · ช่วงนี้</small><strong>กินน้อยลง · ดื่มน้ำน้อย</strong><button type="button">แก้ไข</button></article>
+            <article><small>การนอนและขับถ่าย · ช่วงนี้</small><strong>ตื่นเข้าห้องน้ำ ~5 ครั้ง/คืน</strong><button type="button">แก้ไข</button></article>
+            <p class="safety-line">ระบบช่วยจัดหมวดจากคำที่เล่า ไม่ได้ใช้วินิจฉัยโรค</p>
+            <button class="primary-button" type="button" data-screen-link="2">ถูกต้อง เปิดสมุด</button>
+          </div>
+        </div>
+
+        <div class="record-panel" data-record-panel="weight">
+          <article class="last-value"><small>ครั้งล่าสุด · 7 วันที่แล้ว</small><strong>52.4 กก.</strong><span>ลดลง 1.5 กก. จาก 4 สัปดาห์ก่อน</span></article>
+          <form class="flow-form" id="weightForm">
+            <label><span>น้ำหนักวันนี้</span><div class="unit-input"><input id="weightInput" type="number" step="0.1" value="52.1" inputmode="decimal" required><b>กก.</b></div></label>
+            <label><span>ความดันโลหิต</span><div class="form-grid"><div class="unit-input"><input id="bpSystolic" type="number" value="132" min="60" inputmode="numeric" aria-label="ตัวบน"><b>บน</b></div><div class="unit-input"><input id="bpDiastolic" type="number" value="78" min="40" inputmode="numeric" aria-label="ตัวล่าง"><b>ล่าง</b></div></div></label>
+            <label><span>ชีพจร</span><div class="unit-input"><input id="pulseInput" type="number" value="72" min="30" inputmode="numeric"><b>ครั้ง/นาที</b></div></label>
+            <label><span>วันที่บันทึก</span><input id="weightDate" type="date" value="2026-07-06" required></label>
+            <label><span>จดเพิ่มได้ (ไม่บังคับ)</span><textarea id="weightNote" rows="3" placeholder="เช่น ชั่งก่อนอาหารเช้า">ชั่งก่อนอาหารเช้า</textarea></label>
+            <button class="primary-button" type="submit">เก็บลงสมุด</button>
+          </form>
+        </div>
+      </section>
+
+      <section class="screen" data-screen="3" aria-labelledby="signalTitle">
+        <button class="back-link" type="button" data-screen-link="2">← สมุดของม้า</button>
+        <p class="eyebrow amber-text">เรื่องที่ควรเล่าให้หมอฟัง</p>
+        <h2 id="signalTitle">ช่วงนี้เรื่องการกิน<br>มาบ่อย</h2>
+        <p class="lead">ลองเล่าให้หมอฟังนัดหน้า — เตรียมสรุปไว้ให้แล้วค่ะ</p>
+        <article class="signal-card">
+          <div><span>กิน</span><p><strong>กินน้อยลงและดื่มน้ำน้อย</strong>จด 3 ครั้งใน 7 วัน</p></div>
+          <div><span>กก.</span><p><strong>น้ำหนักลด 1.8 กก.</strong>ใน 4 สัปดาห์</p></div>
+          <div><span>คืน</span><p><strong>ตื่นเข้าห้องน้ำ ~5 ครั้ง</strong>จดต่อเนื่อง 5 คืน</p></div>
+        </article>
+        <p class="helper"><span>i</span> ระบบเทียบจากบันทึกของม้าเอง และยังไม่ได้บอกว่าเป็นโรคอะไร</p>
+        <button class="primary-button" type="button" data-screen-link="5">สรุปให้หมอ</button>
+      </section>
+
+      <section class="screen" data-screen="4" aria-labelledby="urgentTitle">
+        <button class="back-link" type="button" data-screen-link="2">← สมุดของม้า</button>
+        <p class="eyebrow">เมื่อเกิดเรื่อง</p>
+        <h2 id="urgentTitle">ใจเย็น ๆ นะคะ<br>เราไปทีละขั้น</h2>
+        <p class="lead">เลือกทำทีละอย่างจากสิ่งที่เกิดขึ้นตอนนี้</p>
+        <article class="path-card">
+          <span class="path-number">1</span><div><small>ทางที่หนึ่ง</small><h3>ดูแลตอนนี้</h3></div>
+          <ol><li>อยู่กับม้าในจุดที่ปลอดภัย</li><li>จดเวลาเริ่มและสิ่งที่เปลี่ยน</li><li>เตรียมยาและสมุดของม้าไว้ใกล้ตัว</li></ol>
+        </article>
+        <article class="path-card pro-path">
+          <span class="path-number">2</span><div><small>ทางที่สอง</small><h3>โทรหามือโปร</h3><p>หมอ โรงพยาบาล และหน่วยช่วยเหลือ — กดโทรได้เลย</p></div>
+          <button class="emergency-card" type="button"><strong>1669</strong><span>เจ็บป่วยฉุกเฉิน<small>ต้นแบบนี้จะไม่โทรออกจริง</small></span><b>โทร</b></button>
+          <button class="contact-card" type="button"><span><strong>รพ.เจริญกรุงประชารักษ์</strong><small>โรงพยาบาลตามสิทธิบัตรทอง</small></span><b>โทร</b></button>
+          <button class="contact-card" type="button"><span><strong>ศูนย์บริการสาธารณสุขใกล้บ้าน</strong><small>ข้อมูลบริการตัวอย่างจาก BMA</small></span><b>ดูเบอร์</b></button>
+        </article>
+        <p class="safety-line">หมอนำทางช่วยจัดลำดับและเตรียมข้อมูล ไม่ได้ประเมินความฉุกเฉินแทนบุคลากรทางการแพทย์</p>
+      </section>
+
+      <section class="screen" data-screen="5" aria-labelledby="doctorTitle">
+        <button class="back-link" type="button" data-screen-link="2">← สมุดของม้า</button>
+        <p class="eyebrow">จากภาษาที่บ้านเล่า</p>
+        <h2 id="doctorTitle">สรุปให้หมอ</h2>
+        <p class="lead">เรื่องที่บ้านช่วยกันจด จัดเป็นภาษาที่หมออ่านต่อได้</p>
+        <div class="summary-panel active" data-summary-panel="summary">
+          <article class="translation home-language"><small>ที่บ้านเล่า</small><p>“ช่วงนี้แม่กินน้อยลง ดื่มน้ำน้อย ตื่นเข้าห้องน้ำประมาณ 5 ครั้งต่อคืน แล้วน้ำหนักก็ลดลง”</p></article>
+          <div class="translate-arrow">ThaiLLM ช่วยเรียบเรียง ↓</div>
+          <article class="translation clinical-language"><small>สรุปให้หมอ</small><p>ครอบครัวรายงานว่า ช่วง 4 สัปดาห์ที่ผ่านมา รับประทานอาหารและดื่มน้ำน้อยลง น้ำหนักลด 1.8 กก. และตื่นปัสสาวะกลางคืนประมาณ 5 ครั้ง/คืน ต่อเนื่อง 5 คืน</p></article>
+          <article class="medical-facts"><div><small>โรคประจำตัว</small><strong id="diseaseFact">ความดันโลหิตสูง · โรคหัวใจ</strong></div><div><small>แพ้ยา</small><strong id="allergyFact">ไม่มีข้อมูลการแพ้ยา</strong></div><div><small>สิทธิ์</small><strong>บัตรทอง · รพ.เจริญกรุงประชารักษ์</strong></div></article>
+        </div>
+        <p class="handoff-hint">ยื่นจอนี้ให้พยาบาลได้เลยค่ะ</p>
+        <button class="primary-button" id="shareButton" type="button">แชร์สรุป</button>
+        <p class="safety-line">กรุณาตรวจคำให้ถูกก่อนแชร์ทุกครั้ง · ข้อมูลบันทึกโดยครอบครัว · ไม่ใช่การวินิจฉัย</p>
+      </section>
+
+      <section class="screen" data-screen="8" aria-labelledby="medicineTitle">
+        <button class="back-link" type="button" data-screen-link="2" data-tab-target="meds">← ยา &amp; นัด</button>
+        <p class="eyebrow">เพิ่มเข้ารายการยา</p>
+        <h2 id="medicineTitle">จดยาที่ใช้อยู่</h2>
+        <p class="lead">จดตามฉลากหรือรายการยาที่ได้รับมานะคะ</p>
+        <form class="flow-form" id="medicineForm">
+          <label><span>ยาที่แพ้</span>
+            <div class="allergy-field">
+              <div class="allergy-summary" id="allergySummary">
+                <span id="allergySummaryText">ยังไม่มีข้อมูลยาที่แพ้</span>
+                <button type="button" id="allergyEditBtn">แก้ไข</button>
+              </div>
+              <div class="allergy-edit" id="allergyEdit" hidden>
+                <div class="allergy-chips" id="allergyChips"></div>
+                <div class="allergy-add"><input id="allergyInput" type="text" placeholder="เช่น เพนิซิลลิน"><button type="button" id="allergyAddBtn">เพิ่ม</button></div>
+                <button type="button" class="allergy-done" id="allergyDoneBtn">เสร็จ</button>
+              </div>
+            </div>
+          </label>
+          <label><span>เลือกยา</span><select id="medicineName" required></select></label>
+          <p class="allergy-note" id="allergyNote" hidden><span>!</span> ยาที่แพ้จะถูกล็อกไว้ในรายการ เลือกไม่ได้เพื่อความปลอดภัย</p>
+          <div class="form-grid"><label><span>ครั้งละ</span><div class="unit-input"><input id="medicineDose" type="number" value="1" min="0.5" step="0.5" required><b>เม็ด</b></div></label><label><span>วันละ</span><div class="unit-input"><input id="medicineDaily" type="number" value="1" min="1" required><b>ครั้ง</b></div></label></div>
+          <label><span>ช่วงเวลาที่ใช้</span><select id="medicineWhen"><option>หลังอาหารเช้า</option><option>ก่อนอาหารเช้า</option><option>ก่อนนอน</option><option>ตามแพทย์สั่ง</option></select></label>
+          <label><span>จำนวนที่เหลือ</span><div class="unit-input"><input id="medicineLeft" type="number" value="4" min="0" required><b>เม็ด</b></div></label>
+          <div class="safety-box"><strong>จดเพื่อช่วยจำเท่านั้น</strong><p>หมอนำทางจะไม่แนะนำให้หยุด เพิ่ม หรือลดยา หากไม่แน่ใจให้โทรถามแพทย์หรือเภสัชกรค่ะ</p></div>
+          <button class="primary-button" type="submit">บันทึกรายการยา</button>
+        </form>
+      </section>
+
+      <section class="screen" data-screen="9" aria-labelledby="appointmentDetailTitle">
+        <button class="back-link" type="button" data-screen-link="2" data-tab-target="meds">← ยา &amp; นัด</button>
+        <p class="eyebrow">นัดถัดไปของม้า</p>
+        <h2 id="appointmentDetailTitle">พรุ่งนี้ 09:00 น.</h2>
+        <article class="appointment-hero"><small>อายุรกรรมหัวใจ</small><strong>รพ.เจริญกรุงประชารักษ์</strong><p>อาคาร 72 พรรษา · ชั้น 3</p><div><span>สิทธิบัตรทอง</span><span>ข้อมูลตัวอย่าง</span></div></article>
+        <article class="prep-card"><h3>เตรียมไปด้วย</h3><ul><li>บัตรประชาชนและใบนัด</li><li>ยาที่ใช้อยู่ หรือถ่ายรูปฉลากยา</li><li>สรุปจากสมุดของม้า</li></ul><button class="wide-outline" type="button" data-screen-link="5">เปิดสรุปให้หมอ</button></article>
+        <div class="button-row"><button class="secondary-action" type="button" data-action="appointment-done">ไปตามนัดแล้ว</button><button class="secondary-action" type="button" data-screen-link="12">เลื่อนนัด</button></div>
+        <form class="flow-form visit-note" id="visitNoteForm" hidden>
+          <div class="section-heading"><h3>บันทึกการรักษาจากนัดนี้</h3></div>
+          <label><span>อาการหรือโรคที่หมอบอก</span><textarea id="visitSymptom" rows="3" placeholder="เช่น ความดันสูงเล็กน้อย ปรับยาเพิ่ม"></textarea></label>
+          <label><span>ยาที่ได้รับมา</span><textarea id="visitMeds" rows="3" placeholder="เช่น ยาความดัน 1 เม็ดเช้า · ยาลดไขมันก่อนนอน"></textarea></label>
+          <label><span>นัดครั้งถัดไป (ถ้ามี)</span><input id="visitNext" type="text" placeholder="เช่น อีก 1 เดือน"></label>
+          <button class="primary-button" type="submit">เก็บบันทึกการรักษา</button>
+        </form>
+      </section>
+
+      <section class="screen" data-screen="10" aria-labelledby="lineTitle">
+        <button class="back-link" type="button" data-screen-link="9">← รายละเอียดนัด</button>
+        <p class="eyebrow">พร้อมส่งเข้ากลุ่มครอบครัว</p>
+        <h2 id="lineTitle">การ์ดนัดของม้า</h2>
+        <p class="lead">ทุกคนเห็นวัน เวลา และสิ่งที่ต้องเตรียมตรงกันค่ะ</p>
+        <article class="line-preview">
+          <div class="line-brand">LINE · ข้อมูลตัวอย่าง</div>
+          <small>นัดถัดไปของม้า</small><strong>พรุ่งนี้ · 09:00 น.</strong><h3>อายุรกรรมหัวใจ</h3><p>รพ.เจริญกรุงประชารักษ์</p>
+          <hr><p>เตรียม: บัตรประชาชน · ใบนัด · ยาที่ใช้อยู่ · สรุปจากสมุด</p>
+          <div class="line-footer">ส่งจากหมอนำทาง</div>
+        </article>
+        <button class="primary-button" id="shareLineButton" type="button">คัดลอกการ์ดไป LINE</button>
+        <p class="safety-line">ต้นแบบนี้จะคัดลอกข้อความให้ แต่ไม่ส่งเข้ากลุ่มจริง</p>
+      </section>
+
+      <section class="screen completion-screen" data-screen="11" aria-labelledby="completionTitle">
+        <div class="completion-mark" id="completionMark">✓</div>
+        <p class="eyebrow">เรียบร้อยแล้ว</p>
+        <h2 id="completionTitle">เก็บลงสมุดแล้วค่ะ</h2>
+        <p class="lead" id="completionMessage">ข้อมูลของม้าอยู่ในสมุดแล้ว</p>
+        <article class="completion-card" id="completionCard"><small>ข้อมูลที่เพิ่งบันทึก</small><strong>น้ำหนัก 52.1 กก.</strong><p>วันนี้ · ข้อมูลตัวอย่าง</p></article>
+        <button class="primary-button" id="completionPrimary" type="button">เปิดสมุด</button>
+        <button class="text-button" type="button" data-screen-link="2">กลับสมุดของม้า</button>
+      </section>
+
+      <section class="screen" data-screen="12" aria-labelledby="newAppointmentTitle">
+        <button class="back-link" type="button" data-screen-link="2" data-tab-target="meds">← ยา &amp; นัด</button>
+        <p class="eyebrow">เพิ่มเข้าปฏิทินของบ้าน</p>
+        <h2 id="newAppointmentTitle">จดนัดใหม่</h2>
+        <p class="lead">ใส่เท่าที่มี เดี๋ยวสมุดช่วยรวมไว้ให้ค่ะ</p>
+        <div class="section-heading"><h3>นัดต่อเนื่องจากประวัติ</h3></div>
+        <p class="section-subtitle">แตะเพื่อดึงเรื่องที่นัด โรงพยาบาล และสิ่งที่ต้องเตรียมจากนัดก่อน แล้วเลือกวันเวลาใหม่ได้เลย</p>
+        <div class="followup-cards">
+          <button type="button" class="followup-card" data-fu-name="ติดตามอายุรกรรมหัวใจ" data-fu-place="รพ.เจริญกรุงประชารักษ์" data-fu-note="นำบัตรประชาชน ใบนัด ยาที่ใช้อยู่ และสรุปจากสมุดไปด้วย">
+            <span><strong>อายุรกรรมหัวใจ</strong><small>รพ.เจริญกรุงประชารักษ์ · นัดล่าสุด</small></span><b>ใช้นัดนี้</b>
+          </button>
+          <button type="button" class="followup-card" data-fu-name="ตรวจความดันประจำ" data-fu-place="ศูนย์บริการสาธารณสุขใกล้บ้าน" data-fu-note="นำบัตรประชาชนและสมุดวัดความดันไปด้วย">
+            <span><strong>ตรวจความดันประจำ</strong><small>ศูนย์บริการสาธารณสุขใกล้บ้าน · 2 สัปดาห์ก่อน</small></span><b>ใช้นัดนี้</b>
+          </button>
+        </div>
+        <form class="flow-form" id="appointmentForm">
+          <label><span>เรื่องที่นัด</span><input id="newAppointmentName" type="text" value="ติดตามอายุรกรรมหัวใจ" required></label>
+          <label><span>โรงพยาบาลหรือสถานที่</span><input id="newAppointmentPlace" type="text" value="รพ.เจริญกรุงประชารักษ์" required></label>
+          <div class="form-grid"><label><span>วันที่</span><input id="newAppointmentDate" type="date" value="2026-07-21" required></label><label><span>เวลา</span><input id="newAppointmentTime" type="time" value="09:00" required></label></div>
+          <label><span>จดเพิ่มได้ (ไม่บังคับ)</span><textarea id="newAppointmentNote" rows="3" placeholder="เช่น นำผลเลือดไปด้วย">นำรายการยาและสรุปจากสมุดไปด้วย</textarea></label>
+          <button class="primary-button" type="submit">เก็บนัดลงสมุด</button>
+        </form>
+      </section>
+
+      <section class="screen" data-screen="14" aria-labelledby="guideEditTitle">
+        <button class="back-link" type="button" data-screen-link="2" data-tab-target="profile">← ตัวม้า</button>
+        <p class="eyebrow">คู่มือดูแลม้า · ฉบับบ้านเรา</p>
+        <h2 id="guideEditTitle">อัปเดตวิธีดูแล</h2>
+        <p class="lead">เขียนสิ่งที่ม้าทำได้ก่อน แล้วค่อยบอกวิธีช่วยให้สบายตัวค่ะ</p>
+        <form class="flow-form" id="guideForm">
+          <label><span>การกิน</span><textarea id="guideEating" rows="4" required>มื้อโปรดตอนนี้: อาหารนิ่ม ๆ · ยังป้อนตัวเองได้ · ช่วงนี้กินน้อยลง ดื่มน้ำน้อย — ชวนจิบบ่อย ๆ นะ</textarea></label>
+          <label><span>การเดิน</span><textarea id="guideWalking" rows="3" required>เดินในบ้านได้สบายเมื่อมี walker คู่ใจ + คนเดินข้าง ๆ</textarea></label>
+          <label><span>การนอนและเข้าห้องน้ำ</span><textarea id="guideSleeping" rows="3" required>ตื่นเข้าห้องน้ำ ~5 ครั้ง/คืน</textarea></label>
+          <p class="helper"><span>✦</span> ระบบจะบันทึกวันที่อัปเดตให้อัตโนมัติ</p>
+          <button class="primary-button" type="submit">บันทึกคู่มือฉบับใหม่</button>
+        </form>
+      </section>
+
+      <section class="screen" data-screen="16" aria-labelledby="identityEditTitle">
+        <button class="back-link" type="button" data-screen-link="2" data-tab-target="profile">← โปรไฟล์</button>
+        <p class="eyebrow">โปรไฟล์ของม้า</p>
+        <h2 id="identityEditTitle">แก้ไขประวัติ</h2>
+        <p class="lead">อัปเดตข้อมูลพื้นฐานให้คนที่มาช่วยดูแลเห็นตรงกันค่ะ</p>
+        <form class="flow-form" id="identityForm">
+          <div class="form-grid">
+            <label><span>ชื่อที่เรียก</span><input id="identityNameInput" type="text" value="ม้า" required></label>
+            <label><span>อายุ</span><div class="unit-input"><input id="identityAgeInput" type="number" value="74" min="0" required><b>ปี</b></div></label>
+          </div>
+          <label><span>สิทธิการรักษา</span><input id="identityRightInput" type="text" value="บัตรทอง" required></label>
+          <label><span>โรงพยาบาลตามสิทธิ์</span><input id="identityHospitalInput" type="text" value="รพ.เจริญกรุงประชารักษ์" required></label>
+          <label><span>อาชีพ / อดีตอาชีพ</span><input id="identityJobInput" type="text" value="เกษียณแล้ว"></label>
+          <label><span>โรคประจำตัว</span><textarea id="identityDiseaseInput" rows="2" placeholder="เช่น ความดันโลหิตสูง · โรคหัวใจ">ความดันโลหิตสูง · โรคหัวใจ</textarea></label>
+          <label><span>สิ่งที่ชอบ / เรื่องที่ช่วยให้อารมณ์ดี</span><textarea id="identityLikesInput" rows="3">ชอบละคร วาไรตี้ และมาสเตอร์เชฟ</textarea></label>
+          <p class="helper"><span>✦</span> ข้อมูลนี้ช่วยให้ทีมดูแลรู้จักม้ามากขึ้น ไม่ใช้วินิจฉัยโรค</p>
+          <button class="primary-button" type="submit">บันทึกประวัติ</button>
+        </form>
+      </section>
+
+      <section class="screen" data-screen="17" aria-labelledby="medScheduleTitle">
+        <button class="back-link" type="button" data-screen-link="2" data-tab-target="meds">← ยา &amp; นัด</button>
+        <p class="eyebrow">ตารางยาของม้า</p>
+        <h2 id="medScheduleTitle">ยาของม้า</h2>
+        <p class="lead">แบ่งตามช่วงเวลาให้เห็นชัดว่ามื้อไหนต้องกินอะไร · ข้อมูลตัวอย่าง</p>
+        <div class="section-heading"><h3>ตารางวันนี้</h3><button type="button" data-screen-link="8">+ เพิ่มยา</button></div>
+        <article class="dose-slot">
+          <div class="dose-time"><span>เช้า</span><small>หลังอาหารเช้า</small></div>
+          <ul class="dose-list">
+            <li><strong>ยาความดัน</strong><small>1 เม็ด</small></li>
+            <li><strong>แอสไพริน</strong><small>1 เม็ด</small></li>
+          </ul>
+        </article>
+        <article class="dose-slot">
+          <div class="dose-time"><span>กลางวัน</span><small>หลังอาหารกลางวัน</small></div>
+          <p class="dose-empty">— ไม่มียาช่วงนี้ —</p>
+        </article>
+        <article class="dose-slot">
+          <div class="dose-time"><span>เย็น</span><small>หลังอาหารเย็น</small></div>
+          <ul class="dose-list">
+            <li><strong>ยาความดัน</strong><small>1 เม็ด</small></li>
+          </ul>
+        </article>
+        <article class="dose-slot">
+          <div class="dose-time"><span>ก่อนนอน</span><small>ก่อนเข้านอน</small></div>
+          <ul class="dose-list">
+            <li><strong>ยาลดไขมัน</strong><small>1 เม็ด</small></li>
+          </ul>
+        </article>
+        <div class="section-heading"><h3>ยาที่กำลังติดตาม</h3></div>
+        <article class="list-card"><span class="pill-icon">ยา</span><div><strong id="medicineSummary">ยาความดัน · 1 เม็ด</strong><small id="medicineMeta">หลังอาหารเช้า · เหลือ 4 วัน</small></div><button type="button" data-action="done-medicine-list">กินแล้ว</button></article>
+        <p class="safety-line">ตารางนี้ช่วยจำเท่านั้น หากไม่แน่ใจให้โทรถามแพทย์หรือเภสัชกรค่ะ</p>
+      </section>
+
+      <section class="screen" data-screen="18" aria-labelledby="appointmentListTitle">
+        <button class="back-link" type="button" data-screen-link="2" data-tab-target="meds">← ยา &amp; นัด</button>
+        <p class="eyebrow">นัดหมายของม้า</p>
+        <h2 id="appointmentListTitle">นัดของม้า</h2>
+        <p class="lead">ดูนัดถัดไปและสิ่งที่ต้องเตรียมก่อนไปโรงพยาบาลค่ะ</p>
+        <div class="section-heading"><h3>นัดถัดไป</h3><button type="button" data-screen-link="12">+ เพิ่มนัด</button></div>
+        <article class="appointment-card"><small id="appointmentTime">พรุ่งนี้ · 09:00 น.</small><strong id="appointmentTitle">อายุรกรรมหัวใจ</strong><p id="appointmentPlace">รพ.เจริญกรุงประชารักษ์</p><button type="button" data-screen-link="9">ดูนัด</button></article>
+        <div class="section-heading"><h3>นัดก่อนหน้า</h3></div>
+        <article class="appointment-card" data-screen-link="9"><small>2 สัปดาห์ก่อน</small><strong>ตรวจความดันประจำ</strong><p>ศูนย์บริการสาธารณสุขใกล้บ้าน · ไปตามนัดแล้ว</p><button type="button" data-screen-link="9">ดูนัด</button></article>
+      </section>
+
+      <section class="screen" data-screen="19" aria-labelledby="guideViewTitle">
+        <button class="back-link" type="button" data-screen-link="2" data-tab-target="meds">← รักษา</button>
+        <p class="eyebrow">คู่มือดูแลม้า · ฉบับบ้านเรา</p>
+        <h2 id="guideViewTitle">คู่มือดูแลม้า</h2>
+        <p class="lead">สิ่งที่ม้าทำได้ และวิธีช่วยให้สบายตัว</p>
+        <article class="care-guide">
+          <div class="section-heading"><div><h3>วิธีดูแลตอนนี้</h3></div><button type="button" data-screen-link="14">แก้ไข</button></div>
+          <ul><li><span>กิน</span><p><strong>มื้อโปรดตอนนี้: อาหารนิ่ม ๆ</strong>ยังป้อนตัวเองได้ · ช่วงนี้กินน้อยลง ดื่มน้ำน้อย — ชวนจิบบ่อย ๆ นะ</p></li><li><span>เดิน</span><p><strong>เดินในบ้านได้สบาย</strong>เมื่อมี walker คู่ใจ + คนเดินข้าง ๆ</p></li><li><span>นอน</span><p><strong>ตื่นเข้าห้องน้ำ ~5 ครั้ง/คืน</strong>ระบบเฝ้าดูตัวเลขนี้ให้อยู่นะคะ</p></li></ul>
+          <small>ทำบอลลูนหัวใจเมื่อ ก.ค. 2568</small>
+        </article>
+      </section>
+    </div>
+    <nav class="bottom-nav" aria-label="เมนูสมุด">
+      <button class="active" type="button" data-tab="logs" style="font-size: 20px"><span style="display: none">▤</span>บันทึก</button>
+      <button type="button" data-tab="meds" style="font-size: 20px"><span style="display: none">℞</span>รักษา</button>
+      <button type="button" data-tab="profile" style="font-size: 20px"><span style="display: none">♡</span>โปรไฟล์</button>
+    </nav>
+  </main>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="app.js?v=22"></script>
+</body>
+</html>

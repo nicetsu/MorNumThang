@@ -1,0 +1,67 @@
+// Mor Num Thang — data model. See PLAN.md §3.
+// ponytail: SQLite until multi-user/hosting forces Postgres — swap datasource, queries unchanged.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Patient {
+  id           String        @id @default(cuid())
+  name         String
+  diseases     String? // free text, "·"-separated in UI
+  careGuide    String? // editable care instructions
+  createdAt    DateTime      @default(now())
+  weights      WeightLog[]
+  meds         Medication[]
+  allergies    Allergy[]
+  appointments Appointment[]
+  visits       VisitNote[]
+}
+
+model WeightLog {
+  id        String   @id @default(cuid())
+  patientId String
+  kg        Float
+  note      String?
+  at        DateTime @default(now())
+  patient   Patient  @relation(fields: [patientId], references: [id])
+}
+
+model Medication {
+  id        String  @id @default(cuid())
+  patientId String
+  name      String
+  schedule  String?
+  patient   Patient @relation(fields: [patientId], references: [id])
+}
+
+model Allergy {
+  id        String  @id @default(cuid())
+  patientId String
+  name      String
+  patient   Patient @relation(fields: [patientId], references: [id])
+}
+
+model Appointment {
+  id        String   @id @default(cuid())
+  patientId String
+  at        DateTime
+  note      String?
+  done      Boolean  @default(false)
+  patient   Patient  @relation(fields: [patientId], references: [id])
+}
+
+model VisitNote {
+  id              String   @id @default(cuid())
+  patientId       String
+  symptom         String?
+  medsReceived    String?
+  nextAppointment String?
+  at              DateTime @default(now())
+  patient         Patient  @relation(fields: [patientId], references: [id])
+}
