@@ -1,5 +1,6 @@
 import { createTextStreamResponse, toTextStream } from "ai";
 import { db } from "@/lib/db";
+import { recommendServices, facilityGuidance } from "@/lib/rights";
 import {
   streamDoctorSummary,
   streamHealthSignals,
@@ -22,12 +23,30 @@ export async function POST(req: Request) {
   const patient = await db.patient.findFirst();
   if (!patient) return new Response("no patient", { status: 404 });
 
-  const [allergies, meds, weights, visits] = await Promise.all([
+  const [allergies, meds, weights, visits, ruleRows] = await Promise.all([
     db.allergy.findMany({ where: { patientId: patient.id } }),
     db.medication.findMany({ where: { patientId: patient.id } }),
     db.weightLog.findMany({ where: { patientId: patient.id }, orderBy: { at: "desc" }, take: 5 }),
     db.visitNote.findMany({ where: { patientId: patient.id }, orderBy: { at: "desc" }, take: 3 }),
+    db.recommendationRule.findMany(),
   ]);
+
+  // Eligibility decided deterministically here (never by the LLM). The model only references it.
+  const recs = recommendServices(ruleRows, {
+    coverage: patient.coverage,
+    age: patient.age,
+    diseases: patient.diseases,
+  });
+  const seen = new Set<string>();
+  const rights =
+    recs
+      .filter((r) => !seen.has(r.rule.serviceName) && seen.add(r.rule.serviceName))
+      .slice(0, 8)
+      .map(
+        (r) =>
+          `${r.rule.serviceName} (${r.rule.category}) — ${facilityGuidance(r.rule.facility, patient.hospital)}${r.match === "maybe" ? " [ควรตรวจสอบเพิ่ม]" : ""}`,
+      )
+      .join("; ") || null;
 
   const data: SummaryData = {
     name: patient.name,
@@ -36,6 +55,8 @@ export async function POST(req: Request) {
     meds,
     weights,
     visits,
+    coverage: patient.coverage,
+    rights,
   };
 
   return createTextStreamResponse({ stream: toTextStream({ stream: streamer(data).stream }) });
