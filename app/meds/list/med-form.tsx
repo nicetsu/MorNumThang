@@ -35,17 +35,15 @@ export function MedForm({ allergies, drugs }: { allergies: string[]; drugs: stri
 
   return (
     <form action={action} className="flow-form">
-      <label>
-        <span>เลือกยา</span>
-        <Combobox
-          name="name"
-          value={med}
-          onChange={setMed}
-          options={medOptions}
-          placeholder="— เลือกยา —"
-          searchPlaceholder="ค้นหายา…"
-        />
-      </label>
+      <Combobox
+        label="เลือกยา"
+        name="name"
+        value={med}
+        onChange={setMed}
+        options={medOptions}
+        placeholder="— เลือกยา —"
+        searchPlaceholder="ค้นหายา…"
+      />
 
       <div className="form-grid">
         <label>
@@ -64,16 +62,14 @@ export function MedForm({ allergies, drugs }: { allergies: string[]; drugs: stri
         </label>
       </div>
 
-      <label>
-        <span>ช่วงเวลาที่ใช้</span>
-        <Combobox
-          name="whenTime"
-          value={when}
-          onChange={setWhen}
-          options={WHEN_OPTIONS}
-          searchPlaceholder="ค้นหาช่วงเวลา…"
-        />
-      </label>
+      <Combobox
+        label="ช่วงเวลาที่ใช้"
+        name="whenTime"
+        value={when}
+        onChange={setWhen}
+        options={WHEN_OPTIONS}
+        searchPlaceholder="ค้นหาช่วงเวลา…"
+      />
 
       <label>
         <span>จำนวนที่เหลือ (ไม่บังคับ)</span>

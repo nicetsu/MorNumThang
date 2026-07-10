@@ -18,6 +18,8 @@ client needs the **better-sqlite3 driver adapter** (`lib/db.ts`, `prisma/seed.ts
 - `PLAN.md` — the full build plan (data model, AI features, 8 task slices in ship order). **Read it before
   building any feature.**
 - `AGENTS.md` — golden rules + target stack/commands. **Its rules are binding**, especially AI safety.
+- `MISTAKES.md` — running ledger of past mistakes in this repo. **Read it before working, and append a new
+  entry every time you make a mistake** (wrong assumption, shipped bug, wasted effort on a bad theory).
 
 ## What this is
 

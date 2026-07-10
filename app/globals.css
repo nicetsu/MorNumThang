@@ -322,7 +322,8 @@
     display: grid;
     gap: 16px;
   }
-  .flow-form label > span {
+  .flow-form label > span,
+  .field-label {
     display: block;
     margin-bottom: 7px;
     color: var(--teal);

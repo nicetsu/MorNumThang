@@ -47,7 +47,9 @@ export type SummaryData = {
   suspected?: string | null; // โรคที่ระบบสังเกตจากอาการว่าอาจเกี่ยวข้อง (ยังไม่ยืนยัน)
 };
 
-function buildUserPrompt(d: SummaryData): string {
+// The closing instruction is per-task (passed in) so the data block stays task-neutral —
+// otherwise a summary instruction leaks into the signals task and contradicts its system prompt.
+function buildUserPrompt(d: SummaryData, closing: string): string {
   const lines: string[] = [`ผู้ป่วย: ${d.name}${d.diseases ? ` (${d.diseases})` : ""}`];
   lines.push(`ยาที่แพ้: ${d.allergies.length ? d.allergies.join(", ") : "ไม่มีข้อมูล"}`);
   lines.push(
@@ -68,16 +70,30 @@ function buildUserPrompt(d: SummaryData): string {
   if (d.suspected) lines.push(`อาการที่ระบบสังเกตว่าอาจเกี่ยวข้องกับ (ยังไม่ยืนยัน ควรให้หมอตรวจ): ${d.suspected}`);
   // Rights are pre-decided deterministically — the model only references them, never decides.
   if (d.rights) lines.push(`บริการที่มีสิทธิ (ระบบตรวจสอบสิทธิให้แล้ว): ${d.rights}`);
-  lines.push("\nช่วยเรียบเรียงข้อมูลข้างต้นเป็นสรุปสั้น ๆ สำหรับเล่าให้คุณหมอฟัง อ้างอิงสิทธิ/บริการที่ให้มาได้ถ้าเกี่ยวข้อง");
+  lines.push("\n" + closing);
   return lines.join("\n");
 }
 
+// Per-task closing instructions (kept out of the data block above).
+const SUMMARY_CLOSING =
+  "ช่วยเรียบเรียงข้อมูลข้างต้นเป็นสรุปสั้น ๆ สำหรับเล่าให้คุณหมอฟัง อ้างอิงสิทธิ/บริการที่ให้มาได้ถ้าเกี่ยวข้อง";
+const SIGNALS_CLOSING =
+  'จากข้อมูลข้างต้น ช่วยชี้ "จุดที่ควรชวนสังเกต" ไม่เกิน 3 ข้อ สั้น ๆ เป็นข้อ ๆ (ห้ามเขียนสรุปประวัติซ้ำ) ถ้ายังไม่มีสัญญาณที่ชัดเจนให้บอกตามตรง';
+
 function run(system: string, prompt: string) {
-  return streamText({ model: provider(process.env.AI_MODEL!), system, prompt, temperature: 0.3 });
+  // frequencyPenalty curbs the repetition ThaiLLM (Q4) tends to produce at low temperature —
+  // e.g. duplicating whole care-guide headings. Mild value keeps wording natural.
+  return streamText({
+    model: provider(process.env.AI_MODEL!),
+    system,
+    prompt,
+    temperature: 0.3,
+    frequencyPenalty: 0.4,
+  });
 }
 
 export function streamDoctorSummary(data: SummaryData) {
-  return run(SYSTEM_PROMPT, buildUserPrompt(data));
+  return run(SYSTEM_PROMPT, buildUserPrompt(data, SUMMARY_CLOSING));
 }
 
 // §4.2 Health signals — observe recurring patterns, never diagnose.
@@ -88,13 +104,14 @@ const SIGNALS_SYSTEM = `คุณช่วยสังเกตแนวโน�
 - ถ้าข้อมูลยังน้อยเกินไป ให้บอกว่ายังไม่มีสัญญาณที่ชัดเจน`;
 
 export function streamHealthSignals(data: SummaryData) {
-  return run(SIGNALS_SYSTEM, buildUserPrompt(data));
+  return run(SIGNALS_SYSTEM, buildUserPrompt(data, SIGNALS_CLOSING));
 }
 
 // §4.3 Care-guide suggestions — draft bullets the caregiver edits before saving.
 const CARE_SYSTEM = `คุณช่วยร่างหัวข้อ "คู่มือดูแล" เป็นภาษาไทย ให้ลูกนำไปปรับแก้เองก่อนบันทึก
 กฎ:
 - เสนอเป็นข้อ ๆ สั้น ๆ เรื่องการกิน การเดิน การนอน และการใช้ยาตามที่ให้มา
+- แต่ละหัวข้อเขียนครั้งเดียว ห้ามเขียนหัวข้อหรือเนื้อหาซ้ำ
 - ห้ามวินิจฉัยโรคหรือสั่งยา เป็นเพียงแนวทางดูแลทั่วไปที่ครอบครัวปรับได้
 - อ้างอิงเฉพาะโรคและยาที่ให้มา
 - เรื่องสิทธิ/บริการ: ถ้ามีบริการที่มีสิทธิที่ช่วยการดูแลได้ ให้แนะนำสั้น ๆ ว่าไปใช้บริการนั้นได้ อ้างอิงเฉพาะรายการที่ระบบตรวจสอบสิทธิให้มาแล้ว ห้ามตัดสินสิทธิเองหรือเดา`;

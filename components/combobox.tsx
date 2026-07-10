@@ -21,6 +21,7 @@ export function Combobox({
   value,
   onChange,
   name,
+  label,
   placeholder = "— เลือก —",
   searchPlaceholder = "ค้นหา…",
   allowCustom = false,
@@ -29,6 +30,7 @@ export function Combobox({
   value: string;
   onChange: (v: string) => void;
   name?: string;
+  label?: string; // renders a field label above — don't wrap this in <label>, the trigger is a button
   placeholder?: string;
   searchPlaceholder?: string;
   allowCustom?: boolean; // typing a value not in the list can still be chosen
@@ -45,7 +47,7 @@ export function Combobox({
     setSearch("");
   };
 
-  return (
+  const control = (
     <>
       {name && <input type="hidden" name={name} value={value} />}
       <Popover open={open} onOpenChange={setOpen}>
@@ -79,5 +81,13 @@ export function Combobox({
         </PopoverContent>
       </Popover>
     </>
+  );
+
+  if (!label) return control;
+  return (
+    <div>
+      <span className="field-label">{label}</span>
+      {control}
+    </div>
   );
 }

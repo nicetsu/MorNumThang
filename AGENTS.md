@@ -39,6 +39,12 @@ npx prisma studio           # inspect data
 npx shadcn@latest add X     # add a UI component
 ```
 
+## Mistakes ledger — READ AND MAINTAIN
+`MISTAKES.md` is a running, newest-first log of mistakes made in this repo (wrong assumptions, bugs
+shipped, time wasted on bad theories). **Read it before starting work**, and **append a new entry every
+time you catch yourself making a mistake** — date, what went wrong, why, the lesson. This is a standing
+rule, not a one-off.
+
 ## Definition of done (per slice)
 Persists across reload · deterministic safety checks covered by one runnable test · AI output carries a
 disclaimer · no secrets in client bundle · matches the prototype's Thai copy and gentle tone.
