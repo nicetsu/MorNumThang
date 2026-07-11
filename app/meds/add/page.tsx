@@ -3,13 +3,14 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { db } from "@/lib/db";
+import { getActivePatient } from "@/lib/patient";
 import { removeAllergy } from "../list/actions";
 import { MedForm } from "../list/med-form";
 import { AllergyForm } from "./allergy-form";
 
 // Add-medication screen (prototype screen 8): allergy field + the med form.
 export default async function MedAdd() {
-  const patient = await db.patient.findFirst();
+  const patient = await getActivePatient();
   if (!patient) {
     return <p className="py-8 text-muted-foreground">ยังไม่มีข้อมูลม้าค่ะ</p>;
   }

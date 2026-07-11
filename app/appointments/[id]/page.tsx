@@ -4,6 +4,7 @@ export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
+import { getActivePatient } from "@/lib/patient";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { completeAppointment, rescheduleAppointment, addVisitNote } from "../actions";
@@ -28,7 +29,7 @@ export default async function AppointmentDetail({
 }) {
   const { id } = await params;
   const [patient, appt] = await Promise.all([
-    db.patient.findFirst(),
+    getActivePatient(),
     db.appointment.findUnique({ where: { id } }),
   ]);
   if (!appt) notFound();

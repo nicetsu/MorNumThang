@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
+import { getActivePatientOrThrow } from "@/lib/patient";
 
 export async function saveProfile(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
@@ -12,7 +13,7 @@ export async function saveProfile(formData: FormData) {
   const ageRaw = parseInt(String(formData.get("age") ?? ""), 10);
   const age = Number.isFinite(ageRaw) && ageRaw >= 0 && ageRaw <= 130 ? ageRaw : null;
 
-  const p = await db.patient.findFirstOrThrow();
+  const p = await getActivePatientOrThrow();
   await db.patient.update({
     where: { id: p.id },
     data: {

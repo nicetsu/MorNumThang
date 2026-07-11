@@ -3,10 +3,11 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { db } from "@/lib/db";
+import { getActivePatient } from "@/lib/patient";
 
 // Care-guide view (prototype screen 19). Edit lives on /guide/edit (screen 14).
 export default async function Guide() {
-  const patient = await db.patient.findFirst();
+  const patient = await getActivePatient();
   // Strip lightweight markdown an AI draft may have left behind.
   const guide = (patient?.careGuide ?? "")
     .replace(/^#+\s*/gm, "")

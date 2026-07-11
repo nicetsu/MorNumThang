@@ -3,11 +3,12 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { db } from "@/lib/db";
+import { getActivePatient } from "@/lib/patient";
 import { AppointmentForm } from "./appointment-form";
 
 // New-appointment screen (prototype screen 12) with followup cards from past appointments.
 export default async function NewAppointment() {
-  const patient = await db.patient.findFirst();
+  const patient = await getActivePatient();
   const appts = await db.appointment.findMany({ orderBy: { at: "desc" } });
   const facilities = await db.facility.findMany({ orderBy: { name: "asc" } });
 

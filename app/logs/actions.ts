@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
+import { getActivePatientOrThrow } from "@/lib/patient";
 import { parseWeight } from "./weight";
 import { organizeNarrative, type OrganizedItem } from "@/lib/ai";
 
@@ -23,7 +24,7 @@ export async function addWeight(formData: FormData) {
   const at = dateStr ? new Date(dateStr) : new Date();
 
   // ponytail: single-patient v1 — attach to the one patient (PLAN §6).
-  const patient = await db.patient.findFirstOrThrow();
+  const patient = await getActivePatientOrThrow();
   await db.weightLog.create({
     data: { patientId: patient.id, kg, systolic, diastolic, pulse, note, at },
   });
@@ -50,7 +51,7 @@ export async function saveObservations(items: OrganizedItem[]) {
     }))
     .filter((i) => i.text);
   if (!clean.length) return;
-  const p = await db.patient.findFirstOrThrow();
+  const p = await getActivePatientOrThrow();
   await db.observation.createMany({ data: clean.map((i) => ({ ...i, patientId: p.id })) });
   revalidatePath("/logs");
   revalidatePath("/");

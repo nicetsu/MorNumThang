@@ -3,10 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
+import { getActivePatientOrThrow } from "@/lib/patient";
 
 async function patientId() {
   // ponytail: single-patient v1 (PLAN §6).
-  const p = await db.patient.findFirstOrThrow();
+  const p = await getActivePatientOrThrow();
   return p.id;
 }
 

@@ -1,0 +1,51 @@
+flowchart TD
+  subgraph WRITE["บันทึกข้อมูล (Write)"]
+    direction TB
+    U([ผู้ดูแล/ลูก])
+    subgraph NARR["เล่าอาการ — /logs · NarrativeRecord"]
+      S1["พิมพ์เรื่องเล่า (story)"]
+      B1["กด 'ช่วยจัดลงสมุด'"]
+      ACT1["organizeNarrativeAction()"]
+      AI["organizeNarrative() lib/ai.ts"]
+      LLM[["LLM · Ollama ThaiLLM-8B-MedApp"]]
+      CLAMP["clampSeverity 0-10 (default 5, fallback = ทั้งเรื่อง)"]
+      REVIEW{"ตรวจก่อนบันทึก แก้ / ลบ ได้"}
+      B2["กด 'ถูกต้อง บันทึกลงสมุด'"]
+      SAVE["saveObservations() กรอง text ว่าง"]
+    end
+    subgraph WT["น้ำหนัก/ความดัน — addWeight()"]
+      W1["submit form"]
+      WP["parseWeight + optInt (ช่วงที่สมเหตุผล)"]
+    end
+  end
+
+  subgraph DB["Prisma / SQLite"]
+    OBS[("Observation: category · text · severity")]
+    WLOG[("WeightLog: kg · bp · pulse")]
+  end
+
+  subgraph READ["วิเคราะห์ และ แสดงผล (Read)"]
+    direction TB
+    Q["query severities ล่าสุด (/signals = 7 วันล่าสุด)"]
+    BAND["severityBand() 0-3->1 · 4-7->2 · 8-10->3"]
+    SCORE["scoreLevel() = round(avg ของ band)"]
+    LVL["LEVEL 0-3 badge + สี + คำไทย"]
+    DOT["dotClass() จุดสีในไทม์ไลน์"]
+    UI([doctor-score + timeline])
+  end
+
+  U --> S1 --> B1 --> ACT1 --> AI --> LLM --> AI --> CLAMP --> REVIEW
+  REVIEW -->|ยืนยัน| B2 --> SAVE --> OBS
+  REVIEW -.->|ปิด/รีเฟรช = ไม่บันทึก| X((ทิ้ง))
+
+  U --> W1 --> WP --> WLOG
+
+  OBS --> Q --> BAND --> SCORE --> LVL --> UI
+  OBS --> DOT --> UI
+  WLOG -.-> UI
+
+  style LLM fill:#F2A93B,color:#000
+  style REVIEW fill:#D96C4F,color:#fff
+  style OBS fill:#1F6E63,color:#fff
+  style WLOG fill:#1F6E63,color:#fff
+  style SCORE fill:#1F6E63,color:#fff

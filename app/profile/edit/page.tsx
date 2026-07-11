@@ -3,12 +3,13 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { db } from "@/lib/db";
+import { getActivePatient } from "@/lib/patient";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { saveProfile } from "./actions";
 
 export default async function ProfileEdit() {
-  const patient = await db.patient.findFirst();
+  const patient = await getActivePatient();
   if (!patient) {
     return <p className="py-8 text-muted-foreground">ยังไม่มีข้อมูลม้าค่ะ</p>;
   }

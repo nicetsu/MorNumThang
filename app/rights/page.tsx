@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { db } from "@/lib/db";
+import { getActivePatient } from "@/lib/patient";
 import { recommendServices, facilityGuidance, type Rule } from "@/lib/rights";
 
 // Reference data changes (the source sheet notes 1–3-month cycles) — always say so, and
@@ -11,7 +12,7 @@ const RIGHTS_DISCLAIMER =
   "ข้อมูลสิทธิอาจเปลี่ยนแปลงตามนโยบายรัฐ · โปรดตรวจสอบกับโรงพยาบาลตามสิทธิหรือหน่วยงานที่ดูแลก่อนใช้บริการ";
 
 export default async function RightsNavigator() {
-  const patient = await db.patient.findFirst();
+  const patient = await getActivePatient();
   if (!patient) {
     return <p className="py-8 text-muted-foreground">ยังไม่มีข้อมูลม้าค่ะ</p>;
   }

@@ -3,11 +3,12 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { db } from "@/lib/db";
+import { getActivePatient } from "@/lib/patient";
 import { CareEditor } from "@/components/care-editor";
 
 // Care-guide edit (prototype screen 14).
 export default async function GuideEdit() {
-  const patient = await db.patient.findFirst();
+  const patient = await getActivePatient();
 
   return (
     <div className="space-y-4">

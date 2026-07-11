@@ -15,20 +15,34 @@ type RightsData = {
 };
 
 async function seedPatient() {
-  if ((await prisma.patient.count()) > 0) return;
-  await prisma.patient.create({
-    data: {
-      name: "แม่สมทรง ใจดี",
-      age: 74,
-      coverage: "บัตรทอง",
-      hospital: "รพ.เจริญกรุงประชารักษ์",
-      job: "เกษียณแล้ว",
-      likes: "ชอบละคร วาไรตี้ และมาสเตอร์เชฟ",
-      caregiver: "เจี๊ยบ · ผู้ดูแลหลัก",
-      diseases: "ความดันโลหิตสูง · เบาหวาน",
-      allergies: { create: [{ name: "เพนิซิลลิน" }] },
-    },
-  });
+  // Primary ม้า (full profile + allergy) — only when the DB is empty.
+  if ((await prisma.patient.count()) === 0) {
+    await prisma.patient.create({
+      data: {
+        name: "แม่สมทรง ใจดี",
+        age: 74,
+        coverage: "บัตรทอง",
+        hospital: "รพ.เจริญกรุงประชารักษ์",
+        job: "เกษียณแล้ว",
+        likes: "ชอบละคร วาไรตี้ และมาสเตอร์เชฟ",
+        caregiver: "เจี๊ยบ · ผู้ดูแลหลัก",
+        diseases: "ความดันโลหิตสูง · เบาหวาน",
+        allergies: { create: [{ name: "เพนิซิลลิน" }] },
+      },
+    });
+  }
+  // ponytail: 4 more mock ม้า, topped up by name so re-seeding an existing DB is idempotent.
+  const mocks = [
+    { name: "พ่อบุญมี รักษ์ดี", age: 78, coverage: "ข้าราชการ", hospital: "รพ.ศิริราช", job: "ครูเกษียณ", caregiver: "หน่อย · ลูกสาว", diseases: "หัวใจ" },
+    { name: "แม่ประนอม สุขใจ", age: 69, coverage: "บัตรทอง", hospital: "รพ.ตากสิน", job: "แม่ค้า", caregiver: "ต้น · ลูกชาย", diseases: "เบาหวาน · ไต" },
+    { name: "แม่ลำใย ทองมา", age: 81, coverage: "ประกันสังคม", hospital: "รพ.กลาง", job: "เกษียณแล้ว", caregiver: "แนน · หลานสาว", diseases: "ข้อเข่าเสื่อม" },
+    { name: "พ่อสมชาย ดีงาม", age: 72, coverage: "บัตรทอง", hospital: "รพ.เลิดสิน", job: "อดีตคนขับรถ", caregiver: "โบว์ · ลูกสาว", diseases: "ความดันโลหิตสูง" },
+  ];
+  for (const m of mocks) {
+    if (!(await prisma.patient.findFirst({ where: { name: m.name } }))) {
+      await prisma.patient.create({ data: m });
+    }
+  }
 }
 
 // ponytail: guarded by a count check so re-seeding is idempotent; re-run

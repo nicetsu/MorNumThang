@@ -1,5 +1,6 @@
 import { createTextStreamResponse, toTextStream } from "ai";
 import { db } from "@/lib/db";
+import { getActivePatient } from "@/lib/patient";
 import { recommendServices, facilityGuidance } from "@/lib/rights";
 import { inferSuspectedDiseases } from "@/lib/infer";
 import {
@@ -21,7 +22,7 @@ export async function POST(req: Request) {
   const streamer = streamers[kind as keyof typeof streamers];
   if (!streamer) return new Response("bad kind", { status: 400 });
 
-  const patient = await db.patient.findFirst();
+  const patient = await getActivePatient();
   if (!patient) return new Response("no patient", { status: 404 });
 
   const [allergies, meds, weights, visits, observations, ruleRows] = await Promise.all([

@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { db } from "@/lib/db";
+import { getActivePatient } from "@/lib/patient";
 import { dotClass, scoreLevel, LEVEL } from "@/lib/severity";
 import { RecordsTabs } from "./records-tabs";
 
@@ -30,7 +31,7 @@ export default async function Records({
 }: {
   searchParams: Promise<{ view?: string }>;
 }) {
-  const patient = await db.patient.findFirst();
+  const patient = await getActivePatient();
   if (!patient) {
     return <p className="py-8 text-muted-foreground">ยังไม่มีข้อมูลม้าค่ะ</p>;
   }

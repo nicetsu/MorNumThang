@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { db } from "@/lib/db";
+import { getActivePatient } from "@/lib/patient";
 
 // Each meal-timing is its own slot, so "ก่อนอาหาร" and "หลังอาหาร" never merge.
 const WHEN_ORDER = ["ก่อนอาหารเช้า", "หลังอาหารเช้า", "หลังอาหารกลางวัน", "หลังอาหารเย็น", "ก่อนนอน"];
@@ -17,7 +18,7 @@ function timeOf(w: string): string {
 }
 
 export default async function MedSchedule() {
-  const patient = await db.patient.findFirst();
+  const patient = await getActivePatient();
   if (!patient) {
     return <p className="py-8 text-muted-foreground">ยังไม่มีข้อมูลม้าค่ะ</p>;
   }
