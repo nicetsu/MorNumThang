@@ -2,21 +2,31 @@
 export const dynamic = "force-dynamic";
 
 import { db } from "@/lib/db";
-import { PID_COOKIE } from "@/lib/patient";
+import { PID_COOKIE, getOwnerId } from "@/lib/patient";
 import { cookies } from "next/headers";
-import { selectPatient, createPatient } from "./actions";
+import { selectPatient, createPatient, logout } from "./actions";
 import { Input } from "@/components/ui/input";
 
 export default async function PatientsPage() {
+  const owner = (await getOwnerId())!; // middleware guarantees a value here
   const [patients, activeId] = await Promise.all([
-    db.patient.findMany({ orderBy: { createdAt: "asc" } }),
+    db.patient.findMany({ where: { owner }, orderBy: { createdAt: "asc" } }),
     cookies().then((c) => c.get(PID_COOKIE)?.value),
   ]);
 
   return (
     <div className="space-y-6">
-      <h2 className="screen-title">เลือกม้าที่จะดูแล</h2>
-      <p className="text-muted-foreground">แตะที่ชื่อเพื่อเข้าดูสมุดของท่านนั้นค่ะ</p>
+      <div className="flex items-baseline justify-between gap-3">
+        <h2 className="screen-title">เลือกม้าที่จะดูแล</h2>
+        <form action={logout}>
+          <button type="submit" className="shrink-0 text-sm font-bold text-clay">
+            ออก ({owner})
+          </button>
+        </form>
+      </div>
+      <p className="text-muted-foreground">
+        {patients.length ? "แตะที่ชื่อเพื่อเข้าดูสมุดของท่านนั้นค่ะ" : "ยังไม่มีม้าในรหัสนี้ เพิ่มคนแรกได้เลยค่ะ"}
+      </p>
 
       <div className="space-y-3">
         {patients.map((p) => (

@@ -3,7 +3,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
-import { PID_COOKIE } from "@/lib/patient";
+import { PID_COOKIE, OID_COOKIE, getOwnerId } from "@/lib/patient";
 
 async function setActive(id: string) {
   // ponytail: 1-year plain cookie — no auth to protect yet.
@@ -15,13 +15,21 @@ export async function selectPatient(id: string) {
   redirect("/");
 }
 
+export async function logout() {
+  const c = await cookies();
+  c.delete(PID_COOKIE);
+  c.delete(OID_COOKIE);
+  redirect("/enter");
+}
+
 export async function createPatient(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
   if (!name) throw new Error("กรุณากรอกชื่อ");
   const ageRaw = parseInt(String(formData.get("age") ?? ""), 10);
   const age = Number.isFinite(ageRaw) && ageRaw >= 0 && ageRaw <= 130 ? ageRaw : null;
 
-  const p = await db.patient.create({ data: { name, age } });
+  const owner = (await getOwnerId()) ?? "demo"; // middleware guarantees an owner cookie
+  const p = await db.patient.create({ data: { name, age, owner } });
   await setActive(p.id);
   redirect("/");
 }

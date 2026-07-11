@@ -12,6 +12,7 @@ datasource db {
 
 model Patient {
   id           String        @id @default(cuid())
+  owner        String        @default("demo") // ponytail: freeform owner id (the "login") — no auth yet
   name         String
   age          Int? // อายุ
   coverage     String? // สิทธิการรักษา (เช่น บัตรทอง)
@@ -28,6 +29,8 @@ model Patient {
   appointments Appointment[]
   visits       VisitNote[]
   observations Observation[]
+
+  @@index([owner])
 }
 
 // A narrative observation the caregiver told, AI-organized into a category.
