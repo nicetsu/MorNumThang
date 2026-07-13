@@ -5,8 +5,8 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { getActivePatient } from "@/lib/patient";
 import { removeAllergy } from "../list/actions";
-import { MedForm } from "../list/med-form";
 import { AllergyForm } from "./allergy-form";
+import { MedAddTabs } from "./med-add-tabs";
 
 // Add-medication screen (prototype screen 8): allergy field + the med form.
 export default async function MedAdd() {
@@ -52,7 +52,7 @@ export default async function MedAdd() {
         </p>
       </section>
 
-      <MedForm allergies={allergies.map((a) => a.name)} drugs={drugs} />
+      <MedAddTabs allergies={allergies.map((a) => a.name)} drugs={drugs} />
     </div>
   );
 }

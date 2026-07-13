@@ -10,6 +10,7 @@ import { Combobox } from "@/components/combobox";
 import { addAppointment } from "../actions";
 
 type Followup = { note: string; place: string | null };
+export type AppointmentPrefill = { note?: string; place?: string; date?: string; time?: string };
 
 // ponytail: shared by the date PopoverTrigger only — the real fields use <Input>, whose default matches these tokens.
 const inputCls =
@@ -19,13 +20,17 @@ const inputCls =
 export function AppointmentForm({
   followups,
   hospitals,
+  prefill,
 }: {
   followups: Followup[];
   hospitals: string[];
+  prefill?: AppointmentPrefill;
 }) {
-  const [note, setNote] = useState("");
-  const [place, setPlace] = useState("");
-  const [date, setDate] = useState<Date | undefined>(undefined);
+  const [note, setNote] = useState(prefill?.note ?? "");
+  const [place, setPlace] = useState(prefill?.place ?? "");
+  const [date, setDate] = useState<Date | undefined>(
+    prefill?.date ? new Date(`${prefill.date}T00:00:00`) : undefined,
+  );
   const [open, setOpen] = useState(false);
 
   return (
@@ -99,7 +104,7 @@ export function AppointmentForm({
         </label>
         <label>
           <span>เวลา</span>
-          <Input name="time" type="time" />
+          <Input name="time" type="time" defaultValue={prefill?.time} />
         </label>
       </div>
 

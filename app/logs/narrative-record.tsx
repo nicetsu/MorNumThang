@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useRef, useEffect } from "react";
 import { toast } from "sonner";
+import { Mic, MicOff } from "lucide-react";
 import { organizeNarrativeAction, saveObservations } from "./actions";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -26,6 +27,73 @@ export function NarrativeRecord() {
   const [items, setItems] = useState<Item[] | null>(null);
   const [organizing, startOrganize] = useTransition();
   const [saving, startSave] = useTransition();
+
+  const [isListening, setIsListening] = useState(false);
+  const [speechLang, setSpeechLang] = useState<"th-TH" | "en-US">("th-TH");
+  const recognitionRef = useRef<any>(null);
+
+  const toggleListening = () => {
+    if (isListening) {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+      setIsListening(false);
+    } else {
+      const SpeechRecognition =
+        typeof window !== "undefined" &&
+        ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
+
+      if (!SpeechRecognition) {
+        toast.error("เบราว์เซอร์ของคุณไม่รองรับการพิมพ์ด้วยเสียง (Speech Recognition)");
+        return;
+      }
+
+      const rec = new SpeechRecognition();
+      rec.continuous = true;
+      rec.interimResults = false;
+      rec.lang = speechLang;
+
+      rec.onstart = () => {
+        setIsListening(true);
+        toast.success(
+          speechLang === "th-TH"
+            ? "เริ่มบันทึกเสียงภาษาไทยแล้วค่ะ พูดได้เลย"
+            : "Started English voice recording. Speak now."
+        );
+      };
+
+      rec.onerror = (event: any) => {
+        console.error("Speech recognition error", event.error);
+        if (event.error === "not-allowed") {
+          toast.error("ไม่สามารถเข้าถึงไมโครโฟนได้ กรุณาอนุญาตสิทธิ์การใช้งานไมโครโฟนในเบราว์เซอร์");
+        } else {
+          toast.error(`เกิดข้อผิดพลาดในการบันทึกเสียง: ${event.error}`);
+        }
+        setIsListening(false);
+      };
+
+      rec.onend = () => {
+        setIsListening(false);
+      };
+
+      rec.onresult = (event: any) => {
+        const resultIndex = event.resultIndex;
+        const transcript = event.results[resultIndex][0].transcript;
+        setStory((prev) => (prev ? `${prev} ${transcript}` : transcript));
+      };
+
+      recognitionRef.current = rec;
+      rec.start();
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+    };
+  }, []);
 
   function organize() {
     if (!story.trim()) return;
@@ -55,13 +123,70 @@ export function NarrativeRecord() {
         พูดหรือพิมพ์สั้น ๆ ได้เลย เดี๋ยว AI ช่วยจัดเข้าหมวดให้
       </p>
 
-      <Textarea
-        value={story}
-        onChange={(e) => setStory(e.target.value)}
-        rows={4}
-        placeholder="เช่น ช่วงนี้แม่กินน้อยลง ดื่มน้ำน้อย แล้วก็ตื่นเข้าห้องน้ำบ่อย"
-        className="bg-ivory"
-      />
+      <div className="relative">
+        <Textarea
+          value={story}
+          onChange={(e) => setStory(e.target.value)}
+          rows={4}
+          placeholder="เช่น ช่วงนี้แม่กินน้อยลง ดื่มน้ำน้อย แล้วก็ตื่นเข้าห้องน้ำบ่อย"
+          className="bg-ivory w-full"
+        />
+
+        {/* Voice control bar */}
+        <div className="mt-2 flex items-center justify-between gap-3 rounded-xl border border-line bg-ivory p-2.5">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={toggleListening}
+              className={`flex h-11 w-11 items-center justify-center rounded-full transition-all ${
+                isListening
+                  ? "bg-red text-white shadow-[0_0_15px_rgba(200,62,62,0.4)]"
+                  : "bg-teal-soft text-teal hover:bg-teal/10"
+              }`}
+              title={isListening ? "หยุดบันทึกเสียง" : "พิมพ์ด้วยเสียง"}
+              aria-label={isListening ? "หยุดบันทึกเสียง" : "พิมพ์ด้วยเสียง"}
+            >
+              {isListening ? (
+                <MicOff className="h-5 w-5 animate-pulse" />
+              ) : (
+                <Mic className="h-5 w-5" />
+              )}
+            </button>
+            <span className="text-sm font-bold text-muted-foreground">
+              {isListening
+                ? speechLang === "th-TH"
+                  ? "กำลังฟังภาษาไทย..."
+                  : "Listening in English..."
+                : speechLang === "th-TH"
+                ? "แตะไมค์เพื่อพูดภาษาไทย"
+                : "Tap mic to speak English"}
+            </span>
+          </div>
+
+          <div className="seg-tabs cols-2 w-auto max-w-[150px] !p-0.5 !rounded-lg text-xs" role="tablist">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={speechLang === "th-TH"}
+              disabled={isListening}
+              onClick={() => setSpeechLang("th-TH")}
+              className="!min-h-8 !text-xs !rounded-md px-3 py-1.5 font-bold disabled:opacity-50"
+            >
+              ไทย
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={speechLang === "en-US"}
+              disabled={isListening}
+              onClick={() => setSpeechLang("en-US")}
+              className="!min-h-8 !text-xs !rounded-md px-3 py-1.5 font-bold disabled:opacity-50"
+            >
+              EN
+            </button>
+          </div>
+        </div>
+      </div>
 
       <div className="flex flex-wrap gap-2">
         {CHIPS.map((c) => (

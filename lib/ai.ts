@@ -176,3 +176,121 @@ export async function organizeNarrative(story: string): Promise<OrganizedItem[]>
   // Fallback: keep the caregiver's words rather than losing them.
   return [{ category: "อื่น ๆ", text: story.trim(), severity: 5 }];
 }
+
+// §4.4 Drug-label scan — extract structured fields from OCR'd label text. Reads only, never prescribes.
+const LABEL_SYSTEM = `คุณช่วยอ่านข้อความจากฉลากยาที่สแกนได้ (OCR) แล้วแยกเป็นข้อมูลโครงสร้าง เป็นภาษาไทย
+กฎ:
+- ดึงเฉพาะข้อมูลที่ปรากฏในข้อความเท่านั้น ห้ามเดา ห้ามเติมข้อมูลที่ไม่มี ห้ามแนะนำหรือแก้ไขขนาดยา
+- ข้อความจาก OCR อาจมีตัวอักษรผิดเพี้ยนบ้าง ให้ตีความเท่าที่พอเข้าใจได้เท่านั้น
+- ถ้าข้อความอ่านไม่ออก ไม่สมเหตุสมผล หรือไม่เหมือนฉลากยาเลย (เช่น เป็นตัวอักษรมั่ว ๆ จาก OCR ที่อ่านผิดพลาด)
+  ห้ามคิดชื่อยาหรือข้อมูลใด ๆ ขึ้นเองเด็ดขาด ให้ตอบค่าว่างทุกช่องแทน
+- ตอบกลับเป็น JSON เท่านั้น ห้ามมีข้อความอื่น รูปแบบ:
+  {"name":"","quantity":"","usage":"","mealTiming":""}
+  - name: ชื่อยาพร้อมความแรงถ้ามีระบุ เช่น "Paracetamol 500 mg"
+  - quantity: จำนวนที่ระบุ เช่น "20 เม็ด"
+  - usage: วิธีใช้ตามฉลาก เช่น "รับประทานครั้งละ 1 เม็ด ทุก 6 ชั่วโมง เมื่อมีอาการปวด"
+  - mealTiming: หนึ่งใน "ก่อนอาหาร", "หลังอาหาร", "ไม่ระบุ"
+  ช่องไหนไม่มีข้อมูลให้เป็นสตริงว่าง ""`;
+
+export type DrugLabelInfo = { name: string; quantity: string; usage: string; mealTiming: string };
+
+const emptyLabel: DrugLabelInfo = { name: "", quantity: "", usage: "", mealTiming: "ไม่ระบุ" };
+
+export async function structureDrugLabel(rawText: string): Promise<DrugLabelInfo> {
+  if (!rawText.trim()) return emptyLabel;
+
+  const { text } = await generateText({
+    // ponytail: separate small model for this one extraction task, kept out of AI_MODEL so the
+    // doctor-summary/signals models aren't affected by swapping this one.
+    model: provider(process.env.OCR_STRUCTURE_MODEL || "qwen2.5-coder:7b"),
+    system: LABEL_SYSTEM,
+    prompt: rawText,
+    temperature: 0.1,
+  });
+
+  const match = text.match(/\{[\s\S]*\}/);
+  if (match) {
+    try {
+      const obj = JSON.parse(match[0]);
+      return {
+        name: String(obj?.name ?? "").trim(),
+        quantity: String(obj?.quantity ?? "").trim(),
+        usage: String(obj?.usage ?? "").trim(),
+        mealTiming: String(obj?.mealTiming ?? "ไม่ระบุ").trim() || "ไม่ระบุ",
+      };
+    } catch {
+      // fall through to fallback
+    }
+  }
+  return emptyLabel;
+}
+
+// §4.5 Appointment-slip scan — extract structured fields from OCR'd appointment/referral slip text.
+const APPOINTMENT_SYSTEM = `คุณช่วยอ่านข้อความจากใบนัดโรงพยาบาลที่สแกนได้ (OCR) แล้วแยกเป็นข้อมูลโครงสร้าง เป็นภาษาไทย
+กฎ:
+- ดึงเฉพาะข้อมูลที่ปรากฏในข้อความเท่านั้น ห้ามเดา ห้ามเติมข้อมูลที่ไม่มี
+- ข้อความจาก OCR อาจมีตัวอักษรผิดเพี้ยนบ้าง ให้ตีความเท่าที่พอเข้าใจได้เท่านั้น
+- ถ้าข้อความอ่านไม่ออก ไม่สมเหตุสมผล หรือไม่เหมือนใบนัดเลย (เช่น เป็นตัวอักษรมั่ว ๆ จาก OCR ที่อ่านผิดพลาด)
+  ห้ามคิดชื่อโรงพยาบาล แผนก หรือแพทย์ขึ้นเองเด็ดขาด ให้ตอบค่าว่างทุกช่องแทน
+- ห้ามคำนวณเลขปีเอง (แปลง พ.ศ. เป็น ค.ศ. ฯลฯ) ให้ตอบ "year" เป็นตัวเลขปีตามที่เห็นบนใบนัดตรง ๆ เท่านั้น
+  โค้ดจะเป็นผู้แปลงปีให้เอง ไม่ใช่หน้าที่ของคุณ — หน้าที่คุณคือแปลง "ชื่อเดือน" เป็นตัวเลข 1-12 เท่านั้น
+- ตอบกลับเป็น JSON เท่านั้น ห้ามมีข้อความอื่น รูปแบบ:
+  {"day":"","month":"","year":"","time":"","hospital":"","department":"","doctor":""}
+  - day: วันที่ ตัวเลข 1-31 ตามที่ปรากฏ (ถ้าไม่มีให้เป็น "")
+  - month: เดือน ตัวเลข 1-12 (แปลงจากชื่อเดือนไทยเป็นตัวเลข เช่น "มีนาคม" → "3") (ถ้าไม่มีให้เป็น "")
+  - year: ปี ตัวเลขดิบตามที่ปรากฏบนใบนัด ห้ามแปลง พ.ศ./ค.ศ. เอง (ถ้าไม่มีให้เป็น "")
+  - time: เวลานัด รูปแบบ 24 ชั่วโมง "HH:mm" เช่น "09:30" (ถ้าไม่มีให้เป็น "")
+  - hospital: ชื่อโรงพยาบาลหรือสถานพยาบาล
+  - department: แผนกหรือคลินิก เช่น "อายุรกรรม"
+  - doctor: ชื่อแพทย์ผู้ตรวจ (ถ้ามีระบุ)
+  ช่องไหนไม่มีข้อมูลให้เป็นสตริงว่าง ""`;
+
+export type AppointmentSlipInfo = {
+  date: string;
+  time: string;
+  hospital: string;
+  department: string;
+  doctor: string;
+};
+
+const emptyAppointment: AppointmentSlipInfo = { date: "", time: "", hospital: "", department: "", doctor: "" };
+
+// Buddhist Era -> Gregorian is a deterministic subtraction — never let the LLM do this arithmetic itself
+// (observed it getting 2569-543 wrong). Model only extracts day/month/year as printed; code does the math.
+function buildIsoDate(day: unknown, month: unknown, year: unknown): string {
+  const d = parseInt(String(day), 10);
+  const m = parseInt(String(month), 10);
+  let y = parseInt(String(year), 10);
+  if (!Number.isFinite(d) || !Number.isFinite(m) || !Number.isFinite(y)) return "";
+  if (y > 2400) y -= 543; // พ.ศ. -> ค.ศ.
+  if (m < 1 || m > 12 || d < 1 || d > 31) return "";
+  return `${String(y).padStart(4, "0")}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+}
+
+export async function structureAppointmentSlip(rawText: string): Promise<AppointmentSlipInfo> {
+  if (!rawText.trim()) return emptyAppointment;
+
+  const { text } = await generateText({
+    model: provider(process.env.OCR_STRUCTURE_MODEL || "qwen2.5-coder:7b"),
+    system: APPOINTMENT_SYSTEM,
+    prompt: rawText,
+    temperature: 0.1,
+  });
+
+  const match = text.match(/\{[\s\S]*\}/);
+  if (match) {
+    try {
+      const obj = JSON.parse(match[0]);
+      return {
+        date: buildIsoDate(obj?.day, obj?.month, obj?.year),
+        time: String(obj?.time ?? "").trim(),
+        hospital: String(obj?.hospital ?? "").trim(),
+        department: String(obj?.department ?? "").trim(),
+        doctor: String(obj?.doctor ?? "").trim(),
+      };
+    } catch {
+      // fall through to fallback
+    }
+  }
+  return emptyAppointment;
+}

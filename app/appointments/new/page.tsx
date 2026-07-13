@@ -4,7 +4,7 @@ export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { getActivePatient } from "@/lib/patient";
-import { AppointmentForm } from "./appointment-form";
+import { AppointmentTabs } from "./appointment-tabs";
 
 // New-appointment screen (prototype screen 12) with followup cards from past appointments.
 export default async function NewAppointment() {
@@ -39,7 +39,7 @@ export default async function NewAppointment() {
         <h2 className="screen-title">จดนัดใหม่</h2>
         <p className="lead">ใส่เท่าที่มี เดี๋ยวสมุดช่วยรวมไว้ให้ค่ะ</p>
       </div>
-      <AppointmentForm followups={followups} hospitals={hospitals} />
+      <AppointmentTabs followups={followups} hospitals={hospitals} />
     </div>
   );
 }

@@ -6,10 +6,19 @@ import { db } from "@/lib/db";
 import { getActivePatient } from "@/lib/patient";
 
 // Each meal-timing is its own slot, so "ก่อนอาหาร" and "หลังอาหาร" never merge.
-const WHEN_ORDER = ["ก่อนอาหารเช้า", "หลังอาหารเช้า", "หลังอาหารกลางวัน", "หลังอาหารเย็น", "ก่อนนอน"];
+const WHEN_ORDER = [
+  "ก่อนอาหารเช้า",
+  "หลังอาหารเช้า",
+  "ก่อนอาหารกลางวัน",
+  "หลังอาหารกลางวัน",
+  "ก่อนอาหารเย็น",
+  "หลังอาหารเย็น",
+  "ก่อนนอน",
+];
 
 // Short time-of-day label shown big; the exact meal-timing is the small hint.
 function timeOf(w: string): string {
+  if (w.startsWith("เวลา ")) return "ตั้งเวลา";
   if (w.includes("เช้า")) return "เช้า";
   if (w.includes("กลางวัน")) return "กลางวัน";
   if (w.includes("เย็น")) return "เย็น";
@@ -28,12 +37,36 @@ export default async function MedSchedule() {
   });
   const dose = (m: (typeof meds)[number]) => (m.dose ? `${m.dose} เม็ด` : "");
 
-  // Build one slot per distinct meal-timing that actually has meds (canonical order first).
-  const slots = WHEN_ORDER.map((when) => ({ when, meds: meds.filter((m) => m.whenTime === when) })).filter(
+  // Build slots for standard timings
+  const standardSlots = WHEN_ORDER.map((when) => ({ when, meds: meds.filter((m) => m.whenTime === when) })).filter(
     (s) => s.meds.length > 0,
   );
-  const other = meds.filter((m) => !m.whenTime || !WHEN_ORDER.includes(m.whenTime));
-  if (other.length) slots.push({ when: "ตามแพทย์สั่ง", meds: other });
+
+  // Group other medications (custom times, custom text, or no timing)
+  const otherMeds = meds.filter((m) => !m.whenTime || !WHEN_ORDER.includes(m.whenTime));
+  const otherGroups: { when: string; meds: typeof meds }[] = [];
+  const noTimeMeds: typeof meds = [];
+
+  for (const m of otherMeds) {
+    if (!m.whenTime) {
+      noTimeMeds.push(m);
+    } else {
+      let group = otherGroups.find((g) => g.when === m.whenTime);
+      if (!group) {
+        group = { when: m.whenTime, meds: [] };
+        otherGroups.push(group);
+      }
+      group.meds.push(m);
+    }
+  }
+
+  // Sort otherGroups (e.g. "เวลา 08:00" before "เวลา 20:00")
+  otherGroups.sort((a, b) => a.when.localeCompare(b.when));
+
+  const slots = [...standardSlots, ...otherGroups];
+  if (noTimeMeds.length > 0) {
+    slots.push({ when: "ตามแพทย์สั่ง", meds: noTimeMeds });
+  }
 
   return (
     <div className="space-y-4">

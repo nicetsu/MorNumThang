@@ -52,18 +52,46 @@ export async function addMedication(
     const n = parseFloat(String(formData.get(k) ?? ""));
     return Number.isFinite(n) && n > 0 ? n : null;
   };
-  const whenTime = String(formData.get("whenTime") ?? "").trim() || null;
+  const remaining = num("remaining");
 
-  await db.medication.create({
-    data: {
-      patientId: pid,
-      name,
-      dose: num("dose"),
-      perDay: num("perDay"),
-      whenTime,
-      remaining: num("remaining"),
-    },
-  });
+  const schedulesJson = String(formData.get("schedules") ?? "").trim();
+  if (schedulesJson) {
+    try {
+      const schedules = JSON.parse(schedulesJson) as { whenTime: string; dose: number }[];
+      if (schedules.length > 0) {
+        for (const s of schedules) {
+          await db.medication.create({
+            data: {
+              patientId: pid,
+              name,
+              dose: s.dose,
+              perDay: schedules.length,
+              whenTime: s.whenTime,
+              remaining,
+            },
+          });
+        }
+      } else {
+        return { error: "กรุณาเลือกช่วงเวลาทานยาอย่างน้อย 1 ช่วง" };
+      }
+    } catch (e) {
+      return { error: "ข้อมูลช่วงเวลาการทานยาไม่ถูกต้อง" };
+    }
+  } else {
+    // Fallback to legacy single schedule input if schedules field is missing
+    const whenTime = String(formData.get("whenTime") ?? "").trim() || null;
+    await db.medication.create({
+      data: {
+        patientId: pid,
+        name,
+        dose: num("dose"),
+        perDay: num("perDay"),
+        whenTime,
+        remaining,
+      },
+    });
+  }
+
   revalidatePath("/meds/list");
   revalidatePath("/meds/add");
   revalidatePath("/");
