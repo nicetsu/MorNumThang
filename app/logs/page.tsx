@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { addWeight } from "./actions";
 import { RecordTabs } from "./record-tabs";
+import { SubmitButton } from "@/components/submit-button";
 
 // Record screen (prototype screen 1): just the two-tab form. The full log history
 // lives on /signals ("บันทึกของผู้รับการดูแล").
@@ -47,7 +48,7 @@ export default function Logs() {
         <span>จดเพิ่มได้ (ไม่บังคับ)</span>
         <Textarea name="note" rows={2} placeholder="เช่น ชั่งก่อนอาหารเช้า" />
       </label>
-      <button type="submit" className="btn-primary">เก็บลงสมุด</button>
+      <SubmitButton className="btn-primary" pendingText="กำลังเก็บ…">เก็บลงสมุด</SubmitButton>
     </form>
   );
 

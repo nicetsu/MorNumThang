@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { completeAppointment, rescheduleAppointment, addVisitNote } from "../actions";
 import { ShareButton } from "@/components/share-button";
+import { SubmitButton } from "@/components/submit-button";
 
 const PREP = ["บัตรประชาชนและใบนัด", "ยาที่ใช้อยู่ หรือถ่ายรูปฉลากยา", "สรุปจากสมุดของผู้รับการดูแล"];
 
@@ -68,7 +69,7 @@ export default async function AppointmentDetail({
         ) : (
           <form action={completeAppointment}>
             <input type="hidden" name="id" value={appt.id} />
-            <button type="submit" className="secondary-action w-full">ไปตามนัดแล้ว</button>
+            <SubmitButton className="secondary-action w-full" pendingText="กำลังบันทึก…">ไปตามนัดแล้ว</SubmitButton>
           </form>
         )}
         <ShareButton
@@ -85,7 +86,7 @@ export default async function AppointmentDetail({
             <input type="hidden" name="id" value={appt.id} />
             <Input name="date" type="date" required className="min-h-10 flex-1 rounded-xl bg-ivory px-3 text-base" />
             <Input name="time" type="time" className="min-h-10 rounded-xl bg-ivory px-3 text-base" />
-            <button type="submit" className="min-h-10 rounded-xl bg-teal px-4 font-bold text-white">เลื่อน</button>
+            <SubmitButton className="min-h-10 rounded-xl bg-teal px-4 font-bold text-white" pendingText="…">เลื่อน</SubmitButton>
           </form>
         </details>
       )}
@@ -105,7 +106,7 @@ export default async function AppointmentDetail({
           <span>นัดครั้งถัดไป (ถ้ามี)</span>
           <Input name="nextAppointment" placeholder="เช่น อีก 1 เดือน" />
         </label>
-        <button type="submit" className="btn-primary">เก็บบันทึกการรักษา</button>
+        <SubmitButton className="btn-primary" pendingText="กำลังเก็บ…">เก็บบันทึกการรักษา</SubmitButton>
       </form>
     </div>
   );

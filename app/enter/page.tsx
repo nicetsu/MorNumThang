@@ -1,6 +1,7 @@
 import { enterId } from "./actions";
 import { LineLogin } from "./line-login";
 import { Input } from "@/components/ui/input";
+import { SubmitButton } from "@/components/submit-button";
 
 export default function EnterPage() {
   return (
@@ -26,7 +27,7 @@ export default function EnterPage() {
             placeholder="รหัสของคุณ เช่น jiab หรือ 0812345678"
             className="bg-ivory"
           />
-          <button type="submit" className="btn-primary">เข้าสู่สมุด</button>
+          <SubmitButton className="btn-primary" pendingText="กำลังเข้า…">เข้าสู่สมุด</SubmitButton>
           <p className="text-sm text-muted-foreground">
             อยากลองดูตัวอย่าง? ใช้รหัส <b className="text-teal">demo</b> ได้เลยค่ะ
           </p>

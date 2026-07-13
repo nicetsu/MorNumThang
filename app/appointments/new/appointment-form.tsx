@@ -8,6 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Input } from "@/components/ui/input";
 import { Combobox } from "@/components/combobox";
 import { addAppointment } from "../actions";
+import { SubmitButton } from "@/components/submit-button";
 
 type Followup = { note: string; place: string | null };
 export type AppointmentPrefill = { note?: string; place?: string; date?: string; time?: string };
@@ -108,9 +109,9 @@ export function AppointmentForm({
         </label>
       </div>
 
-      <button type="submit" disabled={!date} className="btn-primary disabled:opacity-60">
+      <SubmitButton disabled={!date} className="btn-primary disabled:opacity-60" pendingText="กำลังเก็บ…">
         เก็บนัดลงสมุด
-      </button>
+      </SubmitButton>
     </form>
   );
 }

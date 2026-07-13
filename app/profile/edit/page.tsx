@@ -7,6 +7,7 @@ import { getActivePatient } from "@/lib/patient";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { saveProfile } from "./actions";
+import { SubmitButton } from "@/components/submit-button";
 
 export default async function ProfileEdit() {
   const patient = await getActivePatient();
@@ -57,7 +58,7 @@ export default async function ProfileEdit() {
           <span>สิ่งที่ชอบ</span>
           <Textarea name="likes" rows={2} defaultValue={patient.likes ?? ""} />
         </label>
-        <button type="submit" className="btn-primary">บันทึกประวัติ</button>
+        <SubmitButton className="btn-primary" pendingText="กำลังบันทึก…">บันทึกประวัติ</SubmitButton>
       </form>
     </div>
   );

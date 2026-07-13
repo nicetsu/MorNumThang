@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Combobox } from "@/components/combobox";
 import { addAllergy } from "../list/actions";
+import { SubmitButton } from "@/components/submit-button";
 
 // Allergy input as a searchable combobox (same component as เลือกยา) that also allows custom text.
 export function AllergyForm({ drugs }: { drugs: string[] }) {
@@ -27,13 +28,13 @@ export function AllergyForm({ drugs }: { drugs: string[] }) {
           searchPlaceholder="ค้นหายา…"
         />
       </div>
-      <button
-        type="submit"
+      <SubmitButton
         disabled={!val}
         className="min-h-[54px] rounded-[14px] bg-clay px-5 font-extrabold text-white disabled:opacity-60"
+        pendingText="…"
       >
         เพิ่ม
-      </button>
+      </SubmitButton>
     </form>
   );
 }

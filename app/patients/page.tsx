@@ -6,6 +6,7 @@ import { PID_COOKIE, getUserId } from "@/lib/patient";
 import { cookies } from "next/headers";
 import { selectPatient, createPatient, careForSelf, logout } from "./actions";
 import { Input } from "@/components/ui/input";
+import { SubmitButton } from "@/components/submit-button";
 
 export default async function PatientsPage() {
   const uid = (await getUserId())!; // middleware guarantees a value here
@@ -20,9 +21,9 @@ export default async function PatientsPage() {
       <div className="flex items-baseline justify-between gap-3">
         <h2 className="screen-title">เลือกผู้รับการดูแลที่จะดูแล</h2>
         <form action={logout}>
-          <button type="submit" className="shrink-0 text-sm font-bold text-clay">
+          <SubmitButton className="shrink-0 text-sm font-bold text-clay" pendingText="กำลังออก…">
             ออก ({user.name ?? user.lineId})
-          </button>
+          </SubmitButton>
         </form>
       </div>
       <p className="text-muted-foreground">
@@ -32,8 +33,7 @@ export default async function PatientsPage() {
       <div className="space-y-3">
         {patients.map((p) => (
           <form key={p.id} action={selectPatient.bind(null, p.id)}>
-            <button
-              type="submit"
+            <SubmitButton
               className={`flex w-full items-center gap-4 rounded-2xl border p-4 text-left ${
                 p.id === activeId ? "border-teal bg-teal-soft" : "border-line bg-card"
               }`}
@@ -48,7 +48,7 @@ export default async function PatientsPage() {
                 </span>
               </span>
               {p.id === activeId && <span className="ml-auto font-bold text-teal">กำลังดูแล ✓</span>}
-            </button>
+            </SubmitButton>
           </form>
         ))}
       </div>
@@ -58,11 +58,11 @@ export default async function PatientsPage() {
         <form action={createPatient} className="space-y-3">
           <Input name="name" required placeholder="ชื่อ เช่น แม่สมทรง ใจดี" className="bg-ivory" />
           <Input name="age" type="number" min={0} max={130} placeholder="อายุ (ไม่บังคับ)" className="bg-ivory" />
-          <button type="submit" className="btn-primary">＋ เพิ่มแล้วเริ่มดูแล</button>
+          <SubmitButton className="btn-primary" pendingText="กำลังเพิ่ม…">＋ เพิ่มแล้วเริ่มดูแล</SubmitButton>
         </form>
         {/* ponytail: quick self-care setup for testing — one tap, no form. */}
         <form action={careForSelf}>
-          <button type="submit" className="text-sm font-bold text-teal">＋ ดูแลตัวเอง (สำหรับทดสอบ)</button>
+          <SubmitButton className="text-sm font-bold text-teal" pendingText="กำลังสร้าง…">＋ ดูแลตัวเอง (สำหรับทดสอบ)</SubmitButton>
         </form>
       </section>
     </div>
