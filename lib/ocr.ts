@@ -6,7 +6,7 @@ export class OcrServiceError extends Error {}
 // Sends a photo of a drug label to the Python sidecar and gets back the raw recognized text.
 export async function extractTextFromImage(image: Buffer, filename = "label.jpg"): Promise<string> {
   const form = new FormData();
-  form.append("image", new Blob([image]), filename);
+  form.append("image", new Blob([new Uint8Array(image)]), filename);
 
   let res: Response;
   try {
