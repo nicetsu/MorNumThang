@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { loginWithLine } from "./actions";
 
 const LIFF_ID = process.env.NEXT_PUBLIC_LIFF_ID;
 
@@ -26,9 +25,15 @@ export function LineLogin() {
         if (liff.isLoggedIn()) {
           const idToken = liff.getIDToken();
           // No id_token means the `openid` scope wasn't granted — profile alone can't prove identity.
-          if (!idToken) throw new Error("ไม่ได้รับ id_token — ตรวจว่าเปิด scope openid ใน LINE Login channel");
-          await loginWithLine(idToken); // sets the session cookie
-          if (!cancelled) window.location.replace("/patients"); // hard nav so the cookie is sent
+          if (!idToken) throw new Error("ไม่ได้รับ id_token — ตรวจว่าเปิด OpenID Connect / scope openid");
+          const r = await fetch("/api/auth/line", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "same-origin",
+            body: JSON.stringify({ idToken }),
+          });
+          if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error ?? `login ล้มเหลว (${r.status})`);
+          if (!cancelled) window.location.replace("/patients"); // hard nav so the fresh cookie is sent
           return;
         }
         setStatus("ready");
