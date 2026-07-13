@@ -171,6 +171,11 @@
     -webkit-user-select: none;
     user-select: none;
   }
+
+  /* Tailwind v4 dropped the button cursor:pointer default — restore it app-wide. */
+  button:not(:disabled) {
+    cursor: pointer;
+  }
 }
 
 /* ---- Design system ported from uploads/styles.css (same CSS vars) ---- */
