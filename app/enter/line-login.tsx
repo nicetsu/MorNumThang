@@ -7,7 +7,7 @@ const LIFF_ID = process.env.NEXT_PUBLIC_LIFF_ID;
 // Drives the LIFF handshake: init → (if already logged in) grab the id_token and hand it
 // to the server → otherwise show a button that kicks off LINE login. On any failure (e.g.
 // opened in a plain browser where LIFF can't init) it steps aside so the code form below still works.
-export function LineLogin() {
+export function LineLogin({ redirectTo = "/patients" }: { redirectTo?: string }) {
   const liffRef = useRef<{ login: (opts?: { redirectUri?: string }) => void } | null>(null);
   const [status, setStatus] = useState<"init" | "ready" | "error">("init");
   const [msg, setMsg] = useState("");
@@ -33,7 +33,7 @@ export function LineLogin() {
             body: JSON.stringify({ idToken }),
           });
           if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error ?? `login ล้มเหลว (${r.status})`);
-          if (!cancelled) window.location.replace("/patients"); // hard nav so the fresh cookie is sent
+          if (!cancelled) window.location.replace(redirectTo); // hard nav so the fresh cookie is sent
           return;
         }
         setStatus("ready");
@@ -61,7 +61,7 @@ export function LineLogin() {
     <button
       type="button"
       disabled={status !== "ready"}
-      onClick={() => liffRef.current?.login({ redirectUri: window.location.origin + "/enter" })}
+      onClick={() => liffRef.current?.login({ redirectUri: window.location.href })}
       className="btn-primary bg-[#06C755] disabled:opacity-60"
     >
       {status === "ready" ? "เข้าสู่ระบบด้วย LINE" : "กำลังเชื่อม LINE…"}

@@ -2,8 +2,10 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
+import { headers } from "next/headers";
 import { db } from "@/lib/db";
 import { getActivePatient } from "@/lib/patient";
+import { ShareButton } from "@/components/share-button";
 
 export default async function Profile() {
   const patient = await getActivePatient();
@@ -16,6 +18,11 @@ export default async function Profile() {
     where: { patientId: patient.id },
     orderBy: { at: "desc" },
   });
+
+  // Invite link for relatives — absolute URL so it's tappable when shared to LINE.
+  const h = await headers();
+  const base = `${h.get("x-forwarded-proto") ?? "https"}://${h.get("x-forwarded-host") ?? h.get("host")}`;
+  const inviteText = `ช่วยกันดูแล${patient.name}ในหมอนำทางนะคะ 🌿\n${base}/join/${patient.inviteCode}`;
 
   return (
     <div className="space-y-6">
@@ -84,6 +91,11 @@ export default async function Profile() {
           </span>
           <b className="self-center rounded-lg bg-teal px-4 py-2 font-bold text-white">โทร</b>
         </div>
+        <ShareButton
+          label="＋ เชิญญาติมาช่วยดูแล"
+          text={inviteText}
+          className="mt-3 min-h-12 w-full rounded-xl border-2 border-teal py-3 font-bold text-teal"
+        />
       </section>
 
       {patient.hospital && (

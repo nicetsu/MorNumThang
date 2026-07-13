@@ -23,6 +23,7 @@ model User {
 
 model Patient {
   id           String        @id @default(cuid())
+  inviteCode   String        @unique @default(cuid()) // shareable code — ญาติเปิด /join/<code> เพื่อมาช่วยดูแล
   name         String
   age          Int? // อายุ
   coverage     String? // สิทธิการรักษา (เช่น บัตรทอง)

@@ -5,7 +5,8 @@ import type { NextRequest } from "next/server";
 export function middleware(req: NextRequest) {
   const hasId = req.cookies.has("uid");
   const { pathname } = req.nextUrl;
-  if (!hasId && pathname !== "/enter") {
+  // /join/* is a public invite landing — it handles its own LINE login inline.
+  if (!hasId && pathname !== "/enter" && !pathname.startsWith("/join")) {
     return NextResponse.redirect(new URL("/enter", req.url));
   }
   if (hasId && pathname === "/enter") {
