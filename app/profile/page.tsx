@@ -8,7 +8,7 @@ import { getActivePatient } from "@/lib/patient";
 export default async function Profile() {
   const patient = await getActivePatient();
   if (!patient) {
-    return <p className="py-8 text-muted-foreground">ยังไม่มีข้อมูลม้าค่ะ</p>;
+    return <p className="py-8 text-muted-foreground">ยังไม่มีข้อมูลผู้รับการดูแลค่ะ</p>;
   }
 
   // Latest vitals come from the most recent body-measurement log.
@@ -25,7 +25,7 @@ export default async function Profile() {
       </div>
 
       <article className="identity-card">
-        <div className="avatar">ม้า</div>
+        <div className="avatar">ผู้รับการดูแล</div>
         <div>
           <strong className="block text-[21px]">
             {patient.name}{patient.age ? ` · ${patient.age} ปี` : ""}
@@ -63,7 +63,7 @@ export default async function Profile() {
         href="/rights"
         className="flex items-center justify-between rounded-[18px] bg-teal px-5 py-4 font-bold text-white"
       >
-        <span>ดูสิทธิการรักษาของม้า</span>
+        <span>ดูสิทธิการรักษาของผู้รับการดูแล</span>
         <span aria-hidden>→</span>
       </Link>
 
@@ -80,7 +80,7 @@ export default async function Profile() {
           <span className="person-avatar">{(patient.caregiver ?? "?").trim().charAt(0)}</span>
           <span>
             <strong className="block">{patient.caregiver ?? "ยังไม่ได้ระบุคนดูแล"}</strong>
-            <small className="text-muted-foreground">อัปเดตสมุดของม้า</small>
+            <small className="text-muted-foreground">อัปเดตสมุดของผู้รับการดูแล</small>
           </span>
           <b className="self-center rounded-lg bg-teal px-4 py-2 font-bold text-white">โทร</b>
         </div>

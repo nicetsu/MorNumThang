@@ -14,7 +14,7 @@ const RIGHTS_DISCLAIMER =
 export default async function RightsNavigator() {
   const patient = await getActivePatient();
   if (!patient) {
-    return <p className="py-8 text-muted-foreground">ยังไม่มีข้อมูลม้าค่ะ</p>;
+    return <p className="py-8 text-muted-foreground">ยังไม่มีข้อมูลผู้รับการดูแลค่ะ</p>;
   }
 
   const [rules, rights, docs, agencies] = await Promise.all([
@@ -49,9 +49,9 @@ export default async function RightsNavigator() {
     <div className="space-y-4">
       <Link href="/profile" className="back-link">← โปรไฟล์</Link>
       <div>
-        <p className="eyebrow">สิทธิการรักษาของม้า</p>
-        <h2 className="screen-title">สิทธิของม้า</h2>
-        <p className="lead">ม้ามีสิทธิรักษาอะไรบ้าง ไปที่ไหน และต้องเตรียมเอกสารอะไร</p>
+        <p className="eyebrow">สิทธิการรักษาของผู้รับการดูแล</p>
+        <h2 className="screen-title">สิทธิของผู้รับการดูแล</h2>
+        <p className="lead">ผู้รับการดูแลมีสิทธิรักษาอะไรบ้าง ไปที่ไหน และต้องเตรียมเอกสารอะไร</p>
       </div>
 
       {/* Scheme summary card */}
@@ -70,7 +70,7 @@ export default async function RightsNavigator() {
 
       {byCategory.size === 0 ? (
         <p className="rounded-[18px] border border-dashed border-line p-6 text-center text-muted-foreground">
-          ยังจับคู่สิทธิไม่ได้ — ลองระบุสิทธิและอายุของม้าในโปรไฟล์
+          ยังจับคู่สิทธิไม่ได้ — ลองระบุสิทธิและอายุของผู้รับการดูแลในโปรไฟล์
         </p>
       ) : (
         [...byCategory.entries()].map(([category, list]) => (

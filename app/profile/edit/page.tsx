@@ -11,14 +11,14 @@ import { saveProfile } from "./actions";
 export default async function ProfileEdit() {
   const patient = await getActivePatient();
   if (!patient) {
-    return <p className="py-8 text-muted-foreground">ยังไม่มีข้อมูลม้าค่ะ</p>;
+    return <p className="py-8 text-muted-foreground">ยังไม่มีข้อมูลผู้รับการดูแลค่ะ</p>;
   }
 
   return (
     <div className="space-y-4">
       <Link href="/profile" className="back-link">← โปรไฟล์</Link>
       <div>
-        <p className="eyebrow">โปรไฟล์ของม้า</p>
+        <p className="eyebrow">โปรไฟล์ของผู้รับการดูแล</p>
         <h2 className="screen-title">แก้ไขประวัติ</h2>
       </div>
 

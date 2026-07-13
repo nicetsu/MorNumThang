@@ -15,7 +15,7 @@ export default async function RightsDirectory() {
 
   return (
     <div className="space-y-4">
-      <Link href="/rights" className="back-link">← สิทธิของม้า</Link>
+      <Link href="/rights" className="back-link">← สิทธิของผู้รับการดูแล</Link>
       <div>
         <p className="eyebrow">คลังข้อมูลสิทธิ</p>
         <h2 className="screen-title">สิทธิและบริการทั้งหมด</h2>

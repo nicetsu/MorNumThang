@@ -36,7 +36,7 @@ export function CareEditor({ initial }: { initial: string }) {
 
       {suggested && (
         <p className="rounded-xl bg-amber-soft px-3 py-2 text-sm text-muted-foreground">
-          นี่คือร่างจาก AI — แก้ไขให้เหมาะกับม้าก่อนบันทึกได้เลยค่ะ · {AI_DISCLAIMER}
+          นี่คือร่างจาก AI — แก้ไขให้เหมาะกับผู้รับการดูแลก่อนบันทึกได้เลยค่ะ · {AI_DISCLAIMER}
         </p>
       )}
 
@@ -45,7 +45,7 @@ export function CareEditor({ initial }: { initial: string }) {
         value={value}
         onChange={(e) => setValue(e.target.value)}
         rows={10}
-        placeholder="สิ่งที่ม้าทำได้ และวิธีช่วยให้สบายตัว…"
+        placeholder="สิ่งที่ผู้รับการดูแลทำได้ และวิธีช่วยให้สบายตัว…"
         className="bg-ivory"
       />
 

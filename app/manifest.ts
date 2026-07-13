@@ -2,9 +2,9 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "หมอนำทาง — สมุดสุขภาพช่วยลูกดูแลม้า",
+    name: "หมอนำทาง — สมุดสุขภาพสำหรับผู้ดูแล",
     short_name: "หมอนำทาง",
-    description: "สมุดสุขภาพ ช่วยลูกดูแลม้า — น้ำหนัก ยา นัดหมอ และสรุปให้หมอ",
+    description: "สมุดสุขภาพสำหรับผู้ดูแล — น้ำหนัก ยา นัดหมอ และสรุปให้หมอ",
     lang: "th",
     start_url: "/",
     display: "standalone",

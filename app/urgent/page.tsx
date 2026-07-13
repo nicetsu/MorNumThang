@@ -10,7 +10,7 @@ const contacts = [
 export default function Urgent() {
   return (
     <div className="space-y-4">
-      <Link href="/" className="back-link">← สมุดของม้า</Link>
+      <Link href="/" className="back-link">← สมุดของผู้รับการดูแล</Link>
       <div>
         <p className="eyebrow">เมื่อเกิดเรื่อง</p>
         <h2 className="screen-title !text-red">ใจเย็น ๆ นะคะ<br />เราไปทีละขั้น</h2>
@@ -23,9 +23,9 @@ export default function Urgent() {
           <small className="text-muted-foreground">ทางที่หนึ่ง</small>
           <h3 className="text-[26px] font-extrabold text-teal">ดูแลตอนนี้</h3>
           <ol className="mt-3 list-decimal space-y-2 pl-6">
-            <li>อยู่กับม้าในจุดที่ปลอดภัย</li>
+            <li>อยู่กับผู้รับการดูแลในจุดที่ปลอดภัย</li>
             <li>จดเวลาเริ่มและสิ่งที่เปลี่ยน</li>
-            <li>เตรียมยาและสมุดของม้าไว้ใกล้ตัว</li>
+            <li>เตรียมยาและสมุดของผู้รับการดูแลไว้ใกล้ตัว</li>
           </ol>
         </div>
       </article>

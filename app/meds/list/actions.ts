@@ -45,7 +45,7 @@ export async function addMedication(
 
   // Deterministic safety gate — never trust the client, re-check server-side.
   if (isAllergic(name, allergies.map((a) => a.name))) {
-    return { error: `ม้าแพ้ “${name}” — เพิ่มยานี้ไม่ได้เพื่อความปลอดภัย` };
+    return { error: `ผู้รับการดูแลแพ้ “${name}” — เพิ่มยานี้ไม่ได้เพื่อความปลอดภัย` };
   }
 
   const num = (k: string) => {

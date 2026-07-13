@@ -12,7 +12,7 @@ import { MedAddTabs } from "./med-add-tabs";
 export default async function MedAdd() {
   const patient = await getActivePatient();
   if (!patient) {
-    return <p className="py-8 text-muted-foreground">ยังไม่มีข้อมูลม้าค่ะ</p>;
+    return <p className="py-8 text-muted-foreground">ยังไม่มีข้อมูลผู้รับการดูแลค่ะ</p>;
   }
   const [allergies, drugRows] = await Promise.all([
     db.allergy.findMany({ where: { patientId: patient.id }, orderBy: { name: "asc" } }),
@@ -22,7 +22,7 @@ export default async function MedAdd() {
 
   return (
     <div className="space-y-6">
-      <Link href="/meds/list" className="back-link">← ยาของม้า</Link>
+      <Link href="/meds/list" className="back-link">← ยาของผู้รับการดูแล</Link>
       <div>
         <p className="eyebrow">เพิ่มเข้ารายการยา</p>
         <h2 className="screen-title">จดยาที่ใช้อยู่</h2>

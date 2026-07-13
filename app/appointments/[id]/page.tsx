@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { completeAppointment, rescheduleAppointment, addVisitNote } from "../actions";
 import { ShareButton } from "@/components/share-button";
 
-const PREP = ["บัตรประชาชนและใบนัด", "ยาที่ใช้อยู่ หรือถ่ายรูปฉลากยา", "สรุปจากสมุดของม้า"];
+const PREP = ["บัตรประชาชนและใบนัด", "ยาที่ใช้อยู่ หรือถ่ายรูปฉลากยา", "สรุปจากสมุดของผู้รับการดูแล"];
 
 function fmt(at: Date) {
   return new Intl.DateTimeFormat("th-TH", {
@@ -36,9 +36,9 @@ export default async function AppointmentDetail({
 
   return (
     <div className="space-y-4">
-      <Link href="/appointments" className="back-link">← นัดของม้า</Link>
+      <Link href="/appointments" className="back-link">← นัดของผู้รับการดูแล</Link>
       <div>
-        <p className="eyebrow">นัดถัดไปของม้า</p>
+        <p className="eyebrow">นัดถัดไปของผู้รับการดูแล</p>
         <h2 className="screen-title">{fmt(appt.at)}</h2>
       </div>
 
@@ -74,7 +74,7 @@ export default async function AppointmentDetail({
         <ShareButton
           label="แชร์ไป LINE"
           className="secondary-action w-full"
-          text={`นัดของ${patient?.name ?? "ม้า"}\n${appt.note ?? "นัดหมอ"}${appt.place ? `\n${appt.place}` : ""}\n${fmt(appt.at)}\nเตรียม: ${PREP.join(" · ")}\nส่งจากหมอนำทาง`}
+          text={`นัดของ${patient?.name ?? "ผู้รับการดูแล"}\n${appt.note ?? "นัดหมอ"}${appt.place ? `\n${appt.place}` : ""}\n${fmt(appt.at)}\nเตรียม: ${PREP.join(" · ")}\nส่งจากหมอนำทาง`}
         />
       </div>
 

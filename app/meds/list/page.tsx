@@ -29,7 +29,7 @@ function timeOf(w: string): string {
 export default async function MedSchedule() {
   const patient = await getActivePatient();
   if (!patient) {
-    return <p className="py-8 text-muted-foreground">ยังไม่มีข้อมูลม้าค่ะ</p>;
+    return <p className="py-8 text-muted-foreground">ยังไม่มีข้อมูลผู้รับการดูแลค่ะ</p>;
   }
   const meds = await db.medication.findMany({
     where: { patientId: patient.id },
@@ -72,8 +72,8 @@ export default async function MedSchedule() {
     <div className="space-y-4">
       <Link href="/meds" className="back-link">← ยา &amp; นัด</Link>
       <div>
-        <p className="eyebrow">ตารางยาของม้า</p>
-        <h2 className="screen-title">ยาของม้า</h2>
+        <p className="eyebrow">ตารางยาของผู้รับการดูแล</p>
+        <h2 className="screen-title">ยาของผู้รับการดูแล</h2>
         <p className="lead">แบ่งตามช่วงเวลาให้เห็นชัดว่ามื้อไหนต้องกินอะไร</p>
       </div>
 

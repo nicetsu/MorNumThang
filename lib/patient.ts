@@ -1,32 +1,34 @@
 import { cookies } from "next/headers";
 import { db } from "@/lib/db";
 
-// ponytail: two cookies, no auth. `oid` = the owner id the user typed on the way in
-// (the "login"); `pid` = which of that owner's ม้า is active. Swap to real sessions later.
-export const OID_COOKIE = "oid";
+// ponytail: two cookies, no real auth yet. `uid` = the logged-in ผู้ดูแล (User.id) —
+// set at /enter from a typed code, later from LINE login. `pid` = which of their
+// ผู้รับการดูแล is active. Swap the /enter gate for real LINE sessions later; nothing else changes.
+export const UID_COOKIE = "uid";
 export const PID_COOKIE = "pid";
 
-// The owner id the user entered, or null if they haven't been through the gate yet.
-export async function getOwnerId() {
-  return (await cookies()).get(OID_COOKIE)?.value ?? null;
+// The logged-in ผู้ดูแล's User.id, or null if they haven't been through the gate yet.
+export async function getUserId() {
+  return (await cookies()).get(UID_COOKIE)?.value ?? null;
 }
 
-// The active ม้า — scoped to the owner so a stray pid cookie can't read someone else's data.
-// null when no owner is set or the owner has no patients.
+// The active ผู้รับการดูแล — scoped to the caregiver so a stray pid cookie can't read
+// someone else's data. null when not logged in or the caregiver has no ผู้รับการดูแล.
 export async function getActivePatient() {
-  const owner = await getOwnerId();
-  if (!owner) return null;
+  const uid = await getUserId();
+  if (!uid) return null;
+  const mine = { caregivers: { some: { id: uid } } };
   const id = (await cookies()).get(PID_COOKIE)?.value;
   if (id) {
-    const p = await db.patient.findFirst({ where: { id, owner } });
+    const p = await db.patient.findFirst({ where: { id, ...mine } });
     if (p) return p;
   }
-  return db.patient.findFirst({ where: { owner } });
+  return db.patient.findFirst({ where: mine });
 }
 
 // For server actions that mutate — a missing patient here is a real error, not an empty page.
 export async function getActivePatientOrThrow() {
   const p = await getActivePatient();
-  if (!p) throw new Error("ยังไม่ได้เลือกม้า");
+  if (!p) throw new Error("ยังไม่ได้เลือกผู้รับการดูแล");
   return p;
 }

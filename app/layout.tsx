@@ -16,7 +16,7 @@ const sarabun = Sarabun({
 
 export const metadata: Metadata = {
   title: "หมอนำทาง",
-  description: "สมุดสุขภาพช่วยลูกดูแลม้า",
+  description: "สมุดสุขภาพสำหรับผู้ดูแล",
   manifest: "/manifest.webmanifest",
   appleWebApp: { capable: true, statusBarStyle: "default", title: "หมอนำทาง" },
   icons: { apple: "/apple-icon-180.png" },
@@ -33,7 +33,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Bottom nav only appears once a ม้า is chosen — hidden through the enter/select flow.
+  // Bottom nav only appears once a ผู้รับการดูแล is chosen — hidden through the enter/select flow.
   const hasPatient = (await cookies()).has(PID_COOKIE);
   return (
     <html lang="th" className={`${sarabun.variable} h-full antialiased`}>

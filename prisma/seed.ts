@@ -15,7 +15,10 @@ type RightsData = {
 };
 
 async function seedPatient() {
-  // Primary ม้า (full profile + allergy) — only when the DB is empty.
+  // The demo ผู้ดูแล — everyone entering the code "demo" logs in as this user.
+  const demo = await prisma.user.upsert({ where: { lineId: "demo" }, update: {}, create: { lineId: "demo" } });
+  const owns = { connect: { id: demo.id } };
+  // Primary ผู้รับการดูแล (full profile + allergy) — only when the DB is empty.
   if ((await prisma.patient.count()) === 0) {
     await prisma.patient.create({
       data: {
@@ -28,10 +31,11 @@ async function seedPatient() {
         caregiver: "เจี๊ยบ · ผู้ดูแลหลัก",
         diseases: "ความดันโลหิตสูง · เบาหวาน",
         allergies: { create: [{ name: "เพนิซิลลิน" }] },
+        caregivers: owns,
       },
     });
   }
-  // ponytail: 4 more mock ม้า, topped up by name so re-seeding an existing DB is idempotent.
+  // ponytail: 4 more mock ผู้รับการดูแล, topped up by name so re-seeding an existing DB is idempotent.
   const mocks = [
     { name: "พ่อบุญมี รักษ์ดี", age: 78, coverage: "ข้าราชการ", hospital: "รพ.ศิริราช", job: "ครูเกษียณ", caregiver: "หน่อย · ลูกสาว", diseases: "หัวใจ" },
     { name: "แม่ประนอม สุขใจ", age: 69, coverage: "บัตรทอง", hospital: "รพ.ตากสิน", job: "แม่ค้า", caregiver: "ต้น · ลูกชาย", diseases: "เบาหวาน · ไต" },
@@ -40,7 +44,7 @@ async function seedPatient() {
   ];
   for (const m of mocks) {
     if (!(await prisma.patient.findFirst({ where: { name: m.name } }))) {
-      await prisma.patient.create({ data: m });
+      await prisma.patient.create({ data: { ...m, caregivers: owns } });
     }
   }
 }
@@ -58,7 +62,7 @@ async function seedRights() {
   await prisma.requiredDoc.createMany({ data: d.docs });
 }
 
-// ponytail: one seeded patient ("ม้า") + the health-rights reference tables.
+// ponytail: one seeded patient ("ผู้รับการดูแล") + the health-rights reference tables.
 async function main() {
   await seedPatient();
   await seedRights();

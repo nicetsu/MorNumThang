@@ -18,7 +18,7 @@ function fmt(at: Date) {
 export default async function Appointments() {
   const patient = await getActivePatient();
   if (!patient) {
-    return <p className="py-8 text-muted-foreground">ยังไม่มีข้อมูลม้าค่ะ</p>;
+    return <p className="py-8 text-muted-foreground">ยังไม่มีข้อมูลผู้รับการดูแลค่ะ</p>;
   }
 
   const appts = await db.appointment.findMany({
@@ -32,8 +32,8 @@ export default async function Appointments() {
     <div className="space-y-5">
       <Link href="/meds" className="back-link">← ยา &amp; นัด</Link>
       <div>
-        <p className="eyebrow">นัดหมายของม้า</p>
-        <h2 className="screen-title">นัดของม้า</h2>
+        <p className="eyebrow">นัดหมายของผู้รับการดูแล</p>
+        <h2 className="screen-title">นัดของผู้รับการดูแล</h2>
         <p className="lead">ดูนัดถัดไปและสิ่งที่ต้องเตรียมก่อนไปโรงพยาบาลค่ะ</p>
       </div>
 

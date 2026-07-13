@@ -13,7 +13,7 @@ type Item = {
 };
 type Aeh = { id: string; icon: string; text: string; category: string; risk: { label: string; cls: string } };
 
-// "บันทึกของม้า" (prototype screen 15): event timeline + AI "เอ๊ะ" analysis.
+// "บันทึกของผู้รับการดูแล" (prototype screen 15): event timeline + AI "เอ๊ะ" analysis.
 export function RecordsTabs({
   timeline,
   aeh,
@@ -91,7 +91,7 @@ export function RecordsTabs({
           <div className="section-heading"><h3>เหตุการณ์ที่ต้องใส่ใจ</h3></div>
           {aeh.length === 0 ? (
             <p className="rounded-[18px] border border-dashed border-line p-6 text-center text-muted-foreground">
-              ยังไม่มีสัญญาณที่ต้องใส่ใจ — เล่าเรื่องม้าเพิ่มได้ที่หน้าบันทึกค่ะ
+              ยังไม่มีสัญญาณที่ต้องใส่ใจ — เล่าเรื่องผู้รับการดูแลเพิ่มได้ที่หน้าบันทึกค่ะ
             </p>
           ) : (
             <div className="space-y-3">
@@ -111,7 +111,7 @@ export function RecordsTabs({
           )}
 
           <p className="text-[16px] leading-relaxed text-muted-foreground">
-            ระบบเทียบจากบันทึกของม้าเอง และยังไม่ได้บอกว่าเป็นโรคอะไร
+            ระบบเทียบจากบันทึกของผู้รับการดูแลเอง และยังไม่ได้บอกว่าเป็นโรคอะไร
           </p>
           <Link href="/summary" className="btn-primary grid place-items-center">สรุปให้หมอ</Link>
         </>

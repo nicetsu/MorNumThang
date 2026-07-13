@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-// ponytail: the whole "auth" — no owner cookie ⇒ you must enter an id first.
+// ponytail: the whole "auth" — no user cookie ⇒ you must enter a code first.
 export function middleware(req: NextRequest) {
-  const hasId = req.cookies.has("oid");
+  const hasId = req.cookies.has("uid");
   const { pathname } = req.nextUrl;
   if (!hasId && pathname !== "/enter") {
     return NextResponse.redirect(new URL("/enter", req.url));

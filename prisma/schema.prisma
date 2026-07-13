@@ -10,27 +10,36 @@ datasource db {
   provider = "postgresql"
 }
 
+// A caregiver ("ผู้ดูแล"). lineId is the LINE userId once LINE login is wired;
+// until then it's the freeform code typed at /enter. One user cares for many
+// ผู้รับการดูแล, and one ผู้รับการดูแล has many caregivers (implicit m-n).
+model User {
+  id        String    @id @default(cuid())
+  lineId    String    @unique
+  name      String?
+  createdAt DateTime  @default(now())
+  patients  Patient[]
+}
+
 model Patient {
   id           String        @id @default(cuid())
-  owner        String        @default("demo") // ponytail: freeform owner id (the "login") — no auth yet
   name         String
   age          Int? // อายุ
   coverage     String? // สิทธิการรักษา (เช่น บัตรทอง)
   hospital     String? // โรงพยาบาลตามสิทธิ์
   job          String? // อาชีพ / อดีตอาชีพ
   likes        String? // สิ่งที่ชอบ
-  caregiver    String? // คนดูแลหลัก
+  caregiver    String? // คนดูแลหลัก (ชื่อที่โชว์เฉยๆ — คนละอย่างกับ caregivers ด้านล่าง)
   diseases     String? // free text, "·"-separated in UI
   careGuide    String? // editable care instructions
   createdAt    DateTime      @default(now())
+  caregivers   User[] // ผู้ดูแล (m-n) — ผู้รับการดูแล 1 คนมีผู้ดูแลได้หลายคน
   weights      WeightLog[]
   meds         Medication[]
   allergies    Allergy[]
   appointments Appointment[]
   visits       VisitNote[]
   observations Observation[]
-
-  @@index([owner])
 }
 
 // A narrative observation the caregiver told, AI-organized into a category.

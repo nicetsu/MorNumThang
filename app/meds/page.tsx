@@ -3,7 +3,7 @@ import Link from "next/link";
 const cards = [
   { href: "/meds/list", icon: "ยา", title: "ยาที่ต้องทาน", desc: "ตารางเช้า กลางวัน เย็น และก่อนนอน" },
   { href: "/appointments", icon: "นัด", title: "นัดหมอ", desc: "นัดถัดไปและสิ่งที่ต้องเตรียม" },
-  { href: "/guide", icon: "ดูแล", title: "คู่มือดูแลม้า", desc: "สิ่งที่ม้าทำได้ และวิธีช่วยให้สบายตัว" },
+  { href: "/guide", icon: "ดูแล", title: "คู่มือดูแลผู้รับการดูแล", desc: "สิ่งที่ผู้รับการดูแลทำได้ และวิธีช่วยให้สบายตัว" },
 ];
 
 export default function MedsHome() {

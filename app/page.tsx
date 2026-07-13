@@ -18,12 +18,12 @@ function fmt(at: Date) {
 }
 
 export default async function Home() {
-  // First visit (no ม้า chosen) → force the selection screen.
+  // First visit (no ผู้รับการดูแล chosen) → force the selection screen.
   if (!(await cookies()).get(PID_COOKIE)) redirect("/patients");
 
   const patient = await getActivePatient();
   if (!patient) {
-    return <p className="py-8 text-muted-foreground">ยังไม่มีข้อมูลม้าค่ะ</p>;
+    return <p className="py-8 text-muted-foreground">ยังไม่มีข้อมูลผู้รับการดูแลค่ะ</p>;
   }
 
   const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
@@ -69,12 +69,12 @@ export default async function Home() {
     <div className="space-y-6">
       <div className="flex items-baseline justify-between gap-3">
         <h2 className="screen-title">{patient.name}</h2>
-        <Link href="/patients" className="shrink-0 text-sm font-bold text-teal">เปลี่ยนม้า</Link>
+        <Link href="/patients" className="shrink-0 text-sm font-bold text-teal">เปลี่ยนผู้รับการดูแล</Link>
       </div>
 
       <Link href="/signals?view=signal" className={`doctor-score block ${score.cls}`}>
         <div className="score-top">
-          <small>จากบันทึก 7 วันนี้ของม้า</small>
+          <small>จากบันทึก 7 วันนี้ของผู้รับการดูแล</small>
           <span className="score-badge">{score.badge}</span>
         </div>
         <div className="score-meter" aria-hidden>

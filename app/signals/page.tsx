@@ -33,7 +33,7 @@ export default async function Records({
 }) {
   const patient = await getActivePatient();
   if (!patient) {
-    return <p className="py-8 text-muted-foreground">ยังไม่มีข้อมูลม้าค่ะ</p>;
+    return <p className="py-8 text-muted-foreground">ยังไม่มีข้อมูลผู้รับการดูแลค่ะ</p>;
   }
 
   const { view } = await searchParams;
@@ -83,10 +83,10 @@ export default async function Records({
 
   return (
     <div className="space-y-4">
-      <Link href="/" className="back-link">← สมุดของม้า</Link>
+      <Link href="/" className="back-link">← สมุดของผู้รับการดูแล</Link>
       <div>
-        <p className="eyebrow">ประวัติการดูแลม้า</p>
-        <h2 className="screen-title">บันทึกของม้า</h2>
+        <p className="eyebrow">ประวัติการดูแลผู้รับการดูแล</p>
+        <h2 className="screen-title">บันทึกของผู้รับการดูแล</h2>
       </div>
       <RecordsTabs
         timeline={timeline}

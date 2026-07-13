@@ -8,7 +8,7 @@ import { addWeight } from "./actions";
 import { RecordTabs } from "./record-tabs";
 
 // Record screen (prototype screen 1): just the two-tab form. The full log history
-// lives on /signals ("บันทึกของม้า").
+// lives on /signals ("บันทึกของผู้รับการดูแล").
 export default function Logs() {
   const weightForm = (
     <form action={addWeight} className="flow-form">
@@ -53,16 +53,16 @@ export default function Logs() {
 
   return (
     <div className="space-y-6">
-      <Link href="/" className="back-link">← สมุดของม้า</Link>
+      <Link href="/" className="back-link">← สมุดของผู้รับการดูแล</Link>
       <div>
-        <p className="eyebrow">บันทึกลงสมุดของม้า</p>
+        <p className="eyebrow">บันทึกลงสมุดของผู้รับการดูแล</p>
         <h2 className="screen-title">วันนี้อยากจดอะไรดีคะ</h2>
       </div>
 
       <RecordTabs weightForm={weightForm} />
 
       <Link href="/signals" className="block text-center font-bold text-teal">
-        ดูบันทึกทั้งหมดของม้า →
+        ดูบันทึกทั้งหมดของผู้รับการดูแล →
       </Link>
     </div>
   );

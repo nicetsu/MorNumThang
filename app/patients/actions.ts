@@ -3,7 +3,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
-import { PID_COOKIE, OID_COOKIE, getOwnerId } from "@/lib/patient";
+import { PID_COOKIE, UID_COOKIE, getUserId } from "@/lib/patient";
 
 async function setActive(id: string) {
   // ponytail: 1-year plain cookie — no auth to protect yet.
@@ -18,7 +18,7 @@ export async function selectPatient(id: string) {
 export async function logout() {
   const c = await cookies();
   c.delete(PID_COOKIE);
-  c.delete(OID_COOKIE);
+  c.delete(UID_COOKIE);
   redirect("/enter");
 }
 
@@ -28,8 +28,20 @@ export async function createPatient(formData: FormData) {
   const ageRaw = parseInt(String(formData.get("age") ?? ""), 10);
   const age = Number.isFinite(ageRaw) && ageRaw >= 0 && ageRaw <= 130 ? ageRaw : null;
 
-  const owner = (await getOwnerId()) ?? "demo"; // middleware guarantees an owner cookie
-  const p = await db.patient.create({ data: { name, age, owner } });
+  const uid = (await getUserId())!; // middleware guarantees a logged-in ผู้ดูแล
+  const p = await db.patient.create({ data: { name, age, caregivers: { connect: { id: uid } } } });
+  await setActive(p.id);
+  redirect("/");
+}
+
+// ponytail: for testing — the ผู้ดูแล adds themselves as their own ผู้รับการดูแล
+// so you can exercise the whole app with one login, no second person needed.
+export async function careForSelf() {
+  const uid = (await getUserId())!;
+  const user = await db.user.findUniqueOrThrow({ where: { id: uid } });
+  const p = await db.patient.create({
+    data: { name: user.name ?? user.lineId, caregivers: { connect: { id: uid } } },
+  });
   await setActive(p.id);
   redirect("/");
 }

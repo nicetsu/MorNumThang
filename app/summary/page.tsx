@@ -11,7 +11,7 @@ import { SummaryStream } from "@/components/summary-stream";
 export default async function Summary() {
   const patient = await getActivePatient();
   if (!patient) {
-    return <p className="py-8 text-muted-foreground">ยังไม่มีข้อมูลม้าค่ะ</p>;
+    return <p className="py-8 text-muted-foreground">ยังไม่มีข้อมูลผู้รับการดูแลค่ะ</p>;
   }
   const allergies = await db.allergy.findMany({ where: { patientId: patient.id } });
   const allergyText = allergies.length ? allergies.map((a) => a.name).join(", ") : "ไม่มีข้อมูลการแพ้ยา";
@@ -21,7 +21,7 @@ export default async function Summary() {
 
   return (
     <div className="space-y-4">
-      <Link href="/" className="back-link">← สมุดของม้า</Link>
+      <Link href="/" className="back-link">← สมุดของผู้รับการดูแล</Link>
       <div>
         <p className="eyebrow">จากภาษาที่บ้านเล่า</p>
         <h2 className="screen-title">สรุปให้หมอ</h2>

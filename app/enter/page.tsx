@@ -1,4 +1,5 @@
 import { enterId } from "./actions";
+import { LineLogin } from "./line-login";
 import { Input } from "@/components/ui/input";
 
 export default function EnterPage() {
@@ -7,25 +8,30 @@ export default function EnterPage() {
       <div className="space-y-2">
         <h2 className="screen-title">ยินดีต้อนรับค่ะ</h2>
         <p className="text-muted-foreground">
-          กรอกรหัสของคุณ (ชื่อเล่นหรือเบอร์โทรก็ได้) เพื่อเข้าดูสมุดของม้าที่คุณดูแล
-          ครั้งหน้าใช้รหัสเดิมก็จะเจอข้อมูลเดิมค่ะ
+          เข้าสู่ระบบด้วย LINE เพื่อเข้าดูสมุดของผู้รับการดูแลที่คุณดูแล
+          ครั้งหน้าเข้าด้วย LINE เดิมก็จะเจอข้อมูลเดิมค่ะ
         </p>
       </div>
 
-      <form action={enterId} className="space-y-3">
-        <Input
-          name="id"
-          required
-          autoFocus
-          placeholder="รหัสของคุณ เช่น jiab หรือ 0812345678"
-          className="bg-ivory"
-        />
-        <button type="submit" className="btn-primary">เข้าสู่สมุด</button>
-      </form>
+      <LineLogin />
 
-      <p className="text-sm text-muted-foreground">
-        อยากลองดูตัวอย่าง? ใช้รหัส <b className="text-teal">demo</b> ได้เลยค่ะ
-      </p>
+      {/* ponytail: code fallback — for testing outside the LINE app (localhost / plain browser). */}
+      <details className="rounded-2xl border border-dashed border-line p-4">
+        <summary className="cursor-pointer text-sm font-bold text-muted-foreground">
+          หรือเข้าด้วยรหัส (สำหรับทดสอบ)
+        </summary>
+        <form action={enterId} className="mt-3 space-y-3">
+          <Input
+            name="id"
+            placeholder="รหัสของคุณ เช่น jiab หรือ 0812345678"
+            className="bg-ivory"
+          />
+          <button type="submit" className="btn-primary">เข้าสู่สมุด</button>
+          <p className="text-sm text-muted-foreground">
+            อยากลองดูตัวอย่าง? ใช้รหัส <b className="text-teal">demo</b> ได้เลยค่ะ
+          </p>
+        </form>
+      </details>
     </div>
   );
 }

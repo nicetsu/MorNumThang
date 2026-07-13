@@ -2,30 +2,31 @@
 export const dynamic = "force-dynamic";
 
 import { db } from "@/lib/db";
-import { PID_COOKIE, getOwnerId } from "@/lib/patient";
+import { PID_COOKIE, getUserId } from "@/lib/patient";
 import { cookies } from "next/headers";
-import { selectPatient, createPatient, logout } from "./actions";
+import { selectPatient, createPatient, careForSelf, logout } from "./actions";
 import { Input } from "@/components/ui/input";
 
 export default async function PatientsPage() {
-  const owner = (await getOwnerId())!; // middleware guarantees a value here
-  const [patients, activeId] = await Promise.all([
-    db.patient.findMany({ where: { owner }, orderBy: { createdAt: "asc" } }),
+  const uid = (await getUserId())!; // middleware guarantees a value here
+  const [user, patients, activeId] = await Promise.all([
+    db.user.findUniqueOrThrow({ where: { id: uid } }),
+    db.patient.findMany({ where: { caregivers: { some: { id: uid } } }, orderBy: { createdAt: "asc" } }),
     cookies().then((c) => c.get(PID_COOKIE)?.value),
   ]);
 
   return (
     <div className="space-y-6">
       <div className="flex items-baseline justify-between gap-3">
-        <h2 className="screen-title">เลือกม้าที่จะดูแล</h2>
+        <h2 className="screen-title">เลือกผู้รับการดูแลที่จะดูแล</h2>
         <form action={logout}>
           <button type="submit" className="shrink-0 text-sm font-bold text-clay">
-            ออก ({owner})
+            ออก ({user.name ?? user.lineId})
           </button>
         </form>
       </div>
       <p className="text-muted-foreground">
-        {patients.length ? "แตะที่ชื่อเพื่อเข้าดูสมุดของท่านนั้นค่ะ" : "ยังไม่มีม้าในรหัสนี้ เพิ่มคนแรกได้เลยค่ะ"}
+        {patients.length ? "แตะที่ชื่อเพื่อเข้าดูสมุดของท่านนั้นค่ะ" : "ยังไม่มีผู้รับการดูแลในรหัสนี้ เพิ่มคนแรกได้เลยค่ะ"}
       </p>
 
       <div className="space-y-3">
@@ -53,11 +54,15 @@ export default async function PatientsPage() {
       </div>
 
       <section className="space-y-3 rounded-2xl border border-dashed border-line p-5">
-        <strong className="block text-teal">เพิ่มม้าคนใหม่</strong>
+        <strong className="block text-teal">เพิ่มผู้รับการดูแลคนใหม่</strong>
         <form action={createPatient} className="space-y-3">
           <Input name="name" required placeholder="ชื่อ เช่น แม่สมทรง ใจดี" className="bg-ivory" />
           <Input name="age" type="number" min={0} max={130} placeholder="อายุ (ไม่บังคับ)" className="bg-ivory" />
           <button type="submit" className="btn-primary">＋ เพิ่มแล้วเริ่มดูแล</button>
+        </form>
+        {/* ponytail: quick self-care setup for testing — one tap, no form. */}
+        <form action={careForSelf}>
+          <button type="submit" className="text-sm font-bold text-teal">＋ ดูแลตัวเอง (สำหรับทดสอบ)</button>
         </form>
       </section>
     </div>

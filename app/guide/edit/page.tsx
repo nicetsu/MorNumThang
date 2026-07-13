@@ -12,11 +12,11 @@ export default async function GuideEdit() {
 
   return (
     <div className="space-y-4">
-      <Link href="/guide" className="back-link">← คู่มือดูแลม้า</Link>
+      <Link href="/guide" className="back-link">← คู่มือดูแลผู้รับการดูแล</Link>
       <div>
-        <p className="eyebrow">คู่มือดูแลม้า · ฉบับบ้านเรา</p>
+        <p className="eyebrow">คู่มือดูแลผู้รับการดูแล · ฉบับบ้านเรา</p>
         <h2 className="screen-title">อัปเดตวิธีดูแล</h2>
-        <p className="lead">เขียนสิ่งที่ม้าทำได้ก่อน แล้วค่อยบอกวิธีช่วยให้สบายตัวค่ะ</p>
+        <p className="lead">เขียนสิ่งที่ผู้รับการดูแลทำได้ก่อน แล้วค่อยบอกวิธีช่วยให้สบายตัวค่ะ</p>
       </div>
       <CareEditor initial={patient?.careGuide ?? ""} />
     </div>
