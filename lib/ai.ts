@@ -177,12 +177,15 @@ export async function organizeNarrative(story: string): Promise<OrganizedItem[]>
   return [{ category: "อื่น ๆ", text: story.trim(), severity: 5 }];
 }
 
-// §4.4 Drug-label scan — extract structured fields from OCR'd label text. Reads only, never prescribes.
-const LABEL_SYSTEM = `คุณช่วยอ่านข้อความจากฉลากยาที่สแกนได้ (OCR) แล้วแยกเป็นข้อมูลโครงสร้าง เป็นภาษาไทย
+// §4.4 Drug-label scan — read a photo of a drug label into structured fields. Reads only, never prescribes.
+// ponytail: a vision model reads the image directly (replaces the OpenCV/PaddleOCR sidecar) so this
+// runs on Vercel as a plain API call. Kept on its own env (OCR_VISION_MODEL) so swapping it doesn't
+// touch the doctor-summary/signals models.
+const LABEL_SYSTEM = `คุณช่วยอ่านฉลากยาจากรูปภาพที่ถ่ายมา แล้วแยกเป็นข้อมูลโครงสร้าง เป็นภาษาไทย
 กฎ:
-- ดึงเฉพาะข้อมูลที่ปรากฏในข้อความเท่านั้น ห้ามเดา ห้ามเติมข้อมูลที่ไม่มี ห้ามแนะนำหรือแก้ไขขนาดยา
-- ข้อความจาก OCR อาจมีตัวอักษรผิดเพี้ยนบ้าง ให้ตีความเท่าที่พอเข้าใจได้เท่านั้น
-- ถ้าข้อความอ่านไม่ออก ไม่สมเหตุสมผล หรือไม่เหมือนฉลากยาเลย (เช่น เป็นตัวอักษรมั่ว ๆ จาก OCR ที่อ่านผิดพลาด)
+- ดึงเฉพาะข้อมูลที่ปรากฏในรูปเท่านั้น ห้ามเดา ห้ามเติมข้อมูลที่ไม่มี ห้ามแนะนำหรือแก้ไขขนาดยา
+- ตัวอักษรในรูปอาจไม่ชัดหรือเบลอบ้าง ให้ตีความเท่าที่พออ่านได้เท่านั้น
+- ถ้ารูปอ่านไม่ออก ไม่สมเหตุสมผล หรือไม่ใช่ฉลากยาเลย
   ห้ามคิดชื่อยาหรือข้อมูลใด ๆ ขึ้นเองเด็ดขาด ให้ตอบค่าว่างทุกช่องแทน
 - ตอบกลับเป็น JSON เท่านั้น ห้ามมีข้อความอื่น รูปแบบ:
   {"name":"","quantity":"","usage":"","mealTiming":""}
@@ -196,15 +199,18 @@ export type DrugLabelInfo = { name: string; quantity: string; usage: string; mea
 
 const emptyLabel: DrugLabelInfo = { name: "", quantity: "", usage: "", mealTiming: "ไม่ระบุ" };
 
-export async function structureDrugLabel(rawText: string): Promise<DrugLabelInfo> {
-  if (!rawText.trim()) return emptyLabel;
+const VISION_MODEL = () => process.env.OCR_VISION_MODEL || "qwen2.5-vl:7b";
+
+export async function structureDrugLabel(imageDataUrl: string): Promise<DrugLabelInfo> {
+  if (!imageDataUrl) return emptyLabel;
 
   const { text } = await generateText({
-    // ponytail: separate small model for this one extraction task, kept out of AI_MODEL so the
-    // doctor-summary/signals models aren't affected by swapping this one.
-    model: provider(process.env.OCR_STRUCTURE_MODEL || "qwen2.5-coder:7b"),
+    model: provider(VISION_MODEL()),
     system: LABEL_SYSTEM,
-    prompt: rawText,
+    messages: [{ role: "user", content: [
+      { type: "text", text: "อ่านฉลากยาในรูปนี้แล้วตอบเป็น JSON ตามรูปแบบที่กำหนด" },
+      { type: "image", image: imageDataUrl },
+    ] }],
     temperature: 0.1,
   });
 
@@ -225,12 +231,12 @@ export async function structureDrugLabel(rawText: string): Promise<DrugLabelInfo
   return emptyLabel;
 }
 
-// §4.5 Appointment-slip scan — extract structured fields from OCR'd appointment/referral slip text.
-const APPOINTMENT_SYSTEM = `คุณช่วยอ่านข้อความจากใบนัดโรงพยาบาลที่สแกนได้ (OCR) แล้วแยกเป็นข้อมูลโครงสร้าง เป็นภาษาไทย
+// §4.5 Appointment-slip scan — read a photo of an appointment/referral slip into structured fields.
+const APPOINTMENT_SYSTEM = `คุณช่วยอ่านใบนัดโรงพยาบาลจากรูปภาพที่ถ่ายมา แล้วแยกเป็นข้อมูลโครงสร้าง เป็นภาษาไทย
 กฎ:
-- ดึงเฉพาะข้อมูลที่ปรากฏในข้อความเท่านั้น ห้ามเดา ห้ามเติมข้อมูลที่ไม่มี
-- ข้อความจาก OCR อาจมีตัวอักษรผิดเพี้ยนบ้าง ให้ตีความเท่าที่พอเข้าใจได้เท่านั้น
-- ถ้าข้อความอ่านไม่ออก ไม่สมเหตุสมผล หรือไม่เหมือนใบนัดเลย (เช่น เป็นตัวอักษรมั่ว ๆ จาก OCR ที่อ่านผิดพลาด)
+- ดึงเฉพาะข้อมูลที่ปรากฏในรูปเท่านั้น ห้ามเดา ห้ามเติมข้อมูลที่ไม่มี
+- ตัวอักษรในรูปอาจไม่ชัดหรือเบลอบ้าง ให้ตีความเท่าที่พออ่านได้เท่านั้น
+- ถ้ารูปอ่านไม่ออก ไม่สมเหตุสมผล หรือไม่ใช่ใบนัดเลย
   ห้ามคิดชื่อโรงพยาบาล แผนก หรือแพทย์ขึ้นเองเด็ดขาด ให้ตอบค่าว่างทุกช่องแทน
 - ห้ามคำนวณเลขปีเอง (แปลง พ.ศ. เป็น ค.ศ. ฯลฯ) ให้ตอบ "year" เป็นตัวเลขปีตามที่เห็นบนใบนัดตรง ๆ เท่านั้น
   โค้ดจะเป็นผู้แปลงปีให้เอง ไม่ใช่หน้าที่ของคุณ — หน้าที่คุณคือแปลง "ชื่อเดือน" เป็นตัวเลข 1-12 เท่านั้น
@@ -267,13 +273,16 @@ function buildIsoDate(day: unknown, month: unknown, year: unknown): string {
   return `${String(y).padStart(4, "0")}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 }
 
-export async function structureAppointmentSlip(rawText: string): Promise<AppointmentSlipInfo> {
-  if (!rawText.trim()) return emptyAppointment;
+export async function structureAppointmentSlip(imageDataUrl: string): Promise<AppointmentSlipInfo> {
+  if (!imageDataUrl) return emptyAppointment;
 
   const { text } = await generateText({
-    model: provider(process.env.OCR_STRUCTURE_MODEL || "qwen2.5-coder:7b"),
+    model: provider(VISION_MODEL()),
     system: APPOINTMENT_SYSTEM,
-    prompt: rawText,
+    messages: [{ role: "user", content: [
+      { type: "text", text: "อ่านใบนัดในรูปนี้แล้วตอบเป็น JSON ตามรูปแบบที่กำหนด" },
+      { type: "image", image: imageDataUrl },
+    ] }],
     temperature: 0.1,
   });
 

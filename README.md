@@ -7,8 +7,8 @@
 
 ## สแตก
 
-Next.js (App Router, TS) + Tailwind + shadcn/ui + Prisma 7/SQLite + AI ผ่าน Ollama (OpenAI-compatible)
-+ ฟีเจอร์ถ่ายรูปสแกน (ยา/ใบนัด) ผ่าน OpenCV + PaddleOCR (Python sidecar แยกต่างหาก) + Qwen
+Next.js (App Router, TS) + Tailwind + shadcn/ui + Prisma 7/Postgres + AI ผ่าน OpenAI-compatible endpoint
++ ฟีเจอร์ถ่ายรูปสแกน (ยา/ใบนัด) ผ่าน vision model บน `AI_BASE_URL` (ไม่มี sidecar แล้ว — รันบน Vercel ได้)
 
 ## เริ่มต้นใช้งาน (ครั้งแรก)
 
@@ -29,22 +29,11 @@ npm run dev                 # http://localhost:3000
 
 ```bash
 ollama pull llama3.2           # AI_MODEL — สรุปให้หมอ / health signals / care guide
-ollama pull qwen2.5-coder:7b   # OCR_STRUCTURE_MODEL — แปลงข้อความจากรูปเป็นข้อมูลฟอร์ม
+ollama pull qwen2.5-vl:7b      # OCR_VISION_MODEL — อ่านรูปฉลากยา/ใบนัดเป็นข้อมูลฟอร์ม (ถ่ายรูปสแกน)
 ```
 
-### 3) OCR sidecar (จำเป็นเฉพาะฟีเจอร์ "ถ่ายรูปสแกน" — เพิ่มยา/เพิ่มนัดจากรูปฉลากยา/ใบนัด)
-
-Python 3.10+ แยกต่างหากจากฝั่งเว็บ:
-
-```bash
-cd ocr-service
-python -m venv venv && venv\Scripts\activate   # หรือ source venv/bin/activate บน mac/linux
-pip install -r requirements.txt
-cd ..
-./scripts/start-ocr.sh          # รันที่ :8008 (โหลดโมเดล PaddleOCR ครั้งแรกใช้เวลาสักครู่)
-```
-
-ถ้าไม่ได้รันฟีเจอร์สแกน ไม่ต้องเปิด service นี้ก็ได้ — ส่วนที่เหลือของแอปใช้งานได้ปกติ
+ฟีเจอร์ "ถ่ายรูปสแกน" อ่านรูปด้วย vision model ตัวนี้ผ่าน `AI_BASE_URL` โดยตรง — ไม่มี Python sidecar
+แยกอีกแล้ว จึงรันบน Vercel ได้ ถ้าไม่ได้ pull vision model ส่วนสแกนจะใช้ไม่ได้ แต่ที่เหลือใช้งานได้ปกติ
 
 ## คำสั่งที่ใช้บ่อย
 
@@ -67,8 +56,7 @@ npx shadcn@latest add X     # เพิ่ม UI component (เฉพาะต�
 ```
 app/            routes/screens + Server Actions; app/api/ai, app/api/meds/scan, app/api/appointments/scan
 components/     shadcn ui/ + app components
-lib/            ai.ts (Ollama client), db.ts (prisma), ocr.ts (เรียก ocr-service), allergy.ts (deterministic checks)
+lib/            ai.ts (AI client + vision scan), db.ts (prisma), line.ts (LINE push), allergy.ts (deterministic checks)
 prisma/         schema.prisma, migrations, seed.ts
-ocr-service/    Python FastAPI sidecar: OpenCV preprocess -> PaddleOCR -> ข้อความดิบ
 mornumthang2/   ต้นแบบ static (index.html/app.js/styles.css) — ใช้เป็น design reference
 ```
