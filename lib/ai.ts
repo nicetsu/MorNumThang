@@ -199,20 +199,41 @@ export type DrugLabelInfo = { name: string; quantity: string; usage: string; mea
 
 const emptyLabel: DrugLabelInfo = { name: "", quantity: "", usage: "", mealTiming: "ไม่ระบุ" };
 
-const VISION_MODEL = () => process.env.OCR_VISION_MODEL || "qwen2.5-vl:7b";
+// OCR/vision runs on its own OpenAI-compatible endpoint (e.g. NVIDIA's hosted API) so it can be a
+// vision model separate from the text AI_MODEL. Falls back to AI_BASE_URL if not configured.
+const OCR_BASE_URL = process.env.OCR_BASE_URL || process.env.AI_BASE_URL;
+const OCR_API_KEY = process.env.OCR_API_KEY || process.env.AI_API_KEY;
+const OCR_VISION_MODEL = () => process.env.OCR_VISION_MODEL || "qwen2.5-vl:7b";
+
+// Direct fetch (not the AI SDK) so we can pass provider extras like disabling the model's "thinking".
+async function visionExtract(system: string, ask: string, imageDataUrl: string): Promise<string> {
+  const res = await fetch(`${OCR_BASE_URL}/chat/completions`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${OCR_API_KEY}` },
+    body: JSON.stringify({
+      model: OCR_VISION_MODEL(),
+      messages: [
+        { role: "system", content: system },
+        { role: "user", content: [
+          { type: "text", text: ask },
+          { type: "image_url", image_url: { url: imageDataUrl } },
+        ] },
+      ],
+      temperature: 0.1,
+      max_tokens: 1024,
+      stream: false,
+      chat_template_kwargs: { enable_thinking: false }, // harmless for non-thinking models
+    }),
+  });
+  if (!res.ok) throw new Error(`OCR vision error ${res.status}`);
+  const data = await res.json();
+  return data?.choices?.[0]?.message?.content ?? "";
+}
 
 export async function structureDrugLabel(imageDataUrl: string): Promise<DrugLabelInfo> {
   if (!imageDataUrl) return emptyLabel;
 
-  const { text } = await generateText({
-    model: provider(VISION_MODEL()),
-    system: LABEL_SYSTEM,
-    messages: [{ role: "user", content: [
-      { type: "text", text: "อ่านฉลากยาในรูปนี้แล้วตอบเป็น JSON ตามรูปแบบที่กำหนด" },
-      { type: "image", image: imageDataUrl },
-    ] }],
-    temperature: 0.1,
-  });
+  const text = await visionExtract(LABEL_SYSTEM, "อ่านฉลากยาในรูปนี้แล้วตอบเป็น JSON ตามรูปแบบที่กำหนด", imageDataUrl);
 
   const match = text.match(/\{[\s\S]*\}/);
   if (match) {
@@ -276,15 +297,7 @@ function buildIsoDate(day: unknown, month: unknown, year: unknown): string {
 export async function structureAppointmentSlip(imageDataUrl: string): Promise<AppointmentSlipInfo> {
   if (!imageDataUrl) return emptyAppointment;
 
-  const { text } = await generateText({
-    model: provider(VISION_MODEL()),
-    system: APPOINTMENT_SYSTEM,
-    messages: [{ role: "user", content: [
-      { type: "text", text: "อ่านใบนัดในรูปนี้แล้วตอบเป็น JSON ตามรูปแบบที่กำหนด" },
-      { type: "image", image: imageDataUrl },
-    ] }],
-    temperature: 0.1,
-  });
+  const text = await visionExtract(APPOINTMENT_SYSTEM, "อ่านใบนัดในรูปนี้แล้วตอบเป็น JSON ตามรูปแบบที่กำหนด", imageDataUrl);
 
   const match = text.match(/\{[\s\S]*\}/);
   if (match) {
