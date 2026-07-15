@@ -3,6 +3,8 @@ export const dynamic = "force-dynamic";
 import { db } from "@/lib/db";
 import { getUserId } from "@/lib/patient";
 import { LineLogin } from "@/app/enter/line-login";
+import { enterId } from "@/app/enter/actions";
+import { Input } from "@/components/ui/input";
 import { SubmitButton } from "@/components/submit-button";
 import { joinAsCaregiver } from "../actions";
 
@@ -46,8 +48,25 @@ export default async function JoinPage({ params }: { params: Promise<{ code: str
         </form>
       ) : (
         <>
-          <p className="text-muted-foreground">เข้าสู่ระบบด้วย LINE ก่อน แล้วจะเข้ามาช่วยดูแลได้เลยค่ะ</p>
+          <p className="text-muted-foreground">เข้าสู่ระบบก่อน แล้วจะเข้ามาช่วยดูแลได้เลยค่ะ</p>
           <LineLogin redirectTo={`/join/${code}`} />
+
+          <details className="rounded-2xl border border-dashed border-line p-4">
+            <summary className="cursor-pointer text-sm font-bold text-muted-foreground">
+              หรือเข้าด้วยชื่อของคุณ
+            </summary>
+            <form action={enterId} className="mt-3 space-y-3">
+              <input type="hidden" name="redirectTo" value={`/join/${code}`} />
+              <Input
+                name="id"
+                placeholder="ชื่อหรือรหัสของคุณ เช่น jiab หรือ 0812345678"
+                className="bg-ivory"
+              />
+              <SubmitButton className="btn-primary" pendingText="กำลังเข้า…">
+                เข้าช่วยดูแล {patient.name}
+              </SubmitButton>
+            </form>
+          </details>
         </>
       )}
     </div>

@@ -22,5 +22,7 @@ export async function enterId(formData: FormData) {
   const code = String(formData.get("id") ?? "").trim().toLowerCase();
   if (!code) throw new Error("กรุณากรอกรหัสของคุณ");
   await setUser(code);
-  redirect("/patients");
+  // ponytail: allow only internal paths so redirectTo can't become an open redirect.
+  const to = String(formData.get("redirectTo") ?? "/patients");
+  redirect(to.startsWith("/") ? to : "/patients");
 }
