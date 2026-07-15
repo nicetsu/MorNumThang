@@ -32,7 +32,7 @@ export default async function Profile() {
       </div>
 
       <article className="identity-card">
-        <div className="avatar">ผู้รับการดูแล</div>
+        <div className="avatar">{(patient.name ?? "?").trim().charAt(0) || "?"}</div>
         <div>
           <strong className="block text-[21px]">
             {patient.name}{patient.age ? ` · ${patient.age} ปี` : ""}
