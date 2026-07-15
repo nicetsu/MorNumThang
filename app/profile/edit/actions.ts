@@ -25,6 +25,7 @@ export async function saveProfile(formData: FormData) {
       diseases: str("diseases"),
       likes: str("likes"),
       caregiver: str("caregiver"),
+      caregiverPhone: str("caregiverPhone"),
     },
   });
 

@@ -9,6 +9,41 @@ import { Textarea } from "@/components/ui/textarea";
 import { saveProfile } from "./actions";
 import { SubmitButton } from "@/components/submit-button";
 
+// Suggestion lists for the datalist dropdowns. Free text still allowed — these only prompt.
+const COVERAGE_OPTIONS = ["บัตรทอง", "ประกันสังคม", "ข้าราชการ/รัฐวิสาหกิจ", "สิทธิท้องถิ่น (อปท.)", "ชำระเงินเอง"];
+const HOSPITAL_OPTIONS = [
+  "โรงพยาบาลศิริราช",
+  "โรงพยาบาลรามาธิบดี",
+  "โรงพยาบาลจุฬาลงกรณ์",
+  "โรงพยาบาลราชวิถี",
+  "โรงพยาบาลตำรวจ",
+];
+const JOB_OPTIONS = [
+  "รับราชการ",
+  "ข้าราชการบำนาญ",
+  "ค้าขาย",
+  "เกษตรกร",
+  "พนักงานบริษัท",
+  "รับจ้างทั่วไป",
+  "แม่บ้าน",
+  "ธุรกิจส่วนตัว",
+  "เกษียณอายุ",
+];
+const DISEASE_OPTIONS = [
+  "ความดันโลหิตสูง",
+  "เบาหวาน",
+  "ไขมันในเลือดสูง",
+  "โรคหัวใจ",
+  "โรคไตเรื้อรัง",
+  "หอบหืด",
+  "ถุงลมโป่งพอง",
+  "อัมพฤกษ์/อัมพาต",
+  "ข้อเข่าเสื่อม",
+  "สมองเสื่อม/อัลไซเมอร์",
+  "เกาต์",
+  "ไทรอยด์",
+];
+
 export default async function ProfileEdit() {
   const patient = await getActivePatient();
   if (!patient) {
@@ -36,23 +71,39 @@ export default async function ProfileEdit() {
         </div>
         <label>
           <span>สิทธิการรักษา</span>
-          <Input name="coverage" defaultValue={patient.coverage ?? ""} placeholder="เช่น บัตรทอง" />
+          <Input name="coverage" list="coverage-options" defaultValue={patient.coverage ?? ""} placeholder="เลือกหรือพิมพ์ เช่น บัตรทอง" />
+          <datalist id="coverage-options">
+            {COVERAGE_OPTIONS.map((o) => <option key={o} value={o} />)}
+          </datalist>
         </label>
         <label>
           <span>โรงพยาบาลตามสิทธิ์</span>
-          <Input name="hospital" defaultValue={patient.hospital ?? ""} />
+          <Input name="hospital" list="hospital-options" defaultValue={patient.hospital ?? ""} placeholder="เลือกหรือพิมพ์ชื่อโรงพยาบาล" />
+          <datalist id="hospital-options">
+            {HOSPITAL_OPTIONS.map((o) => <option key={o} value={o} />)}
+          </datalist>
         </label>
         <label>
           <span>อาชีพ / อดีตอาชีพ</span>
-          <Input name="job" defaultValue={patient.job ?? ""} />
+          <Input name="job" list="job-options" defaultValue={patient.job ?? ""} placeholder="เลือกหรือพิมพ์อาชีพ" />
+          <datalist id="job-options">
+            {JOB_OPTIONS.map((o) => <option key={o} value={o} />)}
+          </datalist>
         </label>
         <label>
           <span>คนดูแลหลัก</span>
           <Input name="caregiver" defaultValue={patient.caregiver ?? ""} placeholder="เช่น เจี๊ยบ · ผู้ดูแลหลัก" />
         </label>
         <label>
+          <span>เบอร์โทรคนดูแล (ไม่บังคับ)</span>
+          <Input name="caregiverPhone" type="tel" inputMode="tel" defaultValue={patient.caregiverPhone ?? ""} placeholder="เช่น 0812345678" />
+        </label>
+        <label>
           <span>โรคประจำตัว</span>
-          <Textarea name="diseases" rows={2} defaultValue={patient.diseases ?? ""} placeholder="เช่น ความดันโลหิตสูง · โรคหัวใจ" />
+          <Input name="diseases" list="disease-options" defaultValue={patient.diseases ?? ""} placeholder="เลือกหรือพิมพ์ เช่น ความดันโลหิตสูง · เบาหวาน" />
+          <datalist id="disease-options">
+            {DISEASE_OPTIONS.map((o) => <option key={o} value={o} />)}
+          </datalist>
         </label>
         <label>
           <span>สิ่งที่ชอบ</span>

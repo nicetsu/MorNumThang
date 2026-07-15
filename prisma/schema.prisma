@@ -31,6 +31,7 @@ model Patient {
   job          String? // อาชีพ / อดีตอาชีพ
   likes        String? // สิ่งที่ชอบ
   caregiver    String? // คนดูแลหลัก (ชื่อที่โชว์เฉยๆ — คนละอย่างกับ caregivers ด้านล่าง)
+  caregiverPhone String? // เบอร์โทรคนดูแลหลัก (ไม่มีถ้า login ผ่าน LINE — ปุ่มโทรจะซ่อนถ้าว่าง)
   diseases     String? // free text, "·"-separated in UI
   careGuide    String? // editable care instructions
   createdAt    DateTime      @default(now())

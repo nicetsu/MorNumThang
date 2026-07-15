@@ -89,7 +89,10 @@ export default async function Profile() {
             <strong className="block">{patient.caregiver ?? "ยังไม่ได้ระบุคนดูแล"}</strong>
             <small className="text-muted-foreground">อัปเดตสมุดของผู้รับการดูแล</small>
           </span>
-          <b className="self-center rounded-lg bg-teal px-4 py-2 font-bold text-white">โทร</b>
+          {/* Show โทร only when a phone exists (LINE login provides none). */}
+          {patient.caregiverPhone && (
+            <a href={`tel:${patient.caregiverPhone}`} className="self-center rounded-lg bg-teal px-4 py-2 font-bold text-white">โทร</a>
+          )}
         </div>
         <ShareButton
           label="＋ เชิญญาติมาช่วยดูแล"
@@ -107,7 +110,6 @@ export default async function Profile() {
               <strong className="block">{patient.hospital}</strong>
               <small className="text-muted-foreground">โรงพยาบาลตามสิทธิ์{patient.coverage ? ` · ${patient.coverage}` : ""}</small>
             </span>
-            <b className="self-center rounded-lg bg-teal px-4 py-2 font-bold text-white">โทร</b>
           </div>
         </section>
       )}
