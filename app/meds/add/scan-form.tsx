@@ -73,7 +73,7 @@ export function ScanForm({ onUse }: { onUse: (label: ScannedLabel) => void }) {
             onClick={() => inputRef.current?.click()}
             className="min-h-11 rounded-xl border border-teal/40 bg-white px-4 text-sm font-bold text-teal"
           >
-            📷 {preview ? "ถ่ายใหม่" : "ถ่ายรูปฉลากยา"}
+            {preview ? "ถ่ายใหม่" : "ถ่ายรูปฉลากยา"}
           </button>
           {file && (
             <button
@@ -95,22 +95,22 @@ export function ScanForm({ onUse }: { onUse: (label: ScannedLabel) => void }) {
           <p className="font-extrabold text-teal">ผลจากการอ่านฉลาก</p>
           <div className="space-y-2 text-sm">
             <p>
-              💊 <b>ชื่อยา</b>
+              <b>ชื่อยา</b>
               <br />
               {result.name || "— ไม่พบ —"}
             </p>
             <p>
-              📦 <b>จำนวน</b>
+              <b>จำนวน</b>
               <br />
               {result.quantity || "— ไม่พบ —"}
             </p>
             <p>
-              💉 <b>วิธีใช้</b>
+              <b>วิธีใช้</b>
               <br />
               {result.usage || "— ไม่พบ —"}
             </p>
             <p>
-              🍽️ <b>ก่อน/หลังอาหาร</b>
+              <b>ก่อน/หลังอาหาร</b>
               <br />
               {result.mealTiming || "ไม่ระบุ"}
             </p>

@@ -65,9 +65,9 @@ async function buildDaily(now: Date, round: "morning" | "evening") {
     }
   }
 
-  const head = round === "evening" ? "🌙 หมอนำทาง · เตือนช่วงเย็น" : "🔔 หมอนำทาง · เตือนเช้านี้";
-  const medHead = round === "evening" ? "💊 ยามื้อเย็น/ก่อนนอน" : "💊 ยาวันนี้";
-  const apptHead = round === "evening" ? "📅 นัดพรุ่งนี้" : "📅 นัดหมอ";
+  const head = round === "evening" ? "หมอนำทาง · เตือนช่วงเย็น" : "หมอนำทาง · เตือนเช้านี้";
+  const medHead = round === "evening" ? "ยามื้อเย็น/ก่อนนอน" : "ยาวันนี้";
+  const apptHead = round === "evening" ? "นัดพรุ่งนี้" : "นัดหมอ";
   const out: { to: string; text: string }[] = [];
   for (const [lineId, b] of buckets) {
     if (b.appts.length === 0 && b.meds.size === 0) continue;
@@ -100,7 +100,7 @@ async function buildWeekly(now: Date) {
     if (obs.length === 0 && p.weights.length === 0) continue; // nothing happened this week
     const concerns = obs.filter((o) => (o.severity ?? 0) >= 5).length;
     const good = obs.filter((o) => o.category === "เรื่องดี").length;
-    const lines = [`📋 สรุปสัปดาห์นี้ · ${p.name}`];
+    const lines = [`สรุปสัปดาห์นี้ · ${p.name}`];
     if (p.weights.length) {
       const first = p.weights[0].kg, last = p.weights[p.weights.length - 1].kg;
       const d = last - first;
@@ -108,7 +108,7 @@ async function buildWeekly(now: Date) {
       lines.push(`• น้ำหนักล่าสุด: ${last} กก.${trend}`);
     }
     lines.push(`• บันทึกอาการ: ${obs.length} ครั้ง${concerns ? ` (น่าห่วง ${concerns})` : ""}`);
-    if (good) lines.push(`• วันดีๆ: ${good} ครั้ง 🌿`);
+    if (good) lines.push(`• วันดีๆ: ${good} ครั้ง`);
     lines.push("ดูละเอียดในแอปได้เลยค่ะ");
     for (const c of p.caregivers) add(c.lineId, lines.join("\n"));
   }

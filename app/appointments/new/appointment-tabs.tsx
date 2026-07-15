@@ -47,7 +47,7 @@ export function AppointmentTabs({ followups, hospitals }: { followups: Followup[
             mode === "scan" ? "bg-white text-teal shadow" : "text-muted-foreground"
           }`}
         >
-          📷 ถ่ายรูปใบนัด
+          ถ่ายรูปใบนัด
         </button>
       </div>
 

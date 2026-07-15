@@ -22,7 +22,7 @@ export default async function Profile() {
   // Invite link for relatives — absolute URL so it's tappable when shared to LINE.
   const h = await headers();
   const base = `${h.get("x-forwarded-proto") ?? "https"}://${h.get("x-forwarded-host") ?? h.get("host")}`;
-  const inviteText = `ช่วยกันดูแล${patient.name}ในหมอนำทางนะคะ 🌿\n${base}/join/${patient.inviteCode}`;
+  const inviteText = `ช่วยกันดูแล${patient.name}ในหมอนำทางนะคะ\n${base}/join/${patient.inviteCode}`;
 
   return (
     <div className="space-y-6">

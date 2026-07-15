@@ -81,7 +81,7 @@ export function ScanForm({ onUse }: { onUse: (slip: ScannedSlip) => void }) {
             onClick={() => inputRef.current?.click()}
             className="min-h-11 rounded-xl border border-teal/40 bg-white px-4 text-sm font-bold text-teal"
           >
-            📷 {preview ? "ถ่ายใหม่" : "ถ่ายรูปใบนัด"}
+            {preview ? "ถ่ายใหม่" : "ถ่ายรูปใบนัด"}
           </button>
           {file && (
             <button
@@ -103,27 +103,27 @@ export function ScanForm({ onUse }: { onUse: (slip: ScannedSlip) => void }) {
           <p className="font-extrabold text-teal">ผลจากการอ่านใบนัด</p>
           <div className="space-y-2 text-sm">
             <p>
-              📅 <b>วันนัด</b>
+              <b>วันนัด</b>
               <br />
               {formatThaiDate(result.date)}
             </p>
             <p>
-              🕒 <b>เวลานัด</b>
+              <b>เวลานัด</b>
               <br />
               {result.time || "— ไม่พบ —"}
             </p>
             <p>
-              🏥 <b>โรงพยาบาล</b>
+              <b>โรงพยาบาล</b>
               <br />
               {result.hospital || "— ไม่พบ —"}
             </p>
             <p>
-              🩺 <b>แผนก / คลินิก</b>
+              <b>แผนก / คลินิก</b>
               <br />
               {result.department || "— ไม่พบ —"}
             </p>
             <p>
-              👨‍⚕️ <b>แพทย์ผู้ตรวจ</b>
+              <b>แพทย์ผู้ตรวจ</b>
               <br />
               {result.doctor || "— ไม่ระบุ —"}
             </p>

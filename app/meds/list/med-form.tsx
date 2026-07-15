@@ -22,7 +22,7 @@ const WHEN_OPTIONS = [
 // Thai time slots grouped by period — Arabic numerals, Thai time names
 const THAI_TIME_GROUPS = [
   {
-    period: "เช้า ☀️",
+    period: "เช้า",
     color: "amber",
     times: [
       { label: "6 โมงเช้า", value: "06:00" },
@@ -34,7 +34,7 @@ const THAI_TIME_GROUPS = [
     ],
   },
   {
-    period: "กลางวัน 🌤",
+    period: "กลางวัน",
     color: "teal",
     times: [
       { label: "เที่ยง", value: "12:00" },
@@ -45,7 +45,7 @@ const THAI_TIME_GROUPS = [
     ],
   },
   {
-    period: "เย็น 🌅",
+    period: "เย็น",
     color: "clay",
     times: [
       { label: "5 โมงเย็น", value: "17:00" },
@@ -53,7 +53,7 @@ const THAI_TIME_GROUPS = [
     ],
   },
   {
-    period: "กลางคืน 🌙",
+    period: "กลางคืน",
     color: "ink",
     times: [
       { label: "1 ทุ่ม", value: "19:00" },

@@ -52,7 +52,7 @@ export function MedAddTabs({ allergies, drugs }: { allergies: string[]; drugs: s
             mode === "scan" ? "bg-white text-teal shadow" : "text-muted-foreground"
           }`}
         >
-          📷 ถ่ายรูปฉลากยา
+          ถ่ายรูปฉลากยา
         </button>
       </div>
 
