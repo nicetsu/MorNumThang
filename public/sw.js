@@ -1,6 +1,6 @@
 // ponytail: minimal service worker — network-first (always fresh for a live health app),
 // falls back to cache only when offline. Enough for install prompt + offline shell.
-const CACHE = "mnt-v1";
+const CACHE = "mnt-v2";
 
 self.addEventListener("install", () => self.skipWaiting());
 
@@ -20,26 +20,22 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return; // let cross-origin (fonts, AI) hit the network
 
-  // Stale-while-revalidate: serve cache instantly, refresh it in the background.
-  // Feels native-fast; content is at most one load behind and self-updates.
+  // Network-first: always fetch fresh so a new deployment's HTML + hashed chunks
+  // win immediately. Cache only OK responses (never poison the cache with a 404),
+  // and fall back to cache only when the network is unreachable (offline).
   event.respondWith(
-    caches.open(CACHE).then((cache) =>
-      cache.match(request).then((hit) => {
-        const network = fetch(request).then((res) => {
-          cache.put(request, res.clone()).catch(() => {});
-          return res;
-        });
-
-        if (hit) {
-          network.catch(() => {}); // refresh when online; ignore offline errors
-          return hit;
+    fetch(request)
+      .then((res) => {
+        if (res.ok) {
+          const copy = res.clone();
+          caches.open(CACHE).then((cache) => cache.put(request, copy)).catch(() => {});
         }
-
-        // No cache: must return a Response, not undefined, when offline.
-        return network.catch(
-          () => new Response("Offline", { status: 503, statusText: "Service Unavailable" }),
-        );
-      }),
-    ),
+        return res;
+      })
+      .catch(() =>
+        caches.match(request).then(
+          (hit) => hit || new Response("Offline", { status: 503, statusText: "Service Unavailable" }),
+        ),
+      ),
   );
 });

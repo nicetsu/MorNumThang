@@ -853,6 +853,11 @@
     color: #7a520b;
     font-size: 22px;
     font-weight: 800;
+    overflow: hidden;
+    padding: 6px;
+    text-align: center;
+    line-height: 1.05;
+    word-break: break-word;
   }
   .vitals {
     display: grid;
