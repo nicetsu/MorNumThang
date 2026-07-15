@@ -178,6 +178,10 @@ export function MedForm({
     return { value: name, label: blocked ? `${name} · แพ้ยา — เลือกไม่ได้` : name, disabled: blocked };
   });
 
+  // Deterministic safety check on the *current* name too — catches custom/scanned
+  // names that bypass the option list (the photo-scan flow). Server re-checks as well.
+  const medBlocked = med.trim() !== "" && isAllergic(med, allergies);
+
   return (
     <form action={action} className="flow-form">
       <Combobox
@@ -316,9 +320,14 @@ export function MedForm({
         <p>หมอนำทางจะไม่แนะนำให้หยุด เพิ่ม หรือลดยา หากไม่แน่ใจให้โทรถามแพทย์หรือเภสัชกรค่ะ</p>
       </div>
 
+      {medBlocked && (
+        <p className="allergy-note">
+          ผู้รับการดูแลแพ้ “{med}” — เพิ่มยานี้ไม่ได้เพื่อความปลอดภัย
+        </p>
+      )}
       {state.error && <p className="allergy-note">{state.error}</p>}
 
-      <button type="submit" disabled={pending || !med} className="btn-primary disabled:opacity-60">
+      <button type="submit" disabled={pending || !med || medBlocked} className="btn-primary disabled:opacity-60">
         เพิ่มยา
       </button>
     </form>

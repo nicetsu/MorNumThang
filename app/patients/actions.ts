@@ -19,7 +19,9 @@ export async function logout() {
   const c = await cookies();
   c.delete(PID_COOKIE);
   c.delete(UID_COOKIE);
-  redirect("/enter");
+  // ?logout=1 tells LineLogin NOT to auto-relogin via LIFF (LINE is still logged in),
+  // otherwise the cookie is re-set instantly and logout appears to do nothing.
+  redirect("/enter?logout=1");
 }
 
 export async function createPatient(formData: FormData) {
