@@ -8,7 +8,7 @@
 ## สแตก
 
 Next.js (App Router, TS) + Tailwind + shadcn/ui + Prisma 7/Postgres + AI ผ่าน OpenAI-compatible endpoint
-+ ฟีเจอร์ถ่ายรูปสแกน (ยา/ใบนัด) ผ่าน vision model บน `AI_BASE_URL` (ไม่มี sidecar แล้ว — รันบน Vercel ได้)
++ DiffusionGemma ตัวเดียวสำหรับสรุป จัดหมวด และถ่ายรูปสแกนยา/ใบนัด (ไม่มี sidecar — รันบน Vercel ได้)
 
 ## เริ่มต้นใช้งาน (ครั้งแรก)
 
@@ -23,17 +23,18 @@ npx prisma db seed
 npm run dev                 # http://localhost:3000
 ```
 
-### 2) Ollama (จำเป็นสำหรับฟีเจอร์ AI ทั้งหมด)
+### 2) NVIDIA API (จำเป็นสำหรับฟีเจอร์ AI ทั้งหมด)
 
-ต้องมี [Ollama](https://ollama.com) รันอยู่ในเครื่อง พร้อมโมเดล 2 ตัว (ชื่อโมเดลตั้งได้ผ่าน `.env`):
+สร้าง API key ที่ NVIDIA API Catalog แล้วตั้งค่าใน `.env`:
 
-```bash
-ollama pull llama3.2           # AI_MODEL — สรุปให้หมอ / health signals / care guide
-ollama pull qwen2.5-vl:7b      # OCR_VISION_MODEL — อ่านรูปฉลากยา/ใบนัดเป็นข้อมูลฟอร์ม (ถ่ายรูปสแกน)
+```env
+AI_BASE_URL="https://integrate.api.nvidia.com/v1"
+AI_MODEL="google/diffusiongemma-26b-a4b-it"
+NVIDIA_API_KEY="nvapi-xxxxx"
 ```
 
-ฟีเจอร์ "ถ่ายรูปสแกน" อ่านรูปด้วย vision model ตัวนี้ผ่าน `AI_BASE_URL` โดยตรง — ไม่มี Python sidecar
-แยกอีกแล้ว จึงรันบน Vercel ได้ ถ้าไม่ได้ pull vision model ส่วนสแกนจะใช้ไม่ได้ แต่ที่เหลือใช้งานได้ปกติ
+ทุกฟีเจอร์ AI ใช้โมเดลเดียวกันฝั่งเซิร์ฟเวอร์ รวมถึงการอ่านรูปฉลากยาและใบนัด
+ห้ามใส่ key ใน client component หรือ commit `.env`
 
 ## คำสั่งที่ใช้บ่อย
 
@@ -42,7 +43,7 @@ npm run dev                 # dev server
 npx prisma migrate dev      # apply schema changes
 npx prisma studio           # ดูข้อมูลในฐานข้อมูล
 npx shadcn@latest add X     # เพิ่ม UI component (เฉพาะตอนใช้จริง)
-./scripts/ai-status.sh      # เช็คว่า Ollama/endpoint พร้อมไหม
+./scripts/ai-status.sh      # เช็คว่า NVIDIA endpoint พร้อมไหม
 ```
 
 ## ให้คนอื่นเข้าถึงจากมือถือ (dev เท่านั้น)

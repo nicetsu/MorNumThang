@@ -1,19 +1,23 @@
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { streamText, generateText } from "ai";
 
+const AI_BASE_URL = process.env.AI_BASE_URL || "https://integrate.api.nvidia.com/v1";
+const AI_API_KEY = process.env.NVIDIA_API_KEY || process.env.AI_API_KEY;
+const AI_MODEL = process.env.AI_MODEL || "google/diffusiongemma-26b-a4b-it";
+
 // Server-side only. Endpoint + key live in env, never shipped to the client (AGENTS.md rule 1).
 const provider = createOpenAICompatible({
-  name: "gemma-med",
-  baseURL: process.env.AI_BASE_URL!,
-  apiKey: process.env.AI_API_KEY,
-  // ponytail: thinking models (e.g. ThaiLLM/Qwen3) route their answer into `reasoning`,
-  // leaving streamed `content` empty. reasoning_effort:"none" disables that at the /v1 layer.
-  // Harmless for non-thinking models — Ollama ignores the field. Injected for every caller.
+  name: "diffusiongemma",
+  baseURL: AI_BASE_URL,
+  apiKey: AI_API_KEY,
+  // DiffusionGemma's reasoning consumes the response budget and can truncate short summaries.
+  // Keep every app flow in direct-answer mode; medical safety remains deterministic code.
   fetch: async (url, init) => {
     if (typeof init?.body === "string" && String(url).includes("/chat/completions")) {
       try {
         const b = JSON.parse(init.body);
         b.reasoning_effort ??= "none";
+        b.chat_template_kwargs = { ...b.chat_template_kwargs, enable_thinking: false };
         init = { ...init, body: JSON.stringify(b) };
       } catch {}
     }
@@ -81,10 +85,9 @@ const SIGNALS_CLOSING =
   'จากข้อมูลข้างต้น ช่วยชี้ "จุดที่ควรชวนสังเกต" ไม่เกิน 3 ข้อ สั้น ๆ เป็นข้อ ๆ (ห้ามเขียนสรุปประวัติซ้ำ) ถ้ายังไม่มีสัญญาณที่ชัดเจนให้บอกตามตรง';
 
 function run(system: string, prompt: string) {
-  // frequencyPenalty curbs the repetition ThaiLLM (Q4) tends to produce at low temperature —
-  // e.g. duplicating whole care-guide headings. Mild value keeps wording natural.
+  // Mild frequency penalty keeps short Thai sections from repeating.
   return streamText({
-    model: provider(process.env.AI_MODEL!),
+    model: provider(AI_MODEL),
     system,
     prompt,
     temperature: 0.3,
@@ -150,7 +153,7 @@ function clampSeverity(v: unknown): number {
 
 export async function organizeNarrative(story: string): Promise<OrganizedItem[]> {
   const { text } = await generateText({
-    model: provider(process.env.AI_MODEL!),
+    model: provider(AI_MODEL),
     system: ORGANIZE_SYSTEM,
     prompt: story,
     temperature: 0.2,
@@ -177,10 +180,7 @@ export async function organizeNarrative(story: string): Promise<OrganizedItem[]>
   return [{ category: "อื่น ๆ", text: story.trim(), severity: 5 }];
 }
 
-// §4.4 Drug-label scan — read a photo of a drug label into structured fields. Reads only, never prescribes.
-// ponytail: a vision model reads the image directly (replaces the OpenCV/PaddleOCR sidecar) so this
-// runs on Vercel as a plain API call. Kept on its own env (OCR_VISION_MODEL) so swapping it doesn't
-// touch the doctor-summary/signals models.
+// §4.4 Drug-label scan — the same multimodal model reads the image. Reads only, never prescribes.
 const LABEL_SYSTEM = `คุณช่วยอ่านฉลากยาจากรูปภาพที่ถ่ายมา แล้วแยกเป็นข้อมูลโครงสร้าง เป็นภาษาไทย
 กฎ:
 - ดึงเฉพาะข้อมูลที่ปรากฏในรูปเท่านั้น ห้ามเดา ห้ามเติมข้อมูลที่ไม่มี ห้ามแนะนำหรือแก้ไขขนาดยา
@@ -199,24 +199,18 @@ export type DrugLabelInfo = { name: string; quantity: string; usage: string; mea
 
 const emptyLabel: DrugLabelInfo = { name: "", quantity: "", usage: "", mealTiming: "ไม่ระบุ" };
 
-// OCR/vision runs on its own OpenAI-compatible endpoint (e.g. NVIDIA's hosted API) so it can be a
-// vision model separate from the text AI_MODEL. Falls back to AI_BASE_URL if not configured.
-const OCR_BASE_URL = process.env.OCR_BASE_URL || process.env.AI_BASE_URL;
-const OCR_API_KEY = process.env.OCR_API_KEY || process.env.AI_API_KEY;
-const OCR_VISION_MODEL = () => process.env.OCR_VISION_MODEL || "qwen2.5-vl:7b";
-
-// Direct fetch (not the AI SDK) so we can pass provider extras like disabling the model's "thinking".
+// Direct fetch keeps the image payload explicit and lets us disable thinking for compact JSON.
 async function visionExtract(system: string, ask: string, imageDataUrl: string): Promise<string> {
-  const res = await fetch(`${OCR_BASE_URL}/chat/completions`, {
+  const res = await fetch(`${AI_BASE_URL}/chat/completions`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${OCR_API_KEY}` },
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${AI_API_KEY}` },
     body: JSON.stringify({
-      model: OCR_VISION_MODEL(),
+      model: AI_MODEL,
       messages: [
         { role: "system", content: system },
         { role: "user", content: [
-          { type: "text", text: ask },
           { type: "image_url", image_url: { url: imageDataUrl } },
+          { type: "text", text: ask },
         ] },
       ],
       temperature: 0.1,

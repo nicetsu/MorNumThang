@@ -1,8 +1,8 @@
 # หมอนำทาง (Mor Num Thang) — Next.js Fullstack Rebuild Plan
 
 Rebuild the existing static prototype (`mornumthang2/uploads/`: `index.html`, `app.js`, `styles.css`) as a Next.js
-fullstack app with Tailwind + shadcn/ui, backed by a database, with AI features powered by a medical LLM
-(**gemma-med 1.5** or similar) served over an OpenAI-compatible endpoint.
+fullstack app with Tailwind + shadcn/ui, backed by a database, with AI features powered by
+**google/diffusiongemma-26b-a4b-it** over NVIDIA's OpenAI-compatible endpoint.
 
 The app helps a caregiver ("ลูก") track an elderly parent's ("ม้า") health: weight, meds, allergies, appointments,
 doctor-visit notes, and generate a doctor-ready summary. UI is Thai, large-touch, low-literacy-friendly.
@@ -39,9 +39,9 @@ Screens/features already in the prototype that must carry over:
   `alert`. Add components on demand (`npx shadcn@latest add ...`), not upfront.
 - **Prisma + SQLite** to start (one file, zero infra). Swap the datasource to Postgres later without code changes.
   - _ponytail: SQLite until multi-user/hosting forces Postgres — Prisma makes the swap a one-line change._
-- **AI: gemma-med 1.5** via an OpenAI-compatible endpoint (Ollama locally, or a hosted inference server).
-  Accessed **server-side only** through one helper + one route handler. Use the AI SDK (`ai` + `@ai-sdk/openai`
-  pointed at the custom `baseURL`) so streaming and structured output are free.
+- **AI: google/diffusiongemma-26b-a4b-it** via NVIDIA's OpenAI-compatible endpoint.
+  Accessed **server-side only** through one helper + one route handler. The same multimodal model handles
+  summaries, organization, drug-label scans, and appointment-slip scans with thinking disabled.
 - **Auth:** skip for v1 (single caregiver, single device). Add when a second user actually exists. _ponytail._
 - **i18n:** Thai only, hardcoded strings. No i18n framework until a second language is real. _ponytail._
 
@@ -70,7 +70,7 @@ model Appointment  { id String @id @default(cuid()) patientId String at DateTime
 model VisitNote    { id String @id @default(cuid()) patientId String symptom String? medsReceived String? nextAppointment String? at DateTime @default(now()) patient Patient @relation(fields:[patientId], references:[id]) }
 ```
 
-## 4. AI features (where gemma-med 1.5 plugs in)
+## 4. AI features (where DiffusionGemma plugs in)
 
 All AI runs **server-side** through `lib/ai.ts` → one route handler `app/api/ai/route.ts`. Three uses:
 
@@ -84,7 +84,8 @@ All AI runs **server-side** through `lib/ai.ts` → one route handler `app/api/a
 - All model calls server-side; endpoint URL + key in env, never shipped to client.
 - Allergy/med conflict check stays **deterministic** (code, not the LLM) — the model never gates medication safety.
 
-`.env`: `AI_BASE_URL`, `AI_API_KEY`, `AI_MODEL=gemma-med-1.5`.
+`.env`: `AI_BASE_URL=https://integrate.api.nvidia.com/v1`,
+`AI_MODEL=google/diffusiongemma-26b-a4b-it`, `NVIDIA_API_KEY`.
 
 ---
 
@@ -117,8 +118,8 @@ All AI runs **server-side** through `lib/ai.ts` → one route handler `app/api/a
 - [ ] Post-visit note form (symptom, meds received, next appointment).
 - **Done when:** appointment lifecycle works; visit note persists.
 
-### Slice 5 — AI: doctor summary  ★ gemma-med integration
-- [ ] `lib/ai.ts` (OpenAI-compatible client → gemma-med) + `app/api/ai/route.ts` (streaming).
+### Slice 5 — AI: doctor summary  ★ DiffusionGemma integration
+- [ ] `lib/ai.ts` (OpenAI-compatible client → DiffusionGemma) + `app/api/ai/route.ts` (streaming).
 - [ ] "สรุปให้หมอ" screen: gather patient data → stream summary → show with disclaimer.
 - **Done when:** summary streams from the model and reflects real logged data.
 - **Test:** helper returns text for a mock patient; disclaimer always present in output component.
@@ -134,7 +135,7 @@ All AI runs **server-side** through `lib/ai.ts` → one route handler `app/api/a
 - **Done when:** share works on mobile; a11y basics verified.
 
 ### Slice 8 — Deploy
-- [ ] Swap SQLite→Postgres if hosting needs it, env for AI endpoint, deploy (Vercel + external gemma-med host).
+- [ ] Swap SQLite→Postgres if hosting needs it, env for AI endpoint, deploy (Vercel + NVIDIA API).
 - **Done when:** live URL, AI endpoint reachable server-side.
 
 ---

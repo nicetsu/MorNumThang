@@ -7,6 +7,17 @@ Entry format: date · what I did wrong · why it was wrong · the lesson/fix.
 
 ---
 
+## 2026-07-14 — Used top-level await in a `tsx -e` CommonJS evaluation
+The one-line smoke test failed before calling the model because `tsx -e` emitted CommonJS, where top-level
+`await` is unsupported. **Lesson:** wrap async eval snippets in an async IIFE (or run an ESM file) so the
+test exercises the application code instead of failing in the test harness.
+
+## 2026-07-14 — Coupled independent model benchmarks with `Promise.all`
+Ran two NVIDIA model requests in one `Promise.all` and printed only after both completed. Gemma 4 timed out
+waiting for response headers after about five minutes, so the process exited before printing the Gemma 3n
+result even if that request had succeeded. **Lesson:** benchmark hosted models independently (or use
+`Promise.allSettled`) and persist/print each result as it arrives; always set an explicit per-request timeout.
+
 ## 2026-07-14 — Generalized an OCR speed fix from one lucky test image, shipped an accuracy regression
 Swapped PaddleOCR's detection model from `PP-OCRv5_server_det` to `PP-OCRv5_mobile_det` for ~6x
 speed after it read one drug-label test image correctly. On the very next image (an appointment

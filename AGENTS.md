@@ -11,7 +11,8 @@ for large touch targets and low-literacy users. Reference prototype: `mornumthan
 - Next.js App Router + TypeScript, Server Actions for mutations (no separate API layer).
 - Tailwind + shadcn/ui. Add components with `npx shadcn@latest add <name>` — only when needed.
 - Prisma + SQLite (dev). Swap datasource to Postgres for prod; do not change queries.
-- AI: **gemma-med 1.5** over an OpenAI-compatible endpoint, via the `ai` SDK, **server-side only**.
+- AI: **google/diffusiongemma-26b-a4b-it** via NVIDIA's OpenAI-compatible endpoint, **server-side only**.
+  The same multimodal model handles text and photo scans with thinking disabled.
 
 ## Golden rules
 1. **Server-side AI only.** Model endpoint/key live in env (`AI_BASE_URL`, `AI_API_KEY`, `AI_MODEL`).
@@ -27,7 +28,7 @@ for large touch targets and low-literacy users. Reference prototype: `mornumthan
 ```
 app/            routes/screens + Server Actions; app/api/ai/route.ts for streaming AI
 components/      shadcn ui/ + app components
-lib/            ai.ts (gemma-med client), db.ts (prisma), allergy.ts (deterministic checks)
+lib/            ai.ts (DiffusionGemma text + vision client), db.ts (prisma), allergy.ts (deterministic checks)
 prisma/         schema.prisma, migrations, seed.ts
 ```
 

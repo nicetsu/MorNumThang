@@ -13,7 +13,7 @@ flowchart TD
             B1["กด 'ช่วยจัดลงสมุด'"]
             ACT1["organizeNarrativeAction()"]
             AI["organizeNarrative()<br/>lib/ai.ts"]
-            LLM[["LLM · Ollama<br/>ThaiLLM-8B-MedApp"]]
+            LLM[["LLM · NVIDIA<br/>DiffusionGemma 26B-A4B"]]
             CLAMP["clampSeverity 0–10<br/>(default 5, fallback = ทั้งเรื่อง)"]
             REVIEW{"ตรวจก่อนบันทึก<br/>แก้ / ลบ ได้"}
             B2["กด 'ถูกต้อง บันทึกลงสมุด'"]

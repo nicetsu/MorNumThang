@@ -62,7 +62,8 @@ When porting a screen to Next.js, preserve the Thai copy verbatim and the design
 ## Target stack & commands (once scaffolded — see PLAN.md Slice 0)
 
 Next.js App Router + TS · Tailwind + shadcn/ui · Prisma + SQLite (swap to Postgres for prod, no query changes) ·
-AI via the `ai` SDK against an OpenAI-compatible `gemma-med 1.5` endpoint, server-side.
+AI via `google/diffusiongemma-26b-a4b-it` on NVIDIA's OpenAI-compatible endpoint, server-side.
+The same multimodal model handles text and photo scans with thinking disabled.
 
 ```bash
 npm run dev                 # dev server

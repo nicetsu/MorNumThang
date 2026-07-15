@@ -23,7 +23,7 @@ export function SummaryStream({ facts }: { facts: string }) {
       {(text || state === "loading") && (
         <>
           <div className="translate-arrow text-center font-bold text-teal">
-            ThaiLLM ช่วยเรียบเรียง ↓
+            AI ช่วยเรียบเรียง ↓
           </div>
           <article className="translation clinical-language">
             <small>สรุปให้หมอ</small>
