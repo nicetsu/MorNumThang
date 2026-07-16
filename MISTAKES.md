@@ -7,6 +7,13 @@ Entry format: date · what I did wrong · why it was wrong · the lesson/fix.
 
 ---
 
+## 2026-07-16 — Overwrote `app/meds/list/actions.ts` when adding `markMedTaken`
+Created the new server action by writing a fresh `actions.ts` with only `markMedTaken`, wiping
+`addMedication`, `addAllergy`, `removeAllergy`, and `MedState` that other pages already imported.
+Build failed on Vercel with "Export removeAllergy doesn't exist". **Lesson:** before writing a
+*new* file in an existing module path, grep imports and read/git-show the current file — append
+the new export, never replace the whole module unless that's explicitly intended.
+
 ## 2026-07-16 — Assumed rich-menu `?next=` reaches the app without `liff.init()`
 Rich menu URIs were correct (`https://liff.line.me/{id}?next=/logs`), and middleware handled
 `?next=` — but LINE's primary redirect lands on the Endpoint URL as `/?liff.state=…`, with the
