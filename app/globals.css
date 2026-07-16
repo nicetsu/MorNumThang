@@ -234,7 +234,7 @@
     background: rgba(255, 252, 247, 0.98);
   }
   /* Room for fixed bottom nav (prototype .screen padding-bottom ~118px). */
-  .app-shell.has-bottom-nav main {
+  .pb-nav {
     padding-bottom: calc(var(--bottom-nav-height) + 1.5rem + env(safe-area-inset-bottom, 0px));
   }
   .bottom-nav a {

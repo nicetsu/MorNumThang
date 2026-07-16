@@ -38,12 +38,12 @@ export default async function RootLayout({
   // Bottom nav only appears once a ผู้รับการดูแล is chosen — hidden through the enter/select flow.
   const hasPatient = (await cookies()).has(PID_COOKIE);
   return (
-    <html lang="th" className={`${sarabun.variable} h-full antialiased`}>
-      <body className="min-h-full">
+    <html lang="th" className={`${sarabun.variable} min-h-dvh antialiased`}>
+      <body className="min-h-dvh">
         {/* 430px app shell, mirroring the prototype. */}
-        <div className={`app-shell flex flex-col${hasPatient ? " has-bottom-nav" : ""}`}>
+        <div className="app-shell flex flex-col">
           <AppHeader />
-          <main className="flex-1 px-5 py-6">{children}</main>
+          <main className={`flex-1 px-5 pt-6${hasPatient ? " pb-nav" : " pb-6"}`}>{children}</main>
           {hasPatient && <BottomNav />}
         </div>
         <Toaster />

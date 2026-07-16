@@ -1,13 +1,18 @@
+// ponytail: per-request DB read — hospital comes from the active patient, not a fixed seed name.
+export const dynamic = "force-dynamic";
+
 import Link from "next/link";
+import { getActivePatient } from "@/lib/patient";
 
-// ponytail: contacts hardcoded — no contact data model in v1 (PLAN §6). Real numbers when a
-// patient's care team is stored.
-const contacts = [
-  { name: "รพ.เจริญกรุงประชารักษ์", sub: "โรงพยาบาลตามสิทธิบัตรทอง", tel: "022897000" },
-  { name: "สายด่วน สปสช.", sub: "สอบถามสิทธิบัตรทอง", tel: "1330" },
-];
+// ponytail: national helplines only — no phone field on Facility yet.
+const HELPLINES = [{ name: "สายด่วน สปสช.", sub: "สอบถามสิทธิบัตรทอง", tel: "1330" }] as const;
 
-export default function Urgent() {
+export default async function Urgent() {
+  const patient = await getActivePatient();
+  const hospitalSub = patient?.coverage
+    ? `โรงพยาบาลตามสิทธิ์ · ${patient.coverage}`
+    : "โรงพยาบาลตามสิทธิ์";
+
   return (
     <div className="space-y-4">
       <Link href="/" className="back-link">← สมุดของผู้รับการดูแล</Link>
@@ -42,7 +47,15 @@ export default function Urgent() {
           <span>เจ็บป่วยฉุกเฉิน<small className="block text-muted-foreground">โทรฟรีตลอด 24 ชม.</small></span>
           <b>โทร</b>
         </a>
-        {contacts.map((c) => (
+        {patient?.hospital && (
+          <div className="contact-card mt-[10px]">
+            <span>
+              <strong className="block">{patient.hospital}</strong>
+              <small className="text-muted-foreground">{hospitalSub}</small>
+            </span>
+          </div>
+        )}
+        {HELPLINES.map((c) => (
           <a key={c.tel} href={`tel:${c.tel}`} className="contact-card mt-[10px]">
             <span>
               <strong className="block">{c.name}</strong>
