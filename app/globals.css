@@ -538,19 +538,20 @@
     color: var(--muted-foreground);
     font-size: 15px;
   }
-  /* Inside a day card the timeline needs no date column — tighten the time gutter. */
+  /* Inside a day card the timeline needs no date column — tighten the time gutter.
+     Gutter must still fit a full HH:MM time and keep the dot clear of it. */
   .day-card .timeline article {
     min-height: 60px;
-    padding: 0 0 14px 64px;
+    padding: 0 0 14px 78px;
   }
   .day-card .timeline article::after {
-    left: 44px;
+    left: 59px;
   }
   .day-card .timeline time {
-    width: 40px;
+    width: 50px;
   }
   .day-card .timeline .dot {
-    left: 37px;
+    left: 52px;
   }
 
   /* Reminder cards */
