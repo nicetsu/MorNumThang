@@ -6,18 +6,11 @@ import { db } from "@/lib/db";
 import { getActivePatient } from "@/lib/patient";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { ComboField } from "@/components/combo-field";
 import { saveProfile } from "./actions";
 import { SubmitButton } from "@/components/submit-button";
 
-// Suggestion lists for the datalist dropdowns. Free text still allowed — these only prompt.
-const COVERAGE_OPTIONS = ["บัตรทอง", "ประกันสังคม", "ข้าราชการ/รัฐวิสาหกิจ", "สิทธิท้องถิ่น (อปท.)", "ชำระเงินเอง"];
-const HOSPITAL_OPTIONS = [
-  "โรงพยาบาลศิริราช",
-  "โรงพยาบาลรามาธิบดี",
-  "โรงพยาบาลจุฬาลงกรณ์",
-  "โรงพยาบาลราชวิถี",
-  "โรงพยาบาลตำรวจ",
-];
+// อาชีพ has no reference table — a small fixed pick-list (typing a custom value still works).
 const JOB_OPTIONS = [
   "รับราชการ",
   "ข้าราชการบำนาญ",
@@ -29,26 +22,21 @@ const JOB_OPTIONS = [
   "ธุรกิจส่วนตัว",
   "เกษียณอายุ",
 ];
-const DISEASE_OPTIONS = [
-  "ความดันโลหิตสูง",
-  "เบาหวาน",
-  "ไขมันในเลือดสูง",
-  "โรคหัวใจ",
-  "โรคไตเรื้อรัง",
-  "หอบหืด",
-  "ถุงลมโป่งพอง",
-  "อัมพฤกษ์/อัมพาต",
-  "ข้อเข่าเสื่อม",
-  "สมองเสื่อม/อัลไซเมอร์",
-  "เกาต์",
-  "ไทรอยด์",
-];
 
 export default async function ProfileEdit() {
   const patient = await getActivePatient();
   if (!patient) {
     return <p className="py-8 text-muted-foreground">ยังไม่มีข้อมูลผู้รับการดูแลค่ะ</p>;
   }
+
+  // Dropdown data from the seeded reference tables (same source lib/rights.ts uses).
+  const [rights, facilities] = await Promise.all([
+    db.healthRight.findMany({ orderBy: { id: "asc" }, select: { name: true } }),
+    db.facility.findMany({ orderBy: { name: "asc" }, select: { name: true } }),
+  ]);
+  const coverageOptions = rights.map((r) => ({ value: r.name, label: r.name }));
+  const hospitalOptions = facilities.map((f) => ({ value: f.name, label: f.name }));
+  const jobOptions = JOB_OPTIONS.map((o) => ({ value: o, label: o }));
 
   return (
     <div className="space-y-4">
@@ -69,27 +57,30 @@ export default async function ProfileEdit() {
             <Input name="age" type="number" min="0" max="130" defaultValue={patient.age ?? ""} />
           </label>
         </div>
-        <label>
-          <span>สิทธิการรักษา</span>
-          <Input name="coverage" list="coverage-options" defaultValue={patient.coverage ?? ""} placeholder="เลือกหรือพิมพ์ เช่น บัตรทอง" />
-          <datalist id="coverage-options">
-            {COVERAGE_OPTIONS.map((o) => <option key={o} value={o} />)}
-          </datalist>
-        </label>
-        <label>
-          <span>โรงพยาบาลตามสิทธิ์</span>
-          <Input name="hospital" list="hospital-options" defaultValue={patient.hospital ?? ""} placeholder="เลือกหรือพิมพ์ชื่อโรงพยาบาล" />
-          <datalist id="hospital-options">
-            {HOSPITAL_OPTIONS.map((o) => <option key={o} value={o} />)}
-          </datalist>
-        </label>
-        <label>
-          <span>อาชีพ / อดีตอาชีพ</span>
-          <Input name="job" list="job-options" defaultValue={patient.job ?? ""} placeholder="เลือกหรือพิมพ์อาชีพ" />
-          <datalist id="job-options">
-            {JOB_OPTIONS.map((o) => <option key={o} value={o} />)}
-          </datalist>
-        </label>
+        <ComboField
+          name="coverage"
+          label="สิทธิการรักษา"
+          options={coverageOptions}
+          defaultValue={patient.coverage ?? ""}
+          placeholder="— เลือกสิทธิ —"
+          searchPlaceholder="ค้นหาสิทธิ…"
+        />
+        <ComboField
+          name="hospital"
+          label="โรงพยาบาลตามสิทธิ์"
+          options={hospitalOptions}
+          defaultValue={patient.hospital ?? ""}
+          placeholder="— เลือกโรงพยาบาล —"
+          searchPlaceholder="ค้นหาโรงพยาบาล…"
+        />
+        <ComboField
+          name="job"
+          label="อาชีพ / อดีตอาชีพ"
+          options={jobOptions}
+          defaultValue={patient.job ?? ""}
+          placeholder="— เลือกอาชีพ —"
+          searchPlaceholder="ค้นหา/พิมพ์อาชีพ…"
+        />
         <label>
           <span>คนดูแลหลัก</span>
           <Input name="caregiver" defaultValue={patient.caregiver ?? ""} placeholder="เช่น เจี๊ยบ · ผู้ดูแลหลัก" />
@@ -99,11 +90,9 @@ export default async function ProfileEdit() {
           <Input name="caregiverPhone" type="tel" inputMode="tel" defaultValue={patient.caregiverPhone ?? ""} placeholder="เช่น 0812345678" />
         </label>
         <label>
+          {/* Multi-value ("·"-separated) — a single-select dropdown doesn't fit, so free text. */}
           <span>โรคประจำตัว</span>
-          <Input name="diseases" list="disease-options" defaultValue={patient.diseases ?? ""} placeholder="เลือกหรือพิมพ์ เช่น ความดันโลหิตสูง · เบาหวาน" />
-          <datalist id="disease-options">
-            {DISEASE_OPTIONS.map((o) => <option key={o} value={o} />)}
-          </datalist>
+          <Textarea name="diseases" rows={2} defaultValue={patient.diseases ?? ""} placeholder="เช่น ความดันโลหิตสูง · เบาหวาน" />
         </label>
         <label>
           <span>สิ่งที่ชอบ</span>

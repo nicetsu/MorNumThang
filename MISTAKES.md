@@ -7,6 +7,14 @@ Entry format: date · what I did wrong · why it was wrong · the lesson/fix.
 
 ---
 
+## 2026-07-16 — Reinvented a dropdown with raw `<datalist>` + hardcoded lists instead of the existing `Combobox`
+Asked to add dropdowns to the profile edit form, I reached for a native `<input list>` / `<datalist>` and
+hardcoded the สิทธิ์ and โรงพยาบาล option arrays inline — while the repo already had `components/combobox.tsx`
+(a searchable shadcn `Combobox` used in `med-form.tsx`) and seeded reference tables `HealthRight` (5 สิทธิ์)
+and `Facility` (58 สถานพยาบาล) holding exactly that data. Reinvented UI + duplicated data that already lived
+in the DB. **Lesson:** before building an input control or hardcoding a pick-list, grep `components/` for an
+existing component and `prisma/schema.prisma` for a reference table. Codified as AGENTS.md golden rule 6.
+
 ## 2026-07-14 — Used top-level await in a `tsx -e` CommonJS evaluation
 The one-line smoke test failed before calling the model because `tsx -e` emitted CommonJS, where top-level
 `await` is unsupported. **Lesson:** wrap async eval snippets in an async IIFE (or run an ESM file) so the

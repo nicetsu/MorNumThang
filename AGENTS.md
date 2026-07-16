@@ -10,12 +10,13 @@ for large touch targets and low-literacy users. Reference prototype: `mornumthan
 ## Stack
 - Next.js App Router + TypeScript, Server Actions for mutations (no separate API layer).
 - Tailwind + shadcn/ui. Add components with `npx shadcn@latest add <name>` — only when needed.
-- Prisma + SQLite (dev). Swap datasource to Postgres for prod; do not change queries.
+- Prisma + **PostgreSQL** (Supabase; one DB for dev and prod). Migrate with `migrate dev --create-only`
+  then `migrate deploy` so the shared DB isn't reseeded. Generated client: `app/generated/prisma/`.
 - AI: **google/diffusiongemma-26b-a4b-it** via NVIDIA's OpenAI-compatible endpoint, **server-side only**.
   The same multimodal model handles text and photo scans with thinking disabled.
 
 ## Golden rules
-1. **Server-side AI only.** Model endpoint/key live in env (`AI_BASE_URL`, `AI_API_KEY`, `AI_MODEL`).
+1. **Server-side AI only.** Model endpoint/key live in env (`AI_BASE_URL`, `NVIDIA_API_KEY`, `AI_MODEL`).
    Never call the model or expose keys from client components.
 2. **The LLM never gates medical safety.** Allergy/medication conflict checks are deterministic code.
    The model summarizes and organizes; it does not diagnose or prescribe.
@@ -23,6 +24,11 @@ for large touch targets and low-literacy users. Reference prototype: `mornumthan
 4. **Thai UI strings.** Match the prototype's tone (gentle, reassuring). No i18n framework yet.
 5. **Be lazy (ponytail).** Stdlib/native > dependency. No auth, multi-patient, PWA, or i18n until real.
    Shortest working diff. Mark deliberate shortcuts with a `// ponytail:` comment.
+6. **Reuse what's already here before building new.** For a searchable select/dropdown use the existing
+   `components/combobox.tsx` (`Combobox`, via the `ComboField` form wrapper) — **not** a raw `<input list>`
+   / native `<datalist>` or a hand-rolled control. For option data, pull from the seeded reference tables
+   (`HealthRight` = สิทธิ์, `Facility` = สถานพยาบาล, `Service`, `RecommendationRule`) instead of hardcoding
+   lists in the component. Grep `components/` and `prisma/schema.prisma` before you invent either.
 
 ## Layout (target)
 ```
