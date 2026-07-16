@@ -6,6 +6,7 @@ import { AppHeader } from "@/components/app-header";
 import { BottomNav } from "@/components/bottom-nav";
 import { Toaster } from "@/components/ui/sonner";
 import { RegisterSW } from "@/components/register-sw";
+import { LiffDeepLink } from "@/components/liff-deeplink";
 import { PID_COOKIE } from "@/lib/patient";
 
 const sarabun = Sarabun({
@@ -46,6 +47,7 @@ export default async function RootLayout({
         </div>
         <Toaster />
         <RegisterSW />
+        <LiffDeepLink />
       </body>
     </html>
   );

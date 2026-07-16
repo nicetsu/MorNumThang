@@ -13,6 +13,12 @@ export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const next = safeNext(req);
 
+  // LIFF primary redirect arrives as /?liff.state=… — don't auth-bounce or strip it.
+  // Client LiffDeepLink calls liff.init(), which restores ?next=/logs, then we handle it.
+  if (req.nextUrl.searchParams.has("liff.state")) {
+    return NextResponse.next();
+  }
+
   // /join/* is a public invite landing — it handles its own LINE login inline.
   if (!hasId && pathname !== "/enter" && !pathname.startsWith("/join")) {
     const enter = new URL("/enter", req.url);
@@ -22,7 +28,7 @@ export function middleware(req: NextRequest) {
     return NextResponse.redirect(enter);
   }
 
-  // Logged-in rich-menu / LIFF deep link — honour ?next= on any entry path (not only / or /enter).
+  // Logged-in rich-menu / LIFF deep link — honour ?next= on any entry path.
   if (hasId && next) {
     return NextResponse.redirect(new URL(next, req.url));
   }

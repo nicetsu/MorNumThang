@@ -2,8 +2,11 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
+import { SubmitButton } from "@/components/submit-button";
+import { bangkokDateKey } from "@/lib/care-checks";
 import { db } from "@/lib/db";
 import { getActivePatient } from "@/lib/patient";
+import { markMedTaken } from "./actions";
 
 // Each meal-timing is its own slot, so "ก่อนอาหาร" and "หลังอาหาร" never merge.
 const WHEN_ORDER = [
@@ -31,10 +34,18 @@ export default async function MedSchedule() {
   if (!patient) {
     return <p className="py-8 text-muted-foreground">ยังไม่มีข้อมูลผู้รับการดูแลค่ะ</p>;
   }
-  const meds = await db.medication.findMany({
-    where: { patientId: patient.id },
-    orderBy: { name: "asc" },
-  });
+  const today = bangkokDateKey(new Date());
+  const [meds, takenChecks] = await Promise.all([
+    db.medication.findMany({
+      where: { patientId: patient.id },
+      orderBy: { name: "asc" },
+    }),
+    db.dailyCheck.findMany({
+      where: { patientId: patient.id, date: today, itemKey: { startsWith: "med:" } },
+      select: { itemKey: true },
+    }),
+  ]);
+  const takenToday = new Set(takenChecks.map((c) => c.itemKey));
   const dose = (m: (typeof meds)[number]) => (m.dose ? `${m.dose} เม็ด` : "");
 
   // Build slots for standard timings
@@ -122,6 +133,19 @@ export default async function MedSchedule() {
                       .join(" · ")}
                   </small>
                 </div>
+                {takenToday.has(`med:${m.id}`) ? (
+                  <span className="shrink-0 text-sm font-bold text-teal">กินแล้ว ✓</span>
+                ) : (
+                  <form action={markMedTaken}>
+                    <input type="hidden" name="medId" value={m.id} />
+                    <SubmitButton
+                      className="shrink-0 rounded-full bg-teal-soft px-3 py-1.5 text-sm font-bold text-teal"
+                      pendingText="…"
+                    >
+                      กินแล้ว
+                    </SubmitButton>
+                  </form>
+                )}
               </article>
             ))}
           </div>

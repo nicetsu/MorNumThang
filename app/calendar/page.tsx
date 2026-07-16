@@ -3,25 +3,17 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { db } from "@/lib/db";
+import { bangkokDateKey } from "@/lib/care-checks";
+import { ensureDefaultCareTasks } from "@/lib/care-tasks";
 import { getActivePatient } from "@/lib/patient";
 import { CalendarView } from "./calendar-view";
 
 // Thai-local (UTC+7) date — the server runs in UTC on Vercel, so format with the
 // Bangkok timezone or an evening appointment lands on the wrong calendar day.
 const TZ = "Asia/Bangkok";
-const dateKey = (d: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: TZ }).format(d); // YYYY-MM-DD
+const dateKey = bangkokDateKey;
 const timeStr = (d: Date) =>
   new Intl.DateTimeFormat("th-TH", { timeZone: TZ, hour: "2-digit", minute: "2-digit", hour12: false }).format(d);
-
-// Starter care tasks (mockup defaults) so a fresh patient sees a useful list.
-const DEFAULT_TASKS: { category: string; title: string }[] = [
-  { category: "สุขภาพ", title: "วัดความดัน" },
-  { category: "สุขภาพ", title: "ตรวจน้ำตาล" },
-  { category: "สุขภาพ", title: "วัดไข้" },
-  { category: "ฟื้นฟู", title: "กายภาพบำบัด" },
-  { category: "ฟื้นฟู", title: "เดินออกกำลังกาย" },
-  { category: "ฟื้นฟู", title: "ยืดเหยียด" },
-];
 
 export default async function CalendarPage() {
   const patient = await getActivePatient();
@@ -29,12 +21,7 @@ export default async function CalendarPage() {
     return <p className="py-8 text-muted-foreground">ยังไม่มีข้อมูลผู้รับการดูแลค่ะ</p>;
   }
 
-  // Seed defaults once (idempotent — only when the patient has no care tasks yet).
-  if ((await db.careTask.count({ where: { patientId: patient.id } })) === 0) {
-    await db.careTask.createMany({
-      data: DEFAULT_TASKS.map((t, i) => ({ ...t, patientId: patient.id, sortOrder: i })),
-    });
-  }
+  await ensureDefaultCareTasks(patient.id);
 
   const [meds, careTasks, checks, appts] = await Promise.all([
     db.medication.findMany({ where: { patientId: patient.id }, select: { id: true, name: true, dose: true, whenTime: true } }),

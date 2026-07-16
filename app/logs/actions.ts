@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { autoCheckVitalCareTasks, bangkokDateKey } from "@/lib/care-checks";
 import { db } from "@/lib/db";
 import { getActivePatientOrThrow } from "@/lib/patient";
 import { parseWeight } from "./weight";
@@ -20,9 +21,10 @@ export async function addWeight(formData: FormData) {
   const pulse = optInt(formData.get("pulse"), 20, 250);
 
   const note = String(formData.get("note") ?? "").trim() || null;
-  const dateStr = String(formData.get("date") ?? "");
-  // input[type=date] gives YYYY-MM-DD; empty → now.
+  const dateStr = String(formData.get("date") ?? "").trim();
+  // input[type=date] gives YYYY-MM-DD; empty → now (Bangkok-local day for the calendar).
   const at = dateStr ? new Date(dateStr) : new Date();
+  const checkDate = dateStr || bangkokDateKey(new Date());
 
   // ponytail: single-patient v1 — attach to the one patient (PLAN §6).
   const patient = await getActivePatientOrThrow();
@@ -30,10 +32,17 @@ export async function addWeight(formData: FormData) {
     data: { patientId: patient.id, kg, systolic, diastolic, pulse, note, at },
   });
 
+  await autoCheckVitalCareTasks(patient.id, checkDate, {
+    weight: true,
+    bp: systolic != null || diastolic != null,
+    pulse: pulse != null,
+  });
+
   revalidatePath("/logs");
   revalidatePath("/");
   revalidatePath("/profile");
   revalidatePath("/signals");
+  revalidatePath("/calendar");
   // Land on the log timeline so the caregiver sees the entry they just saved.
   redirect("/signals");
 }

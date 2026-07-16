@@ -7,6 +7,14 @@ Entry format: date · what I did wrong · why it was wrong · the lesson/fix.
 
 ---
 
+## 2026-07-16 — Assumed rich-menu `?next=` reaches the app without `liff.init()`
+Rich menu URIs were correct (`https://liff.line.me/{id}?next=/logs`), and middleware handled
+`?next=` — but LINE's primary redirect lands on the Endpoint URL as `/?liff.state=…`, with the
+deep link buried inside. Only after client `liff.init()` is `?next=` (or `/logs`) restored.
+Logged-in users never hit `/enter` (where we already init LIFF), so they stayed on home.
+**Lesson:** for LIFF deep links, run `liff.init()` on the endpoint entry when `liff.state` is
+present; don't auth-redirect away that primary URL before init.
+
 ## 2026-07-16 — Reinvented a dropdown with raw `<datalist>` + hardcoded lists instead of the existing `Combobox`
 Asked to add dropdowns to the profile edit form, I reached for a native `<input list>` / `<datalist>` and
 hardcoded the สิทธิ์ and โรงพยาบาล option arrays inline — while the repo already had `components/combobox.tsx`

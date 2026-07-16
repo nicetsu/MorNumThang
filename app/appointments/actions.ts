@@ -55,8 +55,12 @@ export async function addAppointment(formData: FormData) {
 
 export async function completeAppointment(formData: FormData) {
   const id = String(formData.get("id") ?? "");
-  if (id) await db.appointment.update({ where: { id }, data: { done: true } });
+  if (id) {
+    const pid = await patientId();
+    await db.appointment.updateMany({ where: { id, patientId: pid }, data: { done: true } });
+  }
   revalidatePath("/appointments");
+  revalidatePath("/calendar");
   revalidatePath("/");
 }
 
