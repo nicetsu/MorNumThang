@@ -13,21 +13,39 @@ export async function pushLine(to: string, text: string): Promise<{ ok: boolean;
     body: JSON.stringify({ to, messages: [{ type: "text", text }] }),
   });
   if (res.ok) return { ok: true };
-  return { ok: false, status: res.status, body: await res.text().catch(() => "") };
+  const body = await res.text().catch(() => "");
+  console.warn("[line] push failed", { to, status: res.status, body });
+  return { ok: false, status: res.status, body };
 }
 
 // Notify every caregiver linked to a patient. Never throws — a failed push must not
-// block the appointment save. Skips freeform /enter codes (e.g. "demo") that aren't
-// real LINE userIds. Patient.lineId (คนถูกดูแล) comes later.
+// block the save. Skips freeform /enter codes (e.g. "demo") that aren't real LINE
+// userIds. Push only works for users who've added the Official Account as a friend.
 export async function notifyCaregivers(patientId: string, text: string): Promise<void> {
+  if (!TOKEN) {
+    console.warn("[line] skip notify — LINE_CHANNEL_ACCESS_TOKEN not set");
+    return;
+  }
   const patient = await db.patient.findUnique({
     where: { id: patientId },
     select: { caregivers: { select: { lineId: true } } },
   });
   if (!patient) return;
-  for (const c of patient.caregivers) {
-    // Real LINE userIds start with "U"; freeform enter codes do not.
-    if (!c.lineId.startsWith("U")) continue;
-    await pushLine(c.lineId, text);
+  const targets = patient.caregivers.filter((c) => c.lineId.startsWith("U"));
+  if (!targets.length) {
+    console.warn("[line] skip notify — no caregivers with a real LINE userId (U…)");
+    return;
   }
+  for (const c of targets) await pushLine(c.lineId, text);
+}
+
+export function medNotifyMessage(
+  name: string,
+  schedules: { whenTime: string; dose: number }[],
+  remaining: number | null,
+): string {
+  const lines = ["หมอนำทาง · เพิ่มยาใหม่", name];
+  for (const s of schedules) lines.push(`${s.whenTime} · ${s.dose} เม็ด`);
+  if (remaining != null) lines.push(`เหลือ ${remaining} เม็ด`);
+  return lines.join("\n");
 }

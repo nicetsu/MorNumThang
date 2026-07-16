@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { autoCheckMed, bangkokDateKey } from "@/lib/care-checks";
 import { db } from "@/lib/db";
+import { medNotifyMessage, notifyCaregivers } from "@/lib/line";
 import { getActivePatientOrThrow } from "@/lib/patient";
 import { isAllergic } from "@/lib/allergy";
 
@@ -54,11 +55,12 @@ export async function addMedication(
     return Number.isFinite(n) && n > 0 ? n : null;
   };
   const remaining = num("remaining");
+  let schedules: { whenTime: string; dose: number }[] = [];
 
   const schedulesJson = String(formData.get("schedules") ?? "").trim();
   if (schedulesJson) {
     try {
-      const schedules = JSON.parse(schedulesJson) as { whenTime: string; dose: number }[];
+      schedules = JSON.parse(schedulesJson) as { whenTime: string; dose: number }[];
       if (schedules.length > 0) {
         for (const s of schedules) {
           await db.medication.create({
@@ -81,6 +83,7 @@ export async function addMedication(
   } else {
     // Fallback to legacy single schedule input if schedules field is missing
     const whenTime = String(formData.get("whenTime") ?? "").trim() || null;
+    schedules = [{ whenTime: whenTime ?? "ตามแพทย์สั่ง", dose: num("dose") ?? 1 }];
     await db.medication.create({
       data: {
         patientId: pid,
@@ -93,7 +96,10 @@ export async function addMedication(
     });
   }
 
+  await notifyCaregivers(pid, medNotifyMessage(name, schedules, remaining));
+
   revalidatePath("/meds/list");
+  revalidatePath("/calendar");
   revalidatePath("/meds/add");
   revalidatePath("/");
   // Back to the schedule so the new med shows in its slot (prototype flow).

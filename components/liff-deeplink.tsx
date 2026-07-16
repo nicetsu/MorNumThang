@@ -1,17 +1,23 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 const LIFF_ID = process.env.NEXT_PUBLIC_LIFF_ID;
 
-// Rich-menu taps open https://liff.line.me/{id}?next=/logs — but LINE's primary
-// redirect lands on the Endpoint URL as /?liff.state=… (the ?next is inside that blob).
-// Only after liff.init() does LINE restore ?next=/logs (or /logs). Without init here,
-// a logged-in user just stays on home because middleware never saw ?next=.
+function hasLiffState() {
+  return typeof window !== "undefined" && new URLSearchParams(window.location.search).has("liff.state");
+}
+
+// Rich-menu LIFF URLs arrive as /?liff.state=… — init restores ?next=/logs, then we hard-nav.
+// While that runs, show a blank "กำลังเปิด…" so home doesn't flash.
 export function LiffDeepLink() {
+  const [pending, setPending] = useState(hasLiffState);
+
   useEffect(() => {
-    if (!LIFF_ID) return;
-    if (!new URLSearchParams(window.location.search).has("liff.state")) return;
+    if (!LIFF_ID || !hasLiffState()) {
+      setPending(false);
+      return;
+    }
 
     let cancelled = false;
     (async () => {
@@ -27,14 +33,14 @@ export function LiffDeepLink() {
           window.location.replace(next);
           return;
         }
-        // Path-style deep link (liff.line.me/{id}/logs) — init may only replaceState,
-        // so force a real navigation so Next serves the right page.
         if (url.pathname !== "/") {
           window.location.replace(url.pathname + url.search);
+          return;
         }
       } catch {
-        // Outside LINE / init failed — leave the user where they are.
+        // Outside LINE / init failed — show the page underneath.
       }
+      if (!cancelled) setPending(false);
     })();
 
     return () => {
@@ -42,5 +48,11 @@ export function LiffDeepLink() {
     };
   }, []);
 
-  return null;
+  if (!pending) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center bg-ivory text-teal">
+      <p className="font-bold">กำลังเปิด…</p>
+    </div>
+  );
 }

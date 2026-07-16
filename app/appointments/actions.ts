@@ -49,6 +49,7 @@ export async function addAppointment(formData: FormData) {
   });
   await notifyCaregivers(pid, apptMessage("หมอนำทาง · นัดใหม่", note, at, place));
   revalidatePath("/appointments");
+  revalidatePath("/calendar");
   revalidatePath("/");
   redirect("/appointments");
 }
