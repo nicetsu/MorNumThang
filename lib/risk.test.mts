@@ -79,6 +79,11 @@ assert.equal(observationBand("ปวดท้องนิดหน่อย", 60
 assert.equal(observationBand("ปวดท้อง อาเจียนเป็นเลือด", 60), 2); // B + danger → แดง
 assert.equal(observationBand("เจ็บหน้าอก", 60), 2); // Class A → แดงเอง
 assert.equal(observationBand("หมดสติ", 60), 3); // critical → ด่วน
+// อุบัติเหตุ/บาดเจ็บ = Class A (เข้าคลังคำแล้ว ไม่ต้องพึ่ง severity ของ LLM)
+assert.equal(observationBand("แม่โดนน้ำร้อนลวกทั้งแขน", 65), 2); // แผลไฟไหม้/ลวก → ควรปรึกษาหมอ
+assert.equal(observationBand("ไฟไหม้ระยะ 3", 65), 2); // แผลไฟไหม้ระดับ 3 → ควรปรึกษาหมอ
+assert.equal(observationBand("แม่สำลักอาหารตอนกินข้าว", 65), 2); // สำลัก/ติดคอ → ควรปรึกษาหมอ
+assert.equal(observationBand("มีเลือดออกไม่หยุดจากแผล", 65), 3); // เลือดออกไม่หยุด → critical/ด่วน
 assert.equal(observationBand("ม้าซึมลง ไม่กินข้าว", 82), 2); // ผู้สูงอายุ + delirium → แดง
 assert.equal(observationBand("วันนี้กินน้อยลงนิดหน่อย", 80), 1); // soft เดี่ยว-เบา → เฝ้าดู
 assert.equal(observationBand("วันนี้กินน้อยลง", 60), 0); // ไม่ใช่ผู้สูงอายุ → ไม่ยิง
@@ -101,9 +106,9 @@ assert.equal(recentSeverityLevel([], NOW), 0); // ไม่มีอาการ
 
 // ───── statedSigns — drop LLM signs not literally in the caregiver's text (anti-hallucination) ─────
 assert.deepEqual(statedSigns("ม้าหอบเหนื่อย นอนราบไม่ได้", ["หอบ", "นอนราบไม่ได้"]), ["หอบ", "นอนราบไม่ได้"]); // legit → เก็บ
-assert.deepEqual(statedSigns("ไฟไหม้ระยะ 3", ["ไม่รู้สึกตัว", "ไม่หายใจ", "ตัวเขียว"]), []); // off-domain fabrication → ตัดทิ้ง
-// with fabricated critical signs dropped, garbage input no longer escalates
-assert.equal(observationBand("ไฟไหม้ระยะ 3", 80, statedSigns("ไฟไหม้ระยะ 3", ["ไม่หายใจ", "ตัวเขียว"])), 0);
+assert.deepEqual(statedSigns("วันนี้รถติดมาก", ["ไม่รู้สึกตัว", "ไม่หายใจ", "ตัวเขียว"]), []); // ไม่มีในข้อความ → ตัดทิ้ง
+// เมื่อ signs ที่โมเดลแต่งถูกตัด ข้อความที่ไม่มี keyword จริงก็ไม่ escalate
+assert.equal(observationBand("วันนี้รถติดมาก", 80, statedSigns("วันนี้รถติดมาก", ["ไม่หายใจ", "ตัวเขียว"])), 0);
 
 // ───── wiring → doctor-score ─────
 assert.equal(news2Level(undefined), 0); // ไม่มี vitals → ไม่ contribute
