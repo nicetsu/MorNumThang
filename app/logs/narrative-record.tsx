@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Mic, MicOff } from "lucide-react";
 import { organizeNarrativeAction, saveObservations } from "./actions";
@@ -23,6 +24,7 @@ const CHIPS = [
 ];
 
 export function NarrativeRecord() {
+  const router = useRouter();
   const [story, setStory] = useState("");
   const [items, setItems] = useState<Item[] | null>(null);
   const [organizing, startOrganize] = useTransition();
@@ -114,6 +116,8 @@ export function NarrativeRecord() {
       toast.success("เก็บลงสมุดแล้วค่ะ");
       setStory("");
       setItems(null);
+      // Jump to the log timeline so the caregiver sees what they just recorded.
+      router.push("/signals");
     });
   }
 

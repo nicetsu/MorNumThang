@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { getActivePatientOrThrow } from "@/lib/patient";
 import { parseWeight } from "./weight";
@@ -32,6 +33,9 @@ export async function addWeight(formData: FormData) {
   revalidatePath("/logs");
   revalidatePath("/");
   revalidatePath("/profile");
+  revalidatePath("/signals");
+  // Land on the log timeline so the caregiver sees the entry they just saved.
+  redirect("/signals");
 }
 
 // "เล่าอาการ" — AI organizes the caregiver's story into categories for review (not saved yet).
