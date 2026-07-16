@@ -7,8 +7,25 @@ import { getActivePatient } from "@/lib/patient";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ComboField } from "@/components/combo-field";
+import { MultiComboField } from "@/components/multi-combo-field";
 import { saveProfile } from "./actions";
 import { SubmitButton } from "@/components/submit-button";
+
+// โรคประจำตัว is multi-value — a fixed pick-list (typing a custom disease still works).
+const DISEASE_OPTIONS = [
+  "ความดันโลหิตสูง",
+  "เบาหวาน",
+  "ไขมันในเลือดสูง",
+  "โรคหัวใจ",
+  "โรคไตเรื้อรัง",
+  "หอบหืด",
+  "ถุงลมโป่งพอง",
+  "อัมพฤกษ์/อัมพาต",
+  "ข้อเข่าเสื่อม",
+  "สมองเสื่อม/อัลไซเมอร์",
+  "เกาต์",
+  "ไทรอยด์",
+];
 
 // อาชีพ has no reference table — a small fixed pick-list (typing a custom value still works).
 const JOB_OPTIONS = [
@@ -38,6 +55,7 @@ export default async function ProfileEdit() {
   const coverageOptions = rights.map((r) => ({ value: r.name, label: r.name }));
   const hospitalOptions = facilities.map((f) => ({ value: f.name, label: f.name }));
   const jobOptions = JOB_OPTIONS.map((o) => ({ value: o, label: o }));
+  const diseaseOptions = DISEASE_OPTIONS.map((o) => ({ value: o, label: o }));
 
   return (
     <div className="space-y-4">
@@ -90,11 +108,14 @@ export default async function ProfileEdit() {
           <span>เบอร์โทรคนดูแล (ไม่บังคับ)</span>
           <Input name="caregiverPhone" type="tel" inputMode="tel" defaultValue={patient.caregiverPhone ?? ""} placeholder="เช่น 0812345678" />
         </label>
-        <label>
-          {/* Multi-value ("·"-separated) — a single-select dropdown doesn't fit, so free text. */}
-          <span>โรคประจำตัว</span>
-          <Textarea name="diseases" rows={2} defaultValue={patient.diseases ?? ""} placeholder="เช่น ความดันโลหิตสูง · เบาหวาน" />
-        </label>
+        <MultiComboField
+          name="diseases"
+          label="โรคประจำตัว"
+          options={diseaseOptions}
+          defaultValue={patient.diseases ?? ""}
+          placeholder="— เลือกได้หลายโรค —"
+          searchPlaceholder="ค้นหา/พิมพ์โรค…"
+        />
         <label>
           <span>สิ่งที่ชอบ</span>
           <Textarea name="likes" rows={2} defaultValue={patient.likes ?? ""} />
