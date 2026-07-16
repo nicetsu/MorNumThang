@@ -1,5 +1,6 @@
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { streamText, generateText } from "ai";
+import { WHEN_TIME_VALUES } from "@/lib/meds";
 
 // Preset = base+key+model as a set so you never mix one provider's URL with another's model.
 // Two independent lanes: TEXT (summaries/organize) and VISION (photo OCR) — each picks its own
@@ -305,6 +306,46 @@ export async function organizeNarrative(story: string): Promise<OrganizedItem[]>
   return [{ category: "อื่น ๆ", text: story.trim(), severity: 5 }];
 }
 
+// §4.3b Visit-note "ยาที่ได้รับมา" — parse the free text a caregiver types after a doctor
+// visit into medication entries for review before they're added to the meds list. Extracts
+// only; whenTime is constrained to WHEN_TIME_VALUES so a bad read can't invent a schedule.
+const MEDS_RECEIVED_SYSTEM = `คุณช่วยแยกยาที่หมอให้มาจากข้อความที่ผู้ดูแลพิมพ์ เป็นภาษาไทย
+กฎ:
+- แยกยาแต่ละตัวที่ระบุในข้อความออกเป็นข้อ ๆ ห้ามเดาหรือเติมยาที่ไม่มี ห้ามแนะนำหรือเปลี่ยนขนาดยา
+- แต่ละข้อมี "name" (ชื่อยา), "dose" (จำนวนเม็ดต่อครั้ง ถ้าไม่ระบุให้เป็น 1), "whenTime" (ช่วงเวลาทานยา)
+- whenTime เลือกจาก ["${WHEN_TIME_VALUES.join('","')}"] เท่านั้น ถ้าข้อความไม่ได้ระบุช่วงเวลาชัดเจน ให้ใช้ "ตามแพทย์สั่ง"
+- ตอบกลับเป็น JSON array เท่านั้น เช่น [{"name":"ยาความดัน","dose":1,"whenTime":"หลังอาหารเช้า"}] ห้ามมีข้อความอื่น`;
+
+export type ReceivedMedItem = { name: string; dose: number; whenTime: string };
+
+export async function organizeMedsReceived(text: string): Promise<ReceivedMedItem[]> {
+  const { text: out } = await generateText({
+    model: provider(AI_MODEL),
+    system: MEDS_RECEIVED_SYSTEM,
+    prompt: text,
+    temperature: 0.2,
+  });
+
+  const match = out.match(/\[[\s\S]*\]/);
+  if (!match) return [];
+  try {
+    const arr = JSON.parse(match[0]);
+    return (Array.isArray(arr) ? arr : [])
+      .map((x) => {
+        const dose = Math.round(Number(x?.dose));
+        const whenTime = String(x?.whenTime ?? "");
+        return {
+          name: String(x?.name ?? "").trim(),
+          dose: Number.isFinite(dose) && dose > 0 ? dose : 1,
+          whenTime: (WHEN_TIME_VALUES as readonly string[]).includes(whenTime) ? whenTime : "ตามแพทย์สั่ง",
+        };
+      })
+      .filter((x) => x.name);
+  } catch {
+    return [];
+  }
+}
+
 // §4.4 Drug-label scan — the same multimodal model reads the image. Reads only, never prescribes.
 const LABEL_SYSTEM = `คุณช่วยอ่านฉลากยาจากรูปภาพที่ถ่ายมา แล้วแยกเป็นข้อมูลโครงสร้าง เป็นภาษาไทย
 กฎ:
@@ -318,9 +359,12 @@ const LABEL_SYSTEM = `คุณช่วยอ่านฉลากยาจา�
   - quantity: จำนวนที่ระบุ เช่น "20 เม็ด"
   - usage: วิธีใช้ตามฉลาก เช่น "รับประทานครั้งละ 1 เม็ด ทุก 6 ชั่วโมง เมื่อมีอาการปวด"
   - mealTiming: หนึ่งใน "ก่อนอาหาร", "หลังอาหาร", "ไม่ระบุ"
-  - times: ช่วงเวลาที่ต้องกินยาตามที่ระบุบนฉลาก เป็น array เลือกจาก ["เช้า","กลางวัน","เย็น","ก่อนนอน"]
-    ใส่เฉพาะช่วงที่ฉลากทำเครื่องหมายถูก/ระบายทึบ/เขียนคำไว้จริงเท่านั้น (เช่น "วันละ 3 ครั้ง เช้า กลางวัน เย็น" → ["เช้า","กลางวัน","เย็น"])
-    ถ้าฉลากไม่ได้ระบุช่วงเวลาชัดเจน ให้เป็น [] ห้ามเดา
+  - times: ช่วงเวลาที่ต้องกินยาตามที่ระบุบนฉลาก เป็น array เลือกจาก ["เช้า","กลางวัน","เย็น","ก่อนนอน"] เท่านั้น
+    ฉลากอาจระบุช่วงเวลาไว้หลายแบบ ให้ตีความตามที่เห็นจริง แล้วแปลงเป็น 4 คำนี้เสมอ:
+    - เครื่องหมายถูก/ระบายทึบ/เขียนคำ "เช้า" "กลางวัน" "เย็น" "ก่อนนอน" ไว้ตรงไหน ใส่ช่วงนั้น (เช่น "วันละ 3 ครั้ง เช้า กลางวัน เย็น" → ["เช้า","กลางวัน","เย็น"])
+    - รหัสตัวเลขคั่นขีด (เช่น "1-0-1" หรือ "1-1-1-1") ตำแหน่งคือ เช้า-กลางวัน-เย็น-(ก่อนนอน ถ้ามีตัวที่ 4) ตามลำดับ ตัวที่ไม่ใช่ 0 คือช่วงที่ต้องกิน (เช่น "1-0-1" → ["เช้า","เย็น"])
+    - เวลานาฬิกาตรง ๆ (เช่น "08.00 น., 20.00 น.") แปลงเป็นช่วงที่ใกล้เคียงที่สุด: ก่อน 11 โมง = เช้า, 11-16 โมง = กลางวัน, 17 โมงขึ้นไป = เย็น เว้นแต่ฉลากเขียนว่า "ก่อนนอน" กำกับไว้ชัดเจน
+    ถ้าฉลากไม่ได้ระบุช่วงเวลาแบบใดข้างต้นเลย ให้เป็น [] ห้ามเดา
   ช่องไหนไม่มีข้อมูลให้เป็นสตริงว่าง "" (ยกเว้น times ที่ให้เป็น [])`;
 
 export type DrugLabelInfo = { name: string; quantity: string; usage: string; mealTiming: string; times: string[] };
@@ -389,7 +433,8 @@ const APPOINTMENT_SYSTEM = `คุณช่วยอ่านใบนัดโ�
   - day: วันที่ ตัวเลข 1-31 ตามที่ปรากฏ (ถ้าไม่มีให้เป็น "")
   - month: เดือน ตัวเลข 1-12 (แปลงจากชื่อเดือนไทยเป็นตัวเลข เช่น "มีนาคม" → "3") (ถ้าไม่มีให้เป็น "")
   - year: ปี ตัวเลขดิบตามที่ปรากฏบนใบนัด ห้ามแปลง พ.ศ./ค.ศ. เอง (ถ้าไม่มีให้เป็น "")
-  - time: เวลานัด รูปแบบ 24 ชั่วโมง "HH:mm" เช่น "09:30" (ถ้าไม่มีให้เป็น "")
+  - time: เวลานัด รูปแบบ 24 ชั่วโมง "HH:mm" เช่น "09:30" ถ้าใบนัดระบุมากกว่า 1 เวลา (เช่นช่วงเวลาหรือหลายเวลาให้เลือก)
+    ให้เขียนมาตามที่เห็นทุกเวลา คั่นด้วยจุลภาค เช่น "09:00,13:00" ห้ามเลือกเองว่าจะใช้เวลาไหน (ถ้าไม่มีให้เป็น "")
   - hospital: ชื่อโรงพยาบาลหรือสถานพยาบาล
   - department: แผนกหรือคลินิก เช่น "อายุรกรรม"
   - doctor: ชื่อแพทย์ผู้ตรวจ (ถ้ามีระบุ)
@@ -417,6 +462,20 @@ function buildIsoDate(day: unknown, month: unknown, year: unknown): string {
   return `${String(y).padStart(4, "0")}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 }
 
+// A slip can print more than one time (a range, or a couple of options) — pick the earliest
+// and always emit strict "HH:mm", since <input type="time"> silently drops anything else.
+// Model only extracts what's printed; code picks/normalizes (mirrors buildIsoDate above).
+function normalizeTime(raw: string): string {
+  const matches = [...raw.matchAll(/([01]?\d|2[0-3])[:.]([0-5]\d)/g)];
+  if (!matches.length) return "";
+  let best = Infinity;
+  for (const m of matches) {
+    const total = parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
+    if (total < best) best = total;
+  }
+  return `${String(Math.floor(best / 60)).padStart(2, "0")}:${String(best % 60).padStart(2, "0")}`;
+}
+
 export async function structureAppointmentSlip(imageDataUrl: string): Promise<AppointmentSlipInfo> {
   if (!imageDataUrl) return emptyAppointment;
 
@@ -428,7 +487,7 @@ export async function structureAppointmentSlip(imageDataUrl: string): Promise<Ap
       const obj = JSON.parse(match[0]);
       return {
         date: buildIsoDate(obj?.day, obj?.month, obj?.year),
-        time: String(obj?.time ?? "").trim(),
+        time: normalizeTime(String(obj?.time ?? "")),
         hospital: String(obj?.hospital ?? "").trim(),
         department: String(obj?.department ?? "").trim(),
         doctor: String(obj?.doctor ?? "").trim(),

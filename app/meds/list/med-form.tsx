@@ -4,19 +4,13 @@ import { useActionState, useEffect, useState } from "react";
 import { Clock } from "lucide-react";
 import { toast } from "sonner";
 import { isAllergic } from "@/lib/allergy";
+import { WHEN_TIME_VALUES } from "@/lib/meds";
 import { Input } from "@/components/ui/input";
 import { Combobox } from "@/components/combobox";
 import { addMedication, type MedState } from "./actions";
 
 const WHEN_OPTIONS = [
-  { value: "ก่อนอาหารเช้า", label: "ก่อนอาหารเช้า" },
-  { value: "หลังอาหารเช้า", label: "หลังอาหารเช้า" },
-  { value: "ก่อนอาหารกลางวัน", label: "ก่อนอาหารกลางวัน" },
-  { value: "หลังอาหารกลางวัน", label: "หลังอาหารกลางวัน" },
-  { value: "ก่อนอาหารเย็น", label: "ก่อนอาหารเย็น" },
-  { value: "หลังอาหารเย็น", label: "หลังอาหารเย็น" },
-  { value: "ก่อนนอน", label: "ก่อนนอน" },
-  { value: "ตามแพทย์สั่ง", label: "ตามแพทย์สั่ง" },
+  ...WHEN_TIME_VALUES.map((v) => ({ value: v, label: v })),
   { value: "custom", label: "⏱ ระบุเวลาเอง..." },
 ];
 

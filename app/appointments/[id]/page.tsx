@@ -11,6 +11,7 @@ import { completeAppointment, rescheduleAppointment, addVisitNote } from "../act
 import { ShareButton } from "@/components/share-button";
 import { SubmitButton } from "@/components/submit-button";
 import { BackLink } from "@/components/back-link";
+import { ReceivedMedsEditor } from "./received-meds-editor";
 
 const PREP = ["บัตรประชาชนและใบนัด", "ยาที่ใช้อยู่ หรือถ่ายรูปฉลากยา", "สรุปจากสมุดของผู้รับการดูแล"];
 
@@ -96,17 +97,22 @@ export default async function AppointmentDetail({
       {/* Visit note */}
       <form action={addVisitNote} className="flow-form border-t border-dashed border-line pt-4">
         <div className="section-heading"><h3>บันทึกการรักษาจากนัดนี้</h3></div>
+        <input type="hidden" name="place" value={appt.place ?? ""} />
         <label>
           <span>อาการหรือโรคที่หมอบอก</span>
           <Textarea name="symptom" rows={2} placeholder="เช่น ความดันสูงเล็กน้อย ปรับยาเพิ่ม" />
         </label>
-        <label>
-          <span>ยาที่ได้รับมา</span>
-          <Textarea name="medsReceived" rows={2} placeholder="เช่น ยาความดัน 1 เม็ดเช้า" />
-        </label>
+        <ReceivedMedsEditor />
         <label>
           <span>นัดครั้งถัดไป (ถ้ามี)</span>
-          <Input name="nextAppointment" placeholder="เช่น อีก 1 เดือน" />
+          <div className="form-grid">
+            <Input name="nextAppointmentDate" type="date" />
+            <Input name="nextAppointmentTime" type="time" />
+          </div>
+        </label>
+        <label>
+          <span>คำแนะนำจากหมอ (สำหรับคู่มือดูแล)</span>
+          <Textarea name="careAdvice" rows={2} placeholder="เช่น ให้เดินออกกำลังกายเบา ๆ วันละ 15 นาที" />
         </label>
         <SubmitButton className="btn-primary" pendingText="กำลังเก็บ…">เก็บบันทึกการรักษา</SubmitButton>
       </form>
