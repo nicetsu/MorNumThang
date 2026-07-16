@@ -14,36 +14,40 @@ datasource db {
 // until then it's the freeform code typed at /enter. One user cares for many
 // ผู้รับการดูแล, and one ผู้รับการดูแล has many caregivers (implicit m-n).
 model User {
-  id        String    @id @default(cuid())
-  lineId    String    @unique
-  name      String?
-  createdAt DateTime  @default(now())
-  patients  Patient[]
+  id          String    @id @default(cuid())
+  lineId      String    @unique
+  name        String?
+  createdAt   DateTime  @default(now())
+  patients    Patient[] // ผู้รับการดูแลที่ User นี้ช่วยดูแล
+  selfPatient Patient?  @relation("UserSelf") // โปรไฟล์ตัวเอง (ถ้ามี) — ใช้เชิญคนมาดูแลเรา
 }
 
 model Patient {
-  id           String        @id @default(cuid())
-  inviteCode   String        @unique @default(cuid()) // shareable code — ญาติเปิด /join/<code> เพื่อมาช่วยดูแล
-  name         String
-  age          Int? // อายุ
-  coverage     String? // สิทธิการรักษา (เช่น บัตรทอง)
-  hospital     String? // โรงพยาบาลตามสิทธิ์
-  job          String? // อาชีพ / อดีตอาชีพ
-  likes        String? // สิ่งที่ชอบ
-  caregiver    String? // คนดูแลหลัก (ชื่อที่โชว์เฉยๆ — คนละอย่างกับ caregivers ด้านล่าง)
+  id             String        @id @default(cuid())
+  inviteCode     String        @unique @default(cuid()) // shareable code — ญาติเปิด /join/<code> เพื่อมาช่วยดูแล
+  name           String
+  age            Int? // อายุ
+  coverage       String? // สิทธิการรักษา (เช่น บัตรทอง)
+  hospital       String? // โรงพยาบาลตามสิทธิ์
+  job            String? // อาชีพ / อดีตอาชีพ
+  likes          String? // สิ่งที่ชอบ
+  caregiver      String? // คนดูแลหลัก (ชื่อที่โชว์เฉยๆ — คนละอย่างกับ caregivers ด้านล่าง)
   caregiverPhone String? // เบอร์โทรคนดูแลหลัก (ไม่มีถ้า login ผ่าน LINE — ปุ่มโทรจะซ่อนถ้าว่าง)
-  diseases     String? // free text, "·"-separated in UI
-  careGuide    String? // editable care instructions
-  createdAt    DateTime      @default(now())
-  caregivers   User[] // ผู้ดูแล (m-n) — ผู้รับการดูแล 1 คนมีผู้ดูแลได้หลายคน
-  weights      WeightLog[]
-  meds         Medication[]
-  allergies    Allergy[]
-  appointments Appointment[]
-  visits       VisitNote[]
-  observations Observation[]
-  careTasks    CareTask[]
-  dailyChecks  DailyCheck[]
+  diseases       String? // free text, "·"-separated in UI
+  careGuide      String? // editable care instructions
+  createdAt      DateTime      @default(now())
+  // When set, this Patient row IS that User's own care record (เชิญคนมาดูแลเรา).
+  selfOfUserId   String?       @unique
+  selfOfUser     User?         @relation("UserSelf", fields: [selfOfUserId], references: [id])
+  caregivers     User[] // ผู้ดูแล (m-n) — ผู้รับการดูแล 1 คนมีผู้ดูแลได้หลายคน
+  weights        WeightLog[]
+  meds           Medication[]
+  allergies      Allergy[]
+  appointments   Appointment[]
+  visits         VisitNote[]
+  observations   Observation[]
+  careTasks      CareTask[]
+  dailyChecks    DailyCheck[]
 }
 
 // A recurring daily to-do for the care calendar — the non-med categories

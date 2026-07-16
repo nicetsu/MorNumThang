@@ -1,9 +1,10 @@
 // ponytail: per-request read — the patient list can change (create/select).
 export const dynamic = "force-dynamic";
 
+import Link from "next/link";
+import { cookies } from "next/headers";
 import { db } from "@/lib/db";
 import { PID_COOKIE, getUserId } from "@/lib/patient";
-import { cookies } from "next/headers";
 import { selectPatient, createPatient, careForSelf, logout } from "./actions";
 import { Input } from "@/components/ui/input";
 import { SubmitButton } from "@/components/submit-button";
@@ -60,10 +61,14 @@ export default async function PatientsPage() {
           <Input name="age" type="number" min={0} max={130} placeholder="อายุ (ไม่บังคับ)" className="bg-ivory" />
           <SubmitButton className="btn-primary" pendingText="กำลังเพิ่ม…">＋ เพิ่มแล้วเริ่มดูแล</SubmitButton>
         </form>
-        {/* ponytail: quick self-care setup for testing — one tap, no form. */}
         <form action={careForSelf}>
-          <SubmitButton className="text-sm font-bold text-teal" pendingText="กำลังสร้าง…">＋ ดูแลตัวเอง (สำหรับทดสอบ)</SubmitButton>
+          <SubmitButton className="text-sm font-bold text-teal" pendingText="กำลังเปิด…">
+            ＋ ดูแลตัวเอง / เปิดสมุดของฉัน
+          </SubmitButton>
         </form>
+        <Link href="/me" className="block text-center text-sm font-bold text-teal">
+          โปรไฟล์ของฉัน · เชิญคนมาดูแลเรา →
+        </Link>
       </section>
     </div>
   );

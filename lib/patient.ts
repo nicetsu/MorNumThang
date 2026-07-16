@@ -32,3 +32,31 @@ export async function getActivePatientOrThrow() {
   if (!p) throw new Error("ยังไม่ได้เลือกผู้รับการดูแล");
   return p;
 }
+
+/** Find-or-create the logged-in user's own Patient row (โปรไฟล์ตัวเอง — เชิญคนมาดูแลเรา). */
+export async function ensureSelfPatient(uid: string) {
+  const existing = await db.patient.findUnique({ where: { selfOfUserId: uid } });
+  if (existing) return existing;
+
+  const user = await db.user.findUniqueOrThrow({ where: { id: uid } });
+  const name = user.name?.trim() || user.lineId;
+
+  // Backfill: older "ดูแลตัวเอง" rows matched by name only — claim the first one.
+  const legacy = await db.patient.findFirst({
+    where: { name, caregivers: { some: { id: uid } }, selfOfUserId: null },
+  });
+  if (legacy) {
+    return db.patient.update({
+      where: { id: legacy.id },
+      data: { selfOfUserId: uid },
+    });
+  }
+
+  return db.patient.create({
+    data: {
+      name,
+      selfOfUserId: uid,
+      caregivers: { connect: { id: uid } },
+    },
+  });
+}

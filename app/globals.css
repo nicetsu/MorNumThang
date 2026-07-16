@@ -110,6 +110,7 @@
   --sidebar-accent-foreground: var(--teal);
   --sidebar-border: var(--line);
   --sidebar-ring: var(--teal);
+  --bottom-nav-height: 64px;
 }
 
 .dark {
@@ -219,14 +220,22 @@
     box-shadow: 0 6px 16px rgba(200, 62, 62, 0.3);
   }
   .bottom-nav {
-    position: sticky;
+    position: fixed;
     bottom: 0;
+    left: 50%;
     z-index: 20;
-    height: 64px;
+    width: min(100%, 430px);
+    height: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    transform: translateX(-50%);
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     border-top: 1px solid var(--line);
     background: rgba(255, 252, 247, 0.98);
+  }
+  /* Room for fixed bottom nav (prototype .screen padding-bottom ~118px). */
+  .app-shell.has-bottom-nav main {
+    padding-bottom: calc(var(--bottom-nav-height) + 1.5rem + env(safe-area-inset-bottom, 0px));
   }
   .bottom-nav a {
     display: grid;

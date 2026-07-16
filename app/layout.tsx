@@ -27,6 +27,7 @@ export const viewport: Viewport = {
   themeColor: "#1F6E63",
   width: "device-width",
   initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default async function RootLayout({
@@ -40,7 +41,7 @@ export default async function RootLayout({
     <html lang="th" className={`${sarabun.variable} h-full antialiased`}>
       <body className="min-h-full">
         {/* 430px app shell, mirroring the prototype. */}
-        <div className="app-shell flex flex-col">
+        <div className={`app-shell flex flex-col${hasPatient ? " has-bottom-nav" : ""}`}>
           <AppHeader />
           <main className="flex-1 px-5 py-6">{children}</main>
           {hasPatient && <BottomNav />}
