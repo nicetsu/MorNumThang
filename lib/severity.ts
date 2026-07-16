@@ -11,10 +11,14 @@ export function dotClass(s: number | null | undefined): "green" | "amber" | "red
 }
 
 // Doctor-score level 0-3 = average band across recent observations (0 = ยังไม่มีข้อมูล).
+// Floor: one red item (band 3, severity 8–10) must not be averaged away by many mild
+// ones — force at least Level 2 ("ควรสังเกต") whenever any recent observation is red.
 export function scoreLevel(severities: (number | null)[]): 0 | 1 | 2 | 3 {
   if (severities.length === 0) return 0;
-  const total = severities.reduce<number>((sum, s) => sum + severityBand(s), 0);
-  return Math.round(total / severities.length) as 1 | 2 | 3;
+  const bands = severities.map(severityBand);
+  const avg = Math.round(bands.reduce((sum, b) => sum + b, 0) / bands.length);
+  const floor = bands.includes(3) ? 2 : 1;
+  return Math.max(avg, floor) as 1 | 2 | 3;
 }
 
 // Box color + copy per level. 0 white, 1 green, 2 yellow, 3 orange.

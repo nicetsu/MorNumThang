@@ -1,24 +1,51 @@
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { streamText, generateText } from "ai";
 
-const AI_BASE_URL = process.env.AI_BASE_URL || "https://integrate.api.nvidia.com/v1";
-const AI_API_KEY = process.env.NVIDIA_API_KEY || process.env.AI_API_KEY;
-const AI_MODEL = process.env.AI_MODEL || "google/diffusiongemma-26b-a4b-it";
+// Two providers, picked by AI_PROVIDER (default "nvidia"). Each preset is base+key+model as a
+// set so you never mix one provider's URL with another's model. Any single value can still be
+// overridden by AI_BASE_URL / AI_API_KEY / AI_MODEL. (AGENTS.md rule 1: server-side only.)
+// ponytail: two hardcoded presets, not a plugin registry — add a third the day there is one.
+const PRESETS = {
+  nvidia: {
+    baseURL: "https://integrate.api.nvidia.com/v1",
+    apiKey: process.env.NVIDIA_API_KEY,
+    model: "google/diffusiongemma-26b-a4b-it",
+  },
+  zai: {
+    // Vision (drug-label / appointment OCR) needs a vision model — set AI_MODEL=glm-4.5v for those.
+    baseURL: "https://api.z.ai/api/paas/v4",
+    apiKey: process.env.ZAI_API_KEY,
+    model: "glm-4.6",
+  },
+};
+const PROVIDER = (process.env.AI_PROVIDER ?? "nvidia") as keyof typeof PRESETS;
+const preset = PRESETS[PROVIDER] ?? PRESETS.nvidia;
+
+const AI_BASE_URL = process.env.AI_BASE_URL || preset.baseURL;
+const AI_API_KEY = process.env.AI_API_KEY || preset.apiKey;
+const AI_MODEL = process.env.AI_MODEL || preset.model;
+
+// Disable model "thinking": each provider spells it differently. Reasoning eats the response
+// budget and truncates short Thai summaries; medical safety stays deterministic code regardless.
+function disableThinking(b: Record<string, unknown>) {
+  if (PROVIDER === "zai") {
+    b.thinking = { type: "disabled" };
+  } else {
+    b.reasoning_effort ??= "none";
+    b.chat_template_kwargs = { ...(b.chat_template_kwargs as object), enable_thinking: false };
+  }
+  return b;
+}
 
 // Server-side only. Endpoint + key live in env, never shipped to the client (AGENTS.md rule 1).
 const provider = createOpenAICompatible({
-  name: "diffusiongemma",
+  name: PROVIDER,
   baseURL: AI_BASE_URL,
   apiKey: AI_API_KEY,
-  // DiffusionGemma's reasoning consumes the response budget and can truncate short summaries.
-  // Keep every app flow in direct-answer mode; medical safety remains deterministic code.
   fetch: async (url, init) => {
     if (typeof init?.body === "string" && String(url).includes("/chat/completions")) {
       try {
-        const b = JSON.parse(init.body);
-        b.reasoning_effort ??= "none";
-        b.chat_template_kwargs = { ...b.chat_template_kwargs, enable_thinking: false };
-        init = { ...init, body: JSON.stringify(b) };
+        init = { ...init, body: JSON.stringify(disableThinking(JSON.parse(init.body))) };
       } catch {}
     }
     return fetch(url, init);
@@ -204,7 +231,7 @@ async function visionExtract(system: string, ask: string, imageDataUrl: string):
   const res = await fetch(`${AI_BASE_URL}/chat/completions`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${AI_API_KEY}` },
-    body: JSON.stringify({
+    body: JSON.stringify(disableThinking({
       model: AI_MODEL,
       messages: [
         { role: "system", content: system },
@@ -216,8 +243,7 @@ async function visionExtract(system: string, ask: string, imageDataUrl: string):
       temperature: 0.1,
       max_tokens: 1024,
       stream: false,
-      chat_template_kwargs: { enable_thinking: false }, // harmless for non-thinking models
-    }),
+    })),
   });
   if (!res.ok) throw new Error(`OCR vision error ${res.status}`);
   const data = await res.json();

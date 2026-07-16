@@ -35,7 +35,7 @@ flowchart TD
         direction TB
         Q["query severities ล่าสุด<br/>(/signals = 7 วันล่าสุด)"]
         BAND["severityBand()<br/>0–3→1 · 4–7→2 · 8–10→3"]
-        SCORE["scoreLevel()<br/>= round(avg ของ band)"]
+        SCORE["scoreLevel()<br/>= round(avg ของ band)<br/>+ floor Level 2 ถ้ามีข้อแดง"]
         LVL["LEVEL 0–3<br/>badge + สี + คำไทย"]
         DOT["dotClass()<br/>จุดสีในไทม์ไลน์"]
         UI([doctor-score + timeline])
@@ -62,6 +62,7 @@ flowchart TD
 
 - **AI ไม่ auto-save** — ถ้าไม่กด "ถูกต้อง บันทึกลงสมุด" ข้อมูลอยู่แค่ `useState` แล้วหายไป
 - **LLM แตะแค่ severity รายข้อ (0–10)** — การรวมคะแนน (`severityBand` → `scoreLevel`) เป็น deterministic code ไม่ผ่านโมเดล (AGENTS.md rule 2)
+- **floor ตามข้อแดง** — ถ้าใน 7 วันมีข้อ band 3 (severity 8–10) อย่างน้อย 1 ข้อ คะแนนรวมจะไม่ต่ำกว่า Level 2 แม้ค่าเฉลี่ยจะถูกเรื่องเขียวเจือจาง
 - **น้ำหนัก/ความดัน** บันทึกจังหวะเดียว ไม่มีขั้นตรวจทาน
 
 ## ไฟล์อ้างอิง
