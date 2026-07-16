@@ -32,7 +32,8 @@ export default async function ProfileEdit() {
   // Dropdown data from the seeded reference tables (same source lib/rights.ts uses).
   const [rights, facilities] = await Promise.all([
     db.healthRight.findMany({ orderBy: { id: "asc" }, select: { name: true } }),
-    db.facility.findMany({ orderBy: { name: "asc" }, select: { name: true } }),
+    // distinct name — the seed has a few facilities sharing a name; the dropdown wants each once.
+    db.facility.findMany({ distinct: ["name"], orderBy: { name: "asc" }, select: { name: true } }),
   ]);
   const coverageOptions = rights.map((r) => ({ value: r.name, label: r.name }));
   const hospitalOptions = facilities.map((f) => ({ value: f.name, label: f.name }));
