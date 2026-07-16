@@ -5,6 +5,16 @@
 
 export const MEAL_PERIODS = ["เช้า", "กลางวัน", "เย็น", "ก่อนนอน"] as const;
 
+// The full set of ช่วงเวลา values the meds form accepts (WHEN_OPTIONS in med-form.tsx,
+// minus the free-text "custom" option). Shared with lib/ai.ts so the AI-organized
+// "ยาที่ได้รับมา" flow can only ever emit a value the form already understands.
+export const WHEN_TIME_VALUES = [
+  "ก่อนอาหารเช้า", "หลังอาหารเช้า",
+  "ก่อนอาหารกลางวัน", "หลังอาหารกลางวัน",
+  "ก่อนอาหารเย็น", "หลังอาหารเย็น",
+  "ก่อนนอน", "ตามแพทย์สั่ง",
+] as const;
+
 // (mealTiming, marked periods) → whenTime values matching WHEN_OPTIONS. Empty when the
 // label marked no period (caller falls back to "ตามแพทย์สั่ง").
 export function toWhenTimes(mealTiming: string | undefined, periods: string[] | undefined): string[] {

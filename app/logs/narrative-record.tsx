@@ -32,7 +32,6 @@ export function NarrativeRecord() {
   const [saving, startSave] = useTransition();
 
   const [isListening, setIsListening] = useState(false);
-  const [speechLang, setSpeechLang] = useState<"th-TH" | "en-US">("th-TH");
   const recognitionRef = useRef<any>(null);
 
   const toggleListening = () => {
@@ -54,15 +53,11 @@ export function NarrativeRecord() {
       const rec = new SpeechRecognition();
       rec.continuous = true;
       rec.interimResults = false;
-      rec.lang = speechLang;
+      rec.lang = "th-TH";
 
       rec.onstart = () => {
         setIsListening(true);
-        toast.success(
-          speechLang === "th-TH"
-            ? "เริ่มบันทึกเสียงภาษาไทยแล้วค่ะ พูดได้เลย"
-            : "Started English voice recording. Speak now."
-        );
+        toast.success("เริ่มบันทึกเสียงแล้วค่ะ พูดได้เลย");
       };
 
       rec.onerror = (event: any) => {
@@ -138,58 +133,27 @@ export function NarrativeRecord() {
         />
 
         {/* Voice control bar */}
-        <div className="mt-2 flex items-center justify-between gap-3 rounded-xl border border-line bg-ivory p-2.5">
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={toggleListening}
-              className={`flex h-11 w-11 items-center justify-center rounded-full transition-all ${
-                isListening
-                  ? "bg-red text-white"
-                  : "bg-teal-soft text-teal hover:bg-teal/10"
-              }`}
-              title={isListening ? "หยุดบันทึกเสียง" : "พิมพ์ด้วยเสียง"}
-              aria-label={isListening ? "หยุดบันทึกเสียง" : "พิมพ์ด้วยเสียง"}
-            >
-              {isListening ? (
-                <MicOff className="h-5 w-5 animate-pulse" />
-              ) : (
-                <Mic className="h-5 w-5" />
-              )}
-            </button>
-            <span className="text-sm font-bold text-muted-foreground">
-              {isListening
-                ? speechLang === "th-TH"
-                  ? "กำลังฟังภาษาไทย..."
-                  : "Listening in English..."
-                : speechLang === "th-TH"
-                ? "แตะไมค์เพื่อพูดภาษาไทย"
-                : "Tap mic to speak English"}
-            </span>
-          </div>
-
-          <div className="seg-tabs cols-2 w-auto max-w-[150px] !p-0.5 !rounded-lg text-xs" role="tablist">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={speechLang === "th-TH"}
-              disabled={isListening}
-              onClick={() => setSpeechLang("th-TH")}
-              className="!min-h-8 !text-xs !rounded-md px-3 py-1.5 font-bold disabled:opacity-50"
-            >
-              ไทย
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={speechLang === "en-US"}
-              disabled={isListening}
-              onClick={() => setSpeechLang("en-US")}
-              className="!min-h-8 !text-xs !rounded-md px-3 py-1.5 font-bold disabled:opacity-50"
-            >
-              EN
-            </button>
-          </div>
+        <div className="relative mt-2 flex items-center rounded-xl border border-line bg-ivory p-3.5">
+          <span className="w-full text-center text-sm font-bold text-muted-foreground">
+            {isListening ? "กำลังฟัง..." : "แตะไมค์เพื่อพูด"}
+          </span>
+          <button
+            type="button"
+            onClick={toggleListening}
+            className={`absolute right-3 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full transition-all ${
+              isListening
+                ? "bg-red text-white"
+                : "bg-teal-soft text-teal hover:bg-teal/10"
+            }`}
+            title={isListening ? "หยุดบันทึกเสียง" : "พิมพ์ด้วยเสียง"}
+            aria-label={isListening ? "หยุดบันทึกเสียง" : "พิมพ์ด้วยเสียง"}
+          >
+            {isListening ? (
+              <MicOff className="h-5 w-5 animate-pulse" />
+            ) : (
+              <Mic className="h-5 w-5" />
+            )}
+          </button>
         </div>
       </div>
 

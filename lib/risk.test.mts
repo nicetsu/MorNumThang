@@ -2,9 +2,12 @@ import assert from "node:assert";
 import {
   news2Score, symptomBand, geriatricBand, assessRisk, news2Level,
   containsSign, observationBand, observationEscalationLevel, weightTrendLevel,
-  persistentSoftSignLevel, statedSigns,
+  persistentSoftSignLevel, recentSeverityLevel, statedSigns,
 } from "./risk.ts";
 import { scoreLevel } from "./severity.ts";
+
+const NOW = new Date("2026-07-16T00:00:00Z").getTime();
+const DAY = 86400000;
 
 // ───── NEWS2 ─────
 // single parameter = 3 → แดง (safety net)
@@ -83,6 +86,19 @@ assert.equal(observationEscalationLevel("ปวดท้อง อาเจี�
 assert.equal(observationEscalationLevel("วันนี้กินน้อยลงนิดหน่อย", 80), 2);
 assert.equal(observationEscalationLevel("ปวดท้องนิดหน่อย", 60), 0);
 
+// ───── recentSeverityLevel: worst-recent (ตาข่ายกันเหตุนอกคลังคำ เช่น แผลไฟไหม้) ─────
+const sev = (s: number | null, d: number) => ({ severity: s, at: new Date(NOW - d * DAY) });
+// แผลไฟไหม้ระดับ 3 — ไม่มีใน Class A/B/soft sign → เข้า score ทาง severity เท่านั้น → ต้องเด้ง 3
+assert.equal(recentSeverityLevel([sev(10, 0)], NOW), 3);
+// ปัญหาเดิม: เฉลี่ย [1,1,1,1,9] เจือจางเหลือ ~เหลือง; worst-recent = แดง
+assert.equal(recentSeverityLevel([sev(1, 0), sev(1, 0), sev(1, 1), sev(1, 2), sev(9, 0)], NOW), 3);
+assert.equal(recentSeverityLevel([sev(9, 1)], NOW), 3); // จดครั้งเดียวก็แดง (frequency-independent)
+assert.equal(recentSeverityLevel([sev(6, 5), sev(2, 6)], NOW), 0); // เหลือง/เขียวเก่า (4–7 วัน) จางหาย
+assert.equal(recentSeverityLevel([sev(9, 5)], NOW), 3); // "แดงเก่า" ยังค้าง
+assert.equal(recentSeverityLevel([sev(9, 9)], NOW), 0); // เกิน 7 วัน → ไม่นับ
+assert.equal(recentSeverityLevel([sev(null, 0)], NOW), 2); // null = band 2 เมื่อ recent
+assert.equal(recentSeverityLevel([], NOW), 0); // ไม่มีอาการ → 0
+
 // ───── statedSigns — drop LLM signs not literally in the caregiver's text (anti-hallucination) ─────
 assert.deepEqual(statedSigns("ม้าหอบเหนื่อย นอนราบไม่ได้", ["หอบ", "นอนราบไม่ได้"]), ["หอบ", "นอนราบไม่ได้"]); // legit → เก็บ
 assert.deepEqual(statedSigns("ไฟไหม้ระยะ 3", ["ไม่รู้สึกตัว", "ไม่หายใจ", "ตัวเขียว"]), []); // off-domain fabrication → ตัดทิ้ง
@@ -104,8 +120,6 @@ assert.equal(combined([], undefined), 0); // ไม่มีข้อมูล�
 assert.equal(combined([1, 1], { temp: 37, systolic: 120 }), 1); // ทั้งคู่ดี → ดูแลได้ดี
 
 // ───── W3 weight-loss trend ─────
-const NOW = new Date("2026-07-16T00:00:00Z").getTime();
-const DAY = 86400000;
 assert.equal(weightTrendLevel([ // ลด 60→55 (8.3%) ใน 20 วัน → ควรสังเกต
   { kg: 55, at: new Date(NOW - 1 * DAY) }, { kg: 60, at: new Date(NOW - 20 * DAY) },
 ], NOW), 2);
