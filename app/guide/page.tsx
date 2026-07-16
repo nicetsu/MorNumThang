@@ -4,6 +4,7 @@ export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { getActivePatient } from "@/lib/patient";
+import { BackLink } from "@/components/back-link";
 
 // Care-guide view (prototype screen 19). Edit lives on /guide/edit (screen 14).
 export default async function Guide() {
@@ -17,7 +18,7 @@ export default async function Guide() {
 
   return (
     <div className="space-y-4">
-      <Link href="/meds" className="back-link">← รักษา</Link>
+      <BackLink href="/meds">รักษา</BackLink>
       <div>
         <p className="eyebrow">คู่มือดูแลผู้รับการดูแล · ฉบับบ้านเรา</p>
         <h2 className="screen-title">คู่มือดูแลผู้รับการดูแล</h2>

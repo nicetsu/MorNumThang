@@ -144,7 +144,7 @@ export function NarrativeRecord() {
               onClick={toggleListening}
               className={`flex h-11 w-11 items-center justify-center rounded-full transition-all ${
                 isListening
-                  ? "bg-red text-white shadow-[0_0_15px_rgba(200,62,62,0.4)]"
+                  ? "bg-red text-white"
                   : "bg-teal-soft text-teal hover:bg-teal/10"
               }`}
               title={isListening ? "หยุดบันทึกเสียง" : "พิมพ์ด้วยเสียง"}

@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { useAiStream } from "@/lib/use-ai-stream";
 
 // Small, muted inline สิทธิ hint. AI writes one sentence tailored to the current อาการ +
@@ -33,7 +34,7 @@ export function RightsSuggestion() {
         ) : (
           <>
             {clean}
-            <span className="mt-0.5 block text-[13px] font-bold text-teal">ดูสิทธิทั้งหมด →</span>
+            <span className="mt-0.5 block text-[13px] font-bold text-teal">ดูสิทธิทั้งหมด <ArrowRight aria-hidden className="ml-1 inline size-[1em]" /></span>
           </>
         )}
       </span>

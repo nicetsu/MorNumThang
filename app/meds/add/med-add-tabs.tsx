@@ -45,7 +45,7 @@ export function MedAddTabs({ allergies, drugs }: { allergies: string[]; drugs: s
           type="button"
           onClick={() => setMode("manual")}
           className={`min-h-10 flex-1 rounded-lg text-sm font-bold transition-colors ${
-            mode === "manual" ? "bg-white text-teal shadow" : "text-muted-foreground"
+            mode === "manual" ? "bg-white text-teal" : "text-muted-foreground"
           }`}
         >
           กรอกเอง
@@ -54,7 +54,7 @@ export function MedAddTabs({ allergies, drugs }: { allergies: string[]; drugs: s
           type="button"
           onClick={() => setMode("scan")}
           className={`min-h-10 flex-1 rounded-lg text-sm font-bold transition-colors ${
-            mode === "scan" ? "bg-white text-teal shadow" : "text-muted-foreground"
+            mode === "scan" ? "bg-white text-teal" : "text-muted-foreground"
           }`}
         >
           ถ่ายรูปฉลากยา

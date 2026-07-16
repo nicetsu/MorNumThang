@@ -187,38 +187,9 @@
     margin: 0 auto;
     min-height: 100dvh;
     background: var(--ivory);
-    box-shadow: 0 20px 55px rgba(43, 43, 40, 0.12);
   }
-  .app-header {
-    position: sticky;
-    top: 0;
-    z-index: 20;
-    height: 70px;
-    padding: 0 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: rgba(250, 246, 239, 0.98);
-    border-bottom: 1px solid var(--line);
-  }
-  .brand {
-    color: var(--teal);
-    text-decoration: none;
-    font-size: 22px;
-    font-weight: 800;
-  }
-  .urgent-top {
-    min-width: 68px;
-    height: 46px;
-    display: grid;
-    place-items: center;
-    padding: 0 12px;
-    border-radius: 8px;
-    background: var(--red);
-    color: #fff;
-    font-weight: 700;
-    box-shadow: 0 6px 16px rgba(200, 62, 62, 0.3);
-  }
+  /* .app-header layout/appearance moved to utilities in components/app-header.tsx —
+     the @layer component layout props here were losing the cascade. */
   .bottom-nav {
     position: fixed;
     bottom: 0;
@@ -307,7 +278,6 @@
     color: #fff;
     font-size: 20px;
     font-weight: 800;
-    box-shadow: 0 9px 20px rgba(31, 110, 99, 0.18);
   }
   .btn-primary:disabled {
     opacity: 0.65;
@@ -366,7 +336,6 @@
   .flow-form select:focus,
   .flow-form textarea:focus {
     border-color: var(--teal);
-    box-shadow: 0 0 0 4px rgba(31, 110, 99, 0.1);
   }
   .form-grid {
     display: grid;
@@ -416,7 +385,6 @@
   .seg-tabs button[aria-selected="true"] {
     background: #fff;
     color: var(--teal);
-    box-shadow: 0 3px 9px rgba(43, 43, 40, 0.08);
   }
 
   /* Timeline */
@@ -916,6 +884,99 @@
   .dose-list li small {
     color: var(--muted-foreground);
     font-size: 15px;
+  }
+
+  /* /patients role gate — pick caregiver vs care-recipient first */
+  .role-gate {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding-bottom: 0.5rem;
+  }
+  .role-pick {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .role-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 22px 20px 18px;
+    border-radius: 22px;
+    border: 2px solid transparent;
+    text-decoration: none;
+    color: inherit;
+    transition:
+      transform 160ms ease,
+      box-shadow 160ms ease,
+      border-color 160ms ease;
+  }
+  .role-card:active {
+    transform: scale(0.985);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .role-card {
+      transition: none;
+    }
+    .role-card:active {
+      transform: none;
+    }
+  }
+  .role-card--care {
+    background: var(--teal-soft);
+    border-color: color-mix(in oklab, var(--teal) 35%, transparent);
+  }
+  .role-card--care:hover {
+    border-color: var(--teal);
+  }
+  .role-card--self {
+    background: var(--amber-soft);
+    border-color: color-mix(in oklab, var(--amber) 40%, transparent);
+  }
+  .role-card--self:hover {
+    border-color: var(--amber);
+  }
+  .role-card strong {
+    font-size: 24px;
+    font-weight: 800;
+    line-height: 1.25;
+    color: var(--teal);
+  }
+  .role-card--self strong {
+    color: #8a5a12;
+  }
+  .role-card em {
+    font-style: normal;
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--muted-foreground);
+  }
+  .role-card__meta {
+    margin-top: 8px;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--teal-dark);
+  }
+  .role-card--self .role-card__meta {
+    color: #8a5a12;
+  }
+  .role-card__go {
+    margin-top: 10px;
+    align-self: flex-end;
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--teal);
+  }
+  .role-card--self .role-card__go {
+    color: #8a5a12;
+  }
+  .invite-panel {
+    padding: 18px;
+    border-radius: 20px;
+    border: 1px solid var(--line);
+    background: var(--amber-soft);
   }
 
   /* identity + vitals + care guide */

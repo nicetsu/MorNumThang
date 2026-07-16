@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { toast } from "sonner";
 
 // Web Share API where available (mobile), clipboard fallback everywhere else.
@@ -10,7 +11,7 @@ export function ShareButton({
   disabled,
 }: {
   text: string;
-  label: string;
+  label: ReactNode;
   className?: string;
   disabled?: boolean;
 }) {

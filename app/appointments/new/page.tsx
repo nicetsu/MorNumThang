@@ -33,7 +33,7 @@ export default async function NewAppointment() {
 
   return (
     <div className="space-y-4">
-      <BackLink fallback="/appointments">← กลับ</BackLink>
+      <BackLink fallback="/appointments">กลับ</BackLink>
       <div>
         <p className="eyebrow">เพิ่มเข้าปฏิทินของบ้าน</p>
         <h2 className="screen-title">จดนัดใหม่</h2>

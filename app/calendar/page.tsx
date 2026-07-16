@@ -1,12 +1,12 @@
 // ponytail: per-request DB read — never prerender a stale snapshot.
 export const dynamic = "force-dynamic";
 
-import Link from "next/link";
 import { db } from "@/lib/db";
 import { bangkokDateKey } from "@/lib/care-checks";
 import { ensureDefaultCareTasks } from "@/lib/care-tasks";
 import { getActivePatient } from "@/lib/patient";
 import { CalendarView } from "./calendar-view";
+import { BackLink } from "@/components/back-link";
 
 // Thai-local (UTC+7) date — the server runs in UTC on Vercel, so format with the
 // Bangkok timezone or an evening appointment lands on the wrong calendar day.
@@ -58,7 +58,7 @@ export default async function CalendarPage() {
 
   return (
     <div className="space-y-4">
-      <Link href="/" className="back-link">← สมุดของผู้รับการดูแล</Link>
+      <BackLink href="/">สมุดของผู้รับการดูแล</BackLink>
       <CalendarView
         todayISO={dateKey(new Date())}
         medItems={medItems}

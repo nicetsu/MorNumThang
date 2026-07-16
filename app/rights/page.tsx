@@ -2,9 +2,11 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
+import { ArrowRight, Check } from "lucide-react";
 import { db } from "@/lib/db";
 import { getActivePatient } from "@/lib/patient";
 import { recommendServices, facilityGuidance, type Rule } from "@/lib/rights";
+import { BackLink } from "@/components/back-link";
 
 // Reference data changes (the source sheet notes 1–3-month cycles) — always say so, and
 // point at the responsible agency. This is deterministic guidance, not a medical opinion.
@@ -47,7 +49,7 @@ export default async function RightsNavigator() {
 
   return (
     <div className="space-y-4">
-      <Link href="/profile" className="back-link">← โปรไฟล์</Link>
+      <BackLink href="/profile">โปรไฟล์</BackLink>
       <div>
         <p className="eyebrow">สิทธิการรักษาของผู้รับการดูแล</p>
         <h2 className="screen-title">สิทธิของผู้รับการดูแล</h2>
@@ -83,7 +85,7 @@ export default async function RightsNavigator() {
                 const bring = docsFor(rule.serviceName);
                 return (
                   <article key={rule.serviceName + rule.condition} className="list-card">
-                    <span className="pill-icon">✓</span>
+                    <span className="pill-icon"><Check aria-hidden className="size-[1em]" /></span>
                     <div>
                       <strong>{rule.serviceName}</strong>
                       <small>{facilityGuidance(rule.facility, patient.hospital)}</small>
@@ -130,7 +132,7 @@ export default async function RightsNavigator() {
         </section>
       )}
 
-      <Link href="/rights/all" className="block text-center !text-clay font-bold py-2">ดูสิทธิและบริการทั้งหมด →</Link>
+      <Link href="/rights/all" className="block text-center !text-clay font-bold py-2">ดูสิทธิและบริการทั้งหมด <ArrowRight aria-hidden className="ml-1 inline size-[1em]" /></Link>
 
       <p className="safety-line mt-2">{RIGHTS_DISCLAIMER}</p>
     </div>

@@ -1,9 +1,9 @@
 // ponytail: per-request DB read — never prerender a stale snapshot.
 export const dynamic = "force-dynamic";
 
-import Link from "next/link";
 import { db } from "@/lib/db";
 import { Directory } from "./directory";
+import { BackLink } from "@/components/back-link";
 
 export default async function RightsDirectory() {
   const [rights, services, agencies, facilities] = await Promise.all([
@@ -15,7 +15,7 @@ export default async function RightsDirectory() {
 
   return (
     <div className="space-y-4">
-      <Link href="/rights" className="back-link">← สิทธิของผู้รับการดูแล</Link>
+      <BackLink href="/rights">สิทธิของผู้รับการดูแล</BackLink>
       <div>
         <p className="eyebrow">คลังข้อมูลสิทธิ</p>
         <h2 className="screen-title">สิทธิและบริการทั้งหมด</h2>

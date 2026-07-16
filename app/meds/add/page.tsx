@@ -1,6 +1,7 @@
 // ponytail: per-request DB read — never prerender a stale snapshot.
 export const dynamic = "force-dynamic";
 
+import { X } from "lucide-react";
 import { db } from "@/lib/db";
 import { getActivePatient } from "@/lib/patient";
 import { BackLink } from "@/components/back-link";
@@ -22,7 +23,7 @@ export default async function MedAdd() {
 
   return (
     <div className="space-y-6">
-      <BackLink fallback="/meds/list">← กลับ</BackLink>
+      <BackLink fallback="/meds/list">กลับ</BackLink>
       <div>
         <p className="eyebrow">เพิ่มเข้ารายการยา</p>
         <h2 className="screen-title">จดยาที่ใช้อยู่</h2>
@@ -40,7 +41,7 @@ export default async function MedAdd() {
                 <input type="hidden" name="id" value={a.id} />
                 <button type="submit" className="allergy-chip" aria-label={`ลบ ${a.name}`}>
                   {a.name}
-                  <span aria-hidden className="grid size-[22px] place-items-center rounded-full bg-[rgba(200,62,62,.15)]">×</span>
+                  <span aria-hidden className="grid size-[22px] place-items-center rounded-full bg-[rgba(200,62,62,.15)]"><X aria-hidden className="size-3.5" /></span>
                 </button>
               </form>
             ))

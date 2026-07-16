@@ -1,10 +1,10 @@
 // ponytail: per-request DB read — never prerender a stale snapshot.
 export const dynamic = "force-dynamic";
 
-import Link from "next/link";
 import { db } from "@/lib/db";
 import { getActivePatient } from "@/lib/patient";
 import { CareEditor } from "@/components/care-editor";
+import { BackLink } from "@/components/back-link";
 
 // Care-guide edit (prototype screen 14).
 export default async function GuideEdit() {
@@ -12,7 +12,7 @@ export default async function GuideEdit() {
 
   return (
     <div className="space-y-4">
-      <Link href="/guide" className="back-link">← คู่มือดูแลผู้รับการดูแล</Link>
+      <BackLink href="/guide">คู่มือดูแลผู้รับการดูแล</BackLink>
       <div>
         <p className="eyebrow">คู่มือดูแลผู้รับการดูแล · ฉบับบ้านเรา</p>
         <h2 className="screen-title">อัปเดตวิธีดูแล</h2>

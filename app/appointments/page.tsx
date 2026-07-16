@@ -2,8 +2,10 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
+import { Plus } from "lucide-react";
 import { db } from "@/lib/db";
 import { getActivePatient } from "@/lib/patient";
+import { BackLink } from "@/components/back-link";
 
 function fmt(at: Date) {
   return new Intl.DateTimeFormat("th-TH", {
@@ -31,7 +33,7 @@ export default async function Appointments() {
 
   return (
     <div className="space-y-5">
-      <Link href="/meds" className="back-link">← ยา &amp; นัด</Link>
+      <BackLink href="/meds">ยา &amp; นัด</BackLink>
       <div>
         <p className="eyebrow">นัดหมายของผู้รับการดูแล</p>
         <h2 className="screen-title">นัดของผู้รับการดูแล</h2>
@@ -40,7 +42,7 @@ export default async function Appointments() {
 
       <div className="section-heading">
         <h3>นัดถัดไป</h3>
-        <Link href="/appointments/new">+ เพิ่มนัด</Link>
+        <Link href="/appointments/new" className="inline-flex items-center gap-1"><Plus aria-hidden className="size-[1em]" />เพิ่มนัด</Link>
       </div>
       {upcoming.length === 0 ? (
         <p className="rounded-[18px] border border-dashed border-line p-6 text-center text-muted-foreground">

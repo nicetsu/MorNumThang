@@ -2,6 +2,7 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
+import { ArrowRight, Plus, TrendingUp, TrendingDown } from "lucide-react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
@@ -53,7 +54,7 @@ export default async function Home() {
     let trend: { text: string; up: boolean } | null = null;
     if (prev) {
       const d = w.kg - prev.kg;
-      if (Math.abs(d) >= 0.1) trend = { text: `${d < 0 ? "↘" : "↗"} ${Math.abs(d).toFixed(1)} กก.`, up: d > 0 };
+      if (Math.abs(d) >= 0.1) trend = { text: `${Math.abs(d).toFixed(1)} กก.`, up: d > 0 };
     }
     return { id: w.id, at: w.at, label: "น้ำหนัก", text: `${w.kg} กก.`, trend, dotClass: "teal" as string };
   });
@@ -85,7 +86,7 @@ export default async function Home() {
           <i className={level >= 3 ? "filled" : ""} />
         </div>
         <strong>{score.label}</strong>
-        <em>แตะเพื่อดูผลวิเคราะห์จาก AI →</em>
+        <em>แตะเพื่อดูผลวิเคราะห์จาก AI <ArrowRight aria-hidden className="ml-1 inline size-[1em]" /></em>
       </Link>
 
       {/* Inline สิทธิ hint — AI phrases it for the current อาการ; direction decided in code. */}
@@ -128,13 +129,13 @@ export default async function Home() {
         className="flex items-center justify-between rounded-[18px] bg-teal px-5 py-4 font-bold text-white"
       >
         <span>วันนี้ต้องทำอะไรบ้าง</span>
-        <span aria-hidden>→</span>
+        <ArrowRight aria-hidden className="size-[1em]" />
       </Link>
 
       <section>
         <div className="section-heading">
           <h3>บันทึกล่าสุด</h3>
-          <Link href="/logs" className="!text-clay">+ บันทึก</Link>
+          <Link href="/logs" className="!text-clay inline-flex items-center gap-1"><Plus aria-hidden className="size-[1em]" />บันทึก</Link>
         </div>
         {timeline.length === 0 ? (
           <p className="rounded-[18px] border border-dashed border-line p-6 text-center text-muted-foreground">
@@ -152,7 +153,14 @@ export default async function Home() {
                     <strong>
                       {e.text}
                       {e.trend && (
-                        <b className={e.trend.up ? "text-[#2f9e44]" : "text-red"}> {e.trend.text}</b>
+                        <b className={`ml-1 inline-flex items-center gap-0.5 ${e.trend.up ? "text-[#2f9e44]" : "text-red"}`}>
+                          {e.trend.up ? (
+                            <TrendingUp aria-hidden className="size-[1em] shrink-0" />
+                          ) : (
+                            <TrendingDown aria-hidden className="size-[1em] shrink-0" />
+                          )}
+                          {e.trend.text}
+                        </b>
                       )}
                     </strong>
                   </div>

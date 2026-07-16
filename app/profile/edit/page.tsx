@@ -1,7 +1,6 @@
 // ponytail: per-request DB read — never prerender a stale snapshot.
 export const dynamic = "force-dynamic";
 
-import Link from "next/link";
 import { db } from "@/lib/db";
 import { getActivePatient } from "@/lib/patient";
 import { Input } from "@/components/ui/input";
@@ -10,6 +9,7 @@ import { ComboField } from "@/components/combo-field";
 import { MultiComboField } from "@/components/multi-combo-field";
 import { saveProfile } from "./actions";
 import { SubmitButton } from "@/components/submit-button";
+import { BackLink } from "@/components/back-link";
 
 // โรคประจำตัว is multi-value — a fixed pick-list (typing a custom disease still works).
 const DISEASE_OPTIONS = [
@@ -59,7 +59,7 @@ export default async function ProfileEdit() {
 
   return (
     <div className="space-y-4">
-      <Link href="/profile" className="back-link">← โปรไฟล์</Link>
+      <BackLink href="/profile">โปรไฟล์</BackLink>
       <div>
         <p className="eyebrow">โปรไฟล์ของผู้รับการดูแล</p>
         <h2 className="screen-title">แก้ไขประวัติ</h2>

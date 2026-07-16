@@ -2,11 +2,13 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
+import { Check, Plus } from "lucide-react";
 import { SubmitButton } from "@/components/submit-button";
 import { bangkokDateKey } from "@/lib/care-checks";
 import { db } from "@/lib/db";
 import { getActivePatient } from "@/lib/patient";
 import { markMedTaken } from "./actions";
+import { BackLink } from "@/components/back-link";
 
 // Each meal-timing is its own slot, so "ก่อนอาหาร" and "หลังอาหาร" never merge.
 const WHEN_ORDER = [
@@ -81,7 +83,7 @@ export default async function MedSchedule() {
 
   return (
     <div className="space-y-4">
-      <Link href="/meds" className="back-link">← ยา &amp; นัด</Link>
+      <BackLink href="/meds">ยา &amp; นัด</BackLink>
       <div>
         <p className="eyebrow">ตารางยาของผู้รับการดูแล</p>
         <h2 className="screen-title">ยาของผู้รับการดูแล</h2>
@@ -90,7 +92,7 @@ export default async function MedSchedule() {
 
       <div className="section-heading">
         <h3>ตารางวันนี้</h3>
-        <Link href="/meds/add">+ เพิ่มยา</Link>
+        <Link href="/meds/add" className="inline-flex items-center gap-1"><Plus aria-hidden className="size-[1em]" />เพิ่มยา</Link>
       </div>
 
       {slots.length === 0 ? (
@@ -134,7 +136,7 @@ export default async function MedSchedule() {
                   </small>
                 </div>
                 {takenToday.has(`med:${m.id}`) ? (
-                  <span className="shrink-0 text-sm font-bold text-teal">กินแล้ว ✓</span>
+                  <span className="inline-flex shrink-0 items-center gap-1 text-sm font-bold text-teal">กินแล้ว <Check aria-hidden className="size-[1em] shrink-0" /></span>
                 ) : (
                   <form action={markMedTaken}>
                     <input type="hidden" name="medId" value={m.id} />

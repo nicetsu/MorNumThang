@@ -2,6 +2,7 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
+import { ArrowRight, Plus } from "lucide-react";
 import { headers } from "next/headers";
 import { db } from "@/lib/db";
 import { getActivePatient } from "@/lib/patient";
@@ -71,7 +72,7 @@ export default async function Profile() {
         className="flex items-center justify-between rounded-[18px] bg-teal px-5 py-4 font-bold text-white"
       >
         <span>ดูสิทธิการรักษาของผู้รับการดูแล</span>
-        <span aria-hidden>→</span>
+        <ArrowRight aria-hidden className="size-[1em]" />
       </Link>
 
       {patient.diseases && (
@@ -95,7 +96,7 @@ export default async function Profile() {
           )}
         </div>
         <ShareButton
-          label="＋ เชิญญาติมาช่วยดูแล"
+          label={<span className="inline-flex items-center justify-center gap-1.5"><Plus aria-hidden className="size-[1.05em] shrink-0" />เชิญญาติมาช่วยดูแล</span>}
           text={inviteText}
           className="mt-3 min-h-12 w-full rounded-xl border-2 border-teal py-3 font-bold text-teal"
         />

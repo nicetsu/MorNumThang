@@ -1,11 +1,11 @@
 // ponytail: per-request DB read — never prerender a stale snapshot.
 export const dynamic = "force-dynamic";
 
-import Link from "next/link";
 import { db } from "@/lib/db";
 import { getActivePatient } from "@/lib/patient";
 import { dotClass, scoreLevel, LEVEL } from "@/lib/severity";
 import { RecordsTabs } from "./records-tabs";
+import { BackLink } from "@/components/back-link";
 
 // Grouped by day now, so the row only needs the time — the date lives on the day header.
 function hm(at: Date) {
@@ -49,7 +49,7 @@ export default async function Records({
     let trend: { text: string; up: boolean } | null = null;
     if (prev) {
       const d = w.kg - prev.kg;
-      if (Math.abs(d) >= 0.1) trend = { text: `${d < 0 ? "↘" : "↗"} ${Math.abs(d).toFixed(1)} กก.`, up: d > 0 };
+      if (Math.abs(d) >= 0.1) trend = { text: `${Math.abs(d).toFixed(1)} กก.`, up: d > 0 };
     }
     return { id: w.id, at: w.at, time: hm(w.at), label: "น้ำหนัก", text: `${w.kg} กก.`, trend, dotClass: "teal" };
   });
@@ -104,7 +104,7 @@ export default async function Records({
 
   return (
     <div className="space-y-4">
-      <Link href="/" className="back-link">← สมุดของผู้รับการดูแล</Link>
+      <BackLink href="/">สมุดของผู้รับการดูแล</BackLink>
       <div>
         <p className="eyebrow">ประวัติการดูแลผู้รับการดูแล</p>
         <h2 className="screen-title">บันทึกของผู้รับการดูแล</h2>

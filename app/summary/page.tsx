@@ -1,11 +1,11 @@
 // ponytail: per-request DB read — never prerender a stale snapshot.
 export const dynamic = "force-dynamic";
 
-import Link from "next/link";
 import { db } from "@/lib/db";
 import { getActivePatient } from "@/lib/patient";
 import { AI_DISCLAIMER } from "@/lib/disclaimer";
 import { SummaryStream } from "@/components/summary-stream";
+import { BackLink } from "@/components/back-link";
 
 // Doctor summary (prototype screen 5): AI clinical panel + medical facts card.
 export default async function Summary() {
@@ -21,7 +21,7 @@ export default async function Summary() {
 
   return (
     <div className="space-y-4">
-      <Link href="/" className="back-link">← สมุดของผู้รับการดูแล</Link>
+      <BackLink href="/">สมุดของผู้รับการดูแล</BackLink>
       <div>
         <p className="eyebrow">จากภาษาที่บ้านเล่า</p>
         <h2 className="screen-title">สรุปให้หมอ</h2>

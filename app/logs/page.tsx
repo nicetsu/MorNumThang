@@ -2,11 +2,13 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { addWeight } from "./actions";
 import { RecordTabs } from "./record-tabs";
 import { SubmitButton } from "@/components/submit-button";
+import { BackLink } from "@/components/back-link";
 
 // Record screen (prototype screen 1): just the two-tab form. The full log history
 // lives on /signals ("บันทึกของผู้รับการดูแล").
@@ -54,7 +56,7 @@ export default function Logs() {
 
   return (
     <div className="space-y-6">
-      <Link href="/" className="back-link">← สมุดของผู้รับการดูแล</Link>
+      <BackLink href="/">สมุดของผู้รับการดูแล</BackLink>
       <div>
         <p className="eyebrow">บันทึกลงสมุดของผู้รับการดูแล</p>
         <h2 className="screen-title">วันนี้อยากจดอะไรดีคะ</h2>
@@ -63,7 +65,7 @@ export default function Logs() {
       <RecordTabs weightForm={weightForm} />
 
       <Link href="/signals" className="block text-center font-bold text-teal">
-        ดูบันทึกทั้งหมดของผู้รับการดูแล →
+        ดูบันทึกทั้งหมดของผู้รับการดูแล <ArrowRight aria-hidden className="ml-1 inline size-[1em]" />
       </Link>
     </div>
   );

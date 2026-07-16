@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { completeAppointment, rescheduleAppointment, addVisitNote } from "../actions";
 import { ShareButton } from "@/components/share-button";
 import { SubmitButton } from "@/components/submit-button";
+import { BackLink } from "@/components/back-link";
 
 const PREP = ["บัตรประชาชนและใบนัด", "ยาที่ใช้อยู่ หรือถ่ายรูปฉลากยา", "สรุปจากสมุดของผู้รับการดูแล"];
 
@@ -38,7 +39,7 @@ export default async function AppointmentDetail({
 
   return (
     <div className="space-y-4">
-      <Link href="/appointments" className="back-link">← นัดของผู้รับการดูแล</Link>
+      <BackLink href="/appointments">นัดของผู้รับการดูแล</BackLink>
       <div>
         <p className="eyebrow">นัดถัดไปของผู้รับการดูแล</p>
         <h2 className="screen-title">{fmt(appt.at)}</h2>

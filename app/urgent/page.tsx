@@ -1,8 +1,8 @@
 // ponytail: per-request DB read — hospital comes from the active patient, not a fixed seed name.
 export const dynamic = "force-dynamic";
 
-import Link from "next/link";
 import { getActivePatient } from "@/lib/patient";
+import { BackLink } from "@/components/back-link";
 
 // ponytail: national helplines only — no phone field on Facility yet.
 const HELPLINES = [{ name: "สายด่วน สปสช.", sub: "สอบถามสิทธิบัตรทอง", tel: "1330" }] as const;
@@ -15,7 +15,7 @@ export default async function Urgent() {
 
   return (
     <div className="space-y-4">
-      <Link href="/" className="back-link">← สมุดของผู้รับการดูแล</Link>
+      <BackLink href="/">สมุดของผู้รับการดูแล</BackLink>
       <div>
         <p className="eyebrow">เมื่อเกิดเรื่อง</p>
         <h2 className="screen-title !text-red">ใจเย็น ๆ นะคะ<br />เราไปทีละขั้น</h2>

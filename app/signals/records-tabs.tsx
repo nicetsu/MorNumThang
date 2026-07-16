@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { TrendingUp, TrendingDown } from "lucide-react";
 
 type Item = {
   id: string;
@@ -64,7 +65,14 @@ export function RecordsTabs({
                           <strong>
                             {e.text}
                             {e.trend && (
-                              <b className={e.trend.up ? "text-[#2f9e44]" : "text-red"}> {e.trend.text}</b>
+                              <b className={`ml-1 inline-flex items-center gap-0.5 ${e.trend.up ? "text-[#2f9e44]" : "text-red"}`}>
+                                {e.trend.up ? (
+                                  <TrendingUp aria-hidden className="size-[1em] shrink-0" />
+                                ) : (
+                                  <TrendingDown aria-hidden className="size-[1em] shrink-0" />
+                                )}
+                                {e.trend.text}
+                              </b>
                             )}
                           </strong>
                         </div>

@@ -3,7 +3,7 @@ import { Sarabun } from "next/font/google";
 import { cookies } from "next/headers";
 import "./globals.css";
 import { AppHeader } from "@/components/app-header";
-import { BottomNav } from "@/components/bottom-nav";
+import { ShellMain } from "@/components/shell-main";
 import { Toaster } from "@/components/ui/sonner";
 import { RegisterSW } from "@/components/register-sw";
 import { LiffDeepLink } from "@/components/liff-deeplink";
@@ -35,7 +35,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Bottom nav only appears once a ผู้รับการดูแล is chosen — hidden through the enter/select flow.
+  // Bottom nav once a ผู้รับการดูแล is chosen — ShellMain also hides it on /patients|/enter|/join.
   const hasPatient = (await cookies()).has(PID_COOKIE);
   return (
     <html lang="th" className={`${sarabun.variable} min-h-dvh antialiased`}>
@@ -43,8 +43,7 @@ export default async function RootLayout({
         {/* 430px app shell, mirroring the prototype. */}
         <div className="app-shell flex flex-col">
           <AppHeader />
-          <main className={`flex-1 px-5 pt-6 ${hasPatient ? " pb-nav" : " pb-6"}`}>{children}</main>
-          {hasPatient && <BottomNav />}
+          <ShellMain hasPatient={hasPatient}>{children}</ShellMain>
         </div>
         <Toaster />
         <RegisterSW />

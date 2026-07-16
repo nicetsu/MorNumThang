@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
+import { Clock } from "lucide-react";
 import { toast } from "sonner";
 import { isAllergic } from "@/lib/allergy";
 import { Input } from "@/components/ui/input";
@@ -79,22 +80,22 @@ const PERIOD_STYLES: Record<string, { header: string; chip: string; chipActive: 
   amber: {
     header: "text-[#76500e]",
     chip: "border-amber/40 text-[#76500e] bg-amber-soft hover:bg-amber/20",
-    chipActive: "border-amber bg-amber text-white shadow-md",
+    chipActive: "border-amber bg-amber text-white",
   },
   teal: {
     header: "text-teal",
     chip: "border-teal/30 text-teal bg-teal-soft hover:bg-teal/20",
-    chipActive: "border-teal bg-teal text-white shadow-md",
+    chipActive: "border-teal bg-teal text-white",
   },
   clay: {
     header: "text-clay",
     chip: "border-clay/30 text-clay bg-clay-soft hover:bg-clay/20",
-    chipActive: "border-clay bg-clay text-white shadow-md",
+    chipActive: "border-clay bg-clay text-white",
   },
   ink: {
     header: "text-[#2b2b28]",
     chip: "border-line text-[#2b2b28] bg-muted/30 hover:bg-muted/60",
-    chipActive: "border-[#2b2b28] bg-[#2b2b28] text-white shadow-md",
+    chipActive: "border-[#2b2b28] bg-[#2b2b28] text-white",
   },
 };
 
@@ -106,7 +107,7 @@ function ThaiTimePicker({
   onChange: (v: string) => void;
 }) {
   return (
-    <div className="mt-2 rounded-2xl border border-teal/20 bg-gradient-to-b from-ivory to-white p-3 space-y-3 shadow-sm">
+    <div className="mt-2 rounded-2xl border border-teal/20 bg-white p-3 space-y-3">
       {THAI_TIME_GROUPS.map((group) => {
         const styles = PERIOD_STYLES[group.color];
         return (
@@ -271,7 +272,7 @@ export function MedForm({
               {item.whenTime === "custom" && (
                 <div>
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-xs font-bold text-teal">⏱</span>
+                    <span className="text-xs font-bold text-teal"><Clock aria-hidden className="size-[1em]" /></span>
                     <span className="text-sm font-bold text-teal">
                       {toThaiLabel(item.customTime)} ({item.customTime} น.)
                     </span>
