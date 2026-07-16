@@ -43,7 +43,7 @@ export default async function RootLayout({
         {/* 430px app shell, mirroring the prototype. */}
         <div className="app-shell flex flex-col">
           <AppHeader />
-          <main className={`flex-1 px-5 pt-6${hasPatient ? " pb-nav" : " pb-6"}`}>{children}</main>
+          <main className={`flex-1 px-5 pt-6 ${hasPatient ? " pb-nav" : " pb-6"}`}>{children}</main>
           {hasPatient && <BottomNav />}
         </div>
         <Toaster />

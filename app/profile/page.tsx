@@ -31,14 +31,6 @@ export default async function Profile() {
         <Link href="/profile/edit" className="!text-clay font-bold">แก้ไข</Link>
       </div>
 
-      <Link
-        href="/me"
-        className="flex items-center justify-between rounded-[18px] border-2 border-teal bg-teal-soft px-5 py-4 font-bold text-teal"
-      >
-        <span>โปรไฟล์ของฉัน · เชิญคนมาดูแลเรา</span>
-        <span aria-hidden>→</span>
-      </Link>
-
       <article className="identity-card">
         <div className="avatar">{(patient.name ?? "?").trim().charAt(0) || "?"}</div>
         <div>

@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 const tabs = [
   { href: "/", label: "บันทึก", prefixes: ["/logs", "/signals", "/calendar", "/summary", "/urgent"] },
   { href: "/meds", label: "รักษา", prefixes: ["/appointments", "/guide"] },
-  { href: "/profile", label: "โปรไฟล์", prefixes: ["/rights", "/me", "/patients"] },
+  { href: "/profile", label: "โปรไฟล์", prefixes: ["/rights", "/patients"] },
 ] as const;
 
 function isActive(pathname: string, href: string, prefixes: readonly string[]) {
