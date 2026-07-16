@@ -22,14 +22,14 @@ export function middleware(req: NextRequest) {
     return NextResponse.redirect(enter);
   }
 
-  // Logged-in on /enter?next=/logs → honour the deep link (not always /).
-  if (hasId && pathname === "/enter") {
-    return NextResponse.redirect(new URL(next ?? "/", req.url));
+  // Logged-in rich-menu / LIFF deep link — honour ?next= on any entry path (not only / or /enter).
+  if (hasId && next) {
+    return NextResponse.redirect(new URL(next, req.url));
   }
 
-  // Logged-in LIFF endpoint /?next=/logs → bounce to the target page.
-  if (hasId && next && pathname === "/") {
-    return NextResponse.redirect(new URL(next, req.url));
+  // Logged-in on /enter with no deep link → home.
+  if (hasId && pathname === "/enter") {
+    return NextResponse.redirect(new URL("/", req.url));
   }
 
   return NextResponse.next();
