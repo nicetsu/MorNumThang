@@ -15,7 +15,9 @@ function parseAt(formData: FormData) {
   const date = String(formData.get("date") ?? "");
   const time = String(formData.get("time") ?? "");
   // Trust boundary: need a valid date; time optional (defaults to 00:00).
-  const at = new Date(`${date}T${time || "00:00"}`);
+  // Form values are wall-clock Bangkok time — pin +07:00 so a UTC server
+  // (Vercel) doesn't treat "09:00" as 09:00 UTC / 16:00 in the todo list.
+  const at = new Date(`${date}T${time || "00:00"}+07:00`);
   if (!date || Number.isNaN(at.getTime())) throw new Error("วันเวลานัดไม่ถูกต้อง");
   return at;
 }

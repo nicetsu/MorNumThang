@@ -7,6 +7,7 @@ import { getActivePatient } from "@/lib/patient";
 
 function fmt(at: Date) {
   return new Intl.DateTimeFormat("th-TH", {
+    timeZone: "Asia/Bangkok",
     day: "numeric",
     month: "short",
     year: "numeric",
