@@ -58,8 +58,10 @@ export default async function Records({
   const obsEscalation = obs
     .filter((o) => o.at.getTime() >= twoDaysAgo)
     .reduce((m, o) => Math.max(m, observationEscalationLevel(o.text, patient.age, o.signs?.split("·").map((s) => s.trim()).filter(Boolean) ?? [])), 0);
+  // doctor-score = max( อาการที่จด(worst-recent severity) , NEWS2 vitals ≤48h , escalation red-flag/soft-sign 48h ,
+  // weight-trend , persistence ) — bias to caution; ทุกตัวยกได้อย่างเดียว ไม่ลด.
   const level = Math.max(
-    recentSeverityLevel(obs), // อาการที่จด — worst-recent (แทนค่าเฉลี่ย 7 วัน)
+    recentSeverityLevel(obs), // อาการที่จด — worst-recent (ตาข่ายกันเหตุนอกคลังคำ เช่น แผลไฟไหม้)
     news2Level(recentVitals(weights)),
     obsEscalation,
     weightTrendLevel(weights), // W3: น้ำหนักลด ≥5% ใน ~30 วัน → ควรสังเกต

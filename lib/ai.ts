@@ -1,6 +1,6 @@
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { streamText, generateText } from "ai";
-import { CANONICAL_SIGNS } from "./risk";
+import { CANONICAL_SIGNS, statedSigns } from "./risk";
 
 // Preset = base+key+model as a set so you never mix one provider's URL with another's model.
 // Two independent lanes: TEXT (summaries/organize) and VISION (photo OCR) — each picks its own
@@ -302,8 +302,11 @@ export async function organizeNarrative(story: string): Promise<OrganizedItem[]>
           category: String(x?.category ?? "อื่น ๆ").trim(),
           text: String(x?.text ?? "").trim(),
           severity: clampSeverity(x?.severity),
-          // Keep only known tags — drop anything the model invents (guards against hallucination).
-          signs: Array.isArray(x?.signs) ? x.signs.map(String).filter((s: string) => CANONICAL_SET.has(s)) : [],
+          // Keep only known tags AND only ones literally in the caregiver's story — the 8B model
+          // fabricates danger signs for off-domain input, which would wrongly escalate the score.
+          signs: Array.isArray(x?.signs)
+            ? statedSigns(story, x.signs.map(String).filter((s: string) => CANONICAL_SET.has(s)))
+            : [],
         }))
         .filter((x) => x.text);
       if (items.length) return items;

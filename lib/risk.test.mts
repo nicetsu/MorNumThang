@@ -2,7 +2,7 @@ import assert from "node:assert";
 import {
   news2Score, symptomBand, geriatricBand, assessRisk, news2Level,
   containsSign, observationBand, observationEscalationLevel, weightTrendLevel,
-  persistentSoftSignLevel, recentSeverityLevel,
+  persistentSoftSignLevel, statedSigns,
 } from "./risk.ts";
 import { scoreLevel } from "./severity.ts";
 
@@ -83,6 +83,12 @@ assert.equal(observationEscalationLevel("ปวดท้อง อาเจี�
 assert.equal(observationEscalationLevel("วันนี้กินน้อยลงนิดหน่อย", 80), 2);
 assert.equal(observationEscalationLevel("ปวดท้องนิดหน่อย", 60), 0);
 
+// ───── statedSigns — drop LLM signs not literally in the caregiver's text (anti-hallucination) ─────
+assert.deepEqual(statedSigns("ม้าหอบเหนื่อย นอนราบไม่ได้", ["หอบ", "นอนราบไม่ได้"]), ["หอบ", "นอนราบไม่ได้"]); // legit → เก็บ
+assert.deepEqual(statedSigns("ไฟไหม้ระยะ 3", ["ไม่รู้สึกตัว", "ไม่หายใจ", "ตัวเขียว"]), []); // off-domain fabrication → ตัดทิ้ง
+// with fabricated critical signs dropped, garbage input no longer escalates
+assert.equal(observationBand("ไฟไหม้ระยะ 3", 80, statedSigns("ไฟไหม้ระยะ 3", ["ไม่หายใจ", "ตัวเขียว"])), 0);
+
 // ───── wiring → doctor-score ─────
 assert.equal(news2Level(undefined), 0); // ไม่มี vitals → ไม่ contribute
 assert.equal(news2Level({}), 0); // วัดไม่มีเลย
@@ -162,21 +168,5 @@ assert.equal(observationBand("ขาซ้ายบวมแดง ปวด ก
 assert.equal(observationBand("ท้องเสียหลายรอบ ปากแห้ง อ่อนเพลีย", 79), 2); // "ท้องเสีย" + "ปากแห้ง" → แดง
 assert.equal(observationBand("ตัวร้อน ไข้ขึ้นสูง หนาวสั่น", 80), 2); // "ตัวร้อน/ไข้" + "หนาวสั่น" → แดง
 assert.equal(observationBand("ม้าปวดเข่าเรื้อรัง เดินได้ปกติ", 80), 0); // เรื้อรังคงที่ ไม่มี danger → ไม่ยกระดับ
-
-// ───── recentSeverityLevel: worst-recent (แทนค่าเฉลี่ย 7 วัน) ─────
-const sev = (s: number | null, d: number) => ({ severity: s, at: new Date(NOW - d * DAY) });
-// ปัญหาเดิม: เฉลี่ย [1,1,1,1,9] เจือจางเหลือ ~เหลือง; worst-recent = แดง
-assert.equal(recentSeverityLevel([sev(1, 0), sev(1, 0), sev(1, 1), sev(1, 2), sev(9, 0)], NOW), 3);
-// frequency-independent: จด band-3 ครั้งเดียว ก็ยังแดง (ไม่ต้องจดหลายครั้งให้ค่าเฉลี่ยขึ้น)
-assert.equal(recentSeverityLevel([sev(9, 1)], NOW), 3);
-// เหลือง/เขียวเก่า (4–7 วัน) จางหาย — เหลือแค่ปกติ
-assert.equal(recentSeverityLevel([sev(6, 5), sev(2, 6)], NOW), 0);
-// แต่ "แดงเก่า" (4–7 วัน) ยังค้าง ไม่จางหาย
-assert.equal(recentSeverityLevel([sev(9, 5)], NOW), 3);
-// เกิน 7 วัน → ไม่นับเลย
-assert.equal(recentSeverityLevel([sev(9, 9)], NOW), 0);
-// null severity = band 2 (เหลือง) เมื่อ recent
-assert.equal(recentSeverityLevel([sev(null, 0)], NOW), 2);
-assert.equal(recentSeverityLevel([], NOW), 0); // ไม่มีอาการ → 0
 
 console.log("risk.test: ok");

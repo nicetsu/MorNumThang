@@ -306,6 +306,11 @@
     display: grid;
     gap: 16px;
   }
+  /* min-width:0 lets grid items shrink below content's intrinsic width —
+     iOS <input type="date"> otherwise refuses to shrink and overflows the shell. */
+  .flow-form > * {
+    min-width: 0;
+  }
   .flow-form label > span,
   .field-label {
     display: block;

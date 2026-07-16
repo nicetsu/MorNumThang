@@ -253,6 +253,15 @@ export const CANONICAL_SIGNS: string[] = [
   ]),
 ];
 
+// A sign the LLM extracted only counts if it's LITERALLY in the caregiver's text. The 8B model
+// fabricates danger signs for off-domain/garbage input ("ไฟไหม้ระยะ 3" → ["ไม่หายใจ","ตัวเขียว"]),
+// which would falsely escalate the doctor-score to ด่วน. Legit extractions are always present
+// verbatim — they only compensate the keyword net's over-eager negation guard; hallucinations
+// never are. (AGENTS.md rule 2 — deterministic code, not the LLM, decides what danger is real.)
+export function statedSigns(text: string, signs: string[]): string[] {
+  return signs.filter((s) => text.includes(s));
+}
+
 // One observation's ESCALATION band (0 = no trigger found → let LLM severity stand).
 // Only Class A, Class-B+danger-sign, or geriatric soft signs raise it — plain benign symptoms
 // contribute 0 so this never inflates, only catches what the opaque severity number might miss.
@@ -323,11 +332,15 @@ export function persistentSoftSignLevel(
   return days.size >= 3 ? 3 : 0;
 }
 
-// Recency-weighted "worst recent" observation level — REPLACES the old 7-day mean, which diluted
-// a serious day among mild ones and depended on how MANY notes were written (frequency bias).
-// Triage takes the WORST recent signal, not the average. band: severity 0–3→1, 4–7→2, 8–10→3,
-// null→2. Recent (≤3 วัน) counts at full band; an older red (4–7 วัน) still lingers; older mild
-// fades. Max naturally floors — a single red is red, never averaged away.
+// Recency-weighted "worst recent" observation level — the catch-all track for anything the
+// caregiver/model flags serious that ISN'T in the coded vocabulary (e.g. แผลไฟไหม้ระดับ 3 — a burn
+// isn't a Class A/B symptom or soft sign, so only severity carries it). Bias to caution: takes the
+// WORST recent signal, not the average (a serious day is never diluted by mild ones, and it doesn't
+// depend on how MANY notes were written). band: severity 0–3→1, 4–7→2, 8–10→3, null→2. Recent
+// (≤3 วัน) counts at full band; an older red (4–7 วัน) still lingers; older mild fades.
+// NOTE: severity is the LLM's judgement — the statedSigns filter (above) keeps it from ALSO
+// fabricating specific danger SIGNS, but a high severity here can still over-triage. That's the
+// safe direction for a medical app; the deterministic tracks stay auditable on their own.
 export function recentSeverityLevel(observations: { severity: number | null; at: Date }[], now = 0): 0 | 1 | 2 | 3 {
   const t = now || Date.now();
   let lv = 0;
