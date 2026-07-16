@@ -72,6 +72,8 @@ export type SummaryData = {
   allergies: string[];
   meds: { name: string; schedule?: string | null }[];
   weights: { kg: number; at: Date; note?: string | null }[];
+  // อาการ/เรื่องที่บ้านจดลงสมุด (Observation) — severity 0–10 คือ "ความควรใส่ใจ" ไม่ใช่การวินิจฉัย
+  observations?: { category: string; text: string; severity: number; at: Date }[];
   visits: { symptom?: string | null; medsReceived?: string | null; nextAppointment?: string | null; at: Date }[];
   coverage?: string | null; // สิทธิการรักษา เช่น บัตรทอง
   rights?: string | null; // บริการที่มีสิทธิ (คำนวณ deterministic จาก lib/rights.ts แล้ว)
@@ -89,6 +91,15 @@ function buildUserPrompt(d: SummaryData, closing: string): string {
   lines.push(
     `น้ำหนักล่าสุด: ${d.weights.length ? d.weights.map((w) => `${w.kg}กก. เมื่อ ${w.at.toLocaleDateString("th-TH")}`).join(", ") : "ไม่มีข้อมูล"}`,
   );
+  // อาการที่บ้านจดลงสมุด — the caregiver's actual daily notes. Mark high-attention items
+  // (severity ≥8) so the doctor can prioritize; severity is "ชวนสังเกต", not a diagnosis.
+  if (d.observations?.length) {
+    lines.push("อาการ/สิ่งที่บ้านจดลงสมุด (ล่าสุด):");
+    for (const o of d.observations) {
+      const flag = o.severity >= 8 ? " [ที่บ้านกังวลมาก]" : "";
+      lines.push(`- ${o.category}: ${o.text} (${o.at.toLocaleDateString("th-TH")})${flag}`);
+    }
+  }
   if (d.visits.length) {
     lines.push("บันทึกจากนัดที่ผ่านมา:");
     for (const v of d.visits) {

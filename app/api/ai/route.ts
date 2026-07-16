@@ -80,6 +80,7 @@ export async function POST(req: Request) {
     allergies: allergies.map((a) => a.name),
     meds,
     weights,
+    observations: observations.map((o) => ({ category: o.category, text: o.text, severity: o.severity ?? 5, at: o.at })),
     visits,
     coverage: patient.coverage,
     rights,
