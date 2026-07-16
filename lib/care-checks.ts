@@ -7,6 +7,8 @@ const VITAL_TASK_TITLES = {
   weight: "วัดน้ำหนัก",
   bp: "วัดความดัน",
   pulse: "วัดชีพจร",
+  temp: "วัดไข้",
+  spo2: "วัดออกซิเจนปลายนิ้ว",
 } as const;
 
 export function bangkokDateKey(d: Date): string {
@@ -42,12 +44,14 @@ export async function autoCheckMed(patientId: string, medId: string, date: strin
 export async function autoCheckVitalCareTasks(
   patientId: string,
   date: string,
-  vitals: { weight?: boolean; bp?: boolean; pulse?: boolean },
+  vitals: { weight?: boolean; bp?: boolean; pulse?: boolean; temp?: boolean; spo2?: boolean },
 ) {
   const titles: string[] = [];
   if (vitals.weight) titles.push(VITAL_TASK_TITLES.weight);
   if (vitals.bp) titles.push(VITAL_TASK_TITLES.bp);
   if (vitals.pulse) titles.push(VITAL_TASK_TITLES.pulse);
+  if (vitals.temp) titles.push(VITAL_TASK_TITLES.temp);
+  if (vitals.spo2) titles.push(VITAL_TASK_TITLES.spo2);
   if (!titles.length) return;
 
   await ensureDefaultCareTasks(patientId);

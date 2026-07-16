@@ -94,6 +94,7 @@ model Observation {
   category  String // เช่น การกิน, การนอนและขับถ่าย
   text      String
   severity  Int? // 0-10 ความร้ายแรงที่ AI ประเมิน (จุดในเส้นเวลา)
+  signs     String? // canonical danger/soft-sign tags ที่ LLM สกัด "·"-separated (union กับ keyword net — lib/risk.ts)
   at        DateTime @default(now())
   patient   Patient  @relation(fields: [patientId], references: [id])
 }
@@ -105,6 +106,8 @@ model WeightLog {
   systolic  Int? // ความดันตัวบน
   diastolic Int? // ความดันตัวล่าง
   pulse     Int? // ชีพจร
+  temp      Float? // อุณหภูมิ °C (NEWS2 — ดู lib/risk.ts)
+  spo2      Int? // ออกซิเจนปลายนิ้ว % (NEWS2)
   note      String?
   at        DateTime @default(now())
   patient   Patient  @relation(fields: [patientId], references: [id])

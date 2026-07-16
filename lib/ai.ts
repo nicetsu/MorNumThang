@@ -1,5 +1,6 @@
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { streamText, generateText } from "ai";
+import { CANONICAL_SIGNS } from "./risk";
 
 // Preset = base+key+model as a set so you never mix one provider's URL with another's model.
 // Two independent lanes: TEXT (summaries/organize) and VISION (photo OCR) — each picks its own
@@ -261,15 +262,22 @@ export function streamCareSuggestions(data: SummaryData) {
 
 // §4 narrative record — organize a free-text story into categorized observations.
 // Categorizes only, never diagnoses.
+// signs: LLM maps free phrasing → canonical tags so deterministic risk code (lib/risk.ts) can
+// union them with its keyword net. The model only EXTRACTS tags stated in the text (AGENTS.md
+// rule 2 — it never decides urgency); the risk engine decides the band from the tags.
 const ORGANIZE_SYSTEM = `คุณช่วยจัดเรื่องที่ครอบครัวเล่าเข้าหมวดหมู่ เป็นภาษาไทย
 กฎ:
-- แยกเรื่องที่เล่าออกเป็นข้อ ๆ แต่ละข้อมี "category" (หมวด), "text" (สรุปสั้น ๆ) และ "severity" (ความควรใส่ใจ 0-10)
+- **สำคัญที่สุด: ใช้เฉพาะสิ่งที่ครอบครัวเล่าจริงเท่านั้น ห้ามเพิ่ม แต่ง หรือเดาอาการ/ข้อที่ไม่ได้พูดถึงเด็ดขาด** ถ้าเล่าสั้นให้ตอบน้อยข้อ (เล่าเรื่องเดียว = ตอบข้อเดียว)
+- แยกเรื่องที่เล่าออกเป็นข้อ ๆ แต่ละข้อมี "category" (หมวด), "text" (สรุปสั้น ๆ), "severity" (ความควรใส่ใจ 0-10) และ "signs"
 - severity: 0-3 = เรื่องทั่วไป/ข่าวดี, 4-7 = ควรเฝ้าดู, 8-10 = ควรใส่ใจมาก/ควรปรึกษาหมอ. เรื่องดีให้ 0-2
 - หมวดที่ใช้ได้: การกิน, การนอนและขับถ่าย, การเดิน, ยา, อารมณ์, เรื่องดี, อื่น ๆ
-- ห้ามวินิจฉัยโรคหรือแนะนำยา severity เป็นแค่การชวนสังเกต ไม่ใช่การวินิจฉัย
-- ตอบกลับเป็น JSON array เท่านั้น เช่น [{"category":"การกิน","text":"กินน้อยลง","severity":6}] ห้ามมีข้อความอื่น`;
+- "signs": array ของคำเตือน/สัญญาณที่ "ระบุชัดในข้อความเท่านั้น" (ห้ามเดา ห้ามเติม) เลือกจากรายการนี้เท่านั้น ถ้าไม่มีให้เป็น []:
+${CANONICAL_SIGNS.join(", ")}
+- ห้ามวินิจฉัยโรคหรือแนะนำยา severity/signs เป็นแค่การชวนสังเกต ไม่ใช่การวินิจฉัย
+- ตอบกลับเป็น JSON array เท่านั้น ตามรูปแบบ [{"category":"<หมวดจากรายการข้างบน>","text":"<สรุปสิ่งที่เล่าจริง>","severity":<0-10>,"signs":[<tag ถ้ามี>]}] ห้ามมีข้อความอื่น ห้ามคัดลอกตัวอย่างนี้เป็นคำตอบ`;
 
-export type OrganizedItem = { category: string; text: string; severity: number };
+export type OrganizedItem = { category: string; text: string; severity: number; signs: string[] };
+const CANONICAL_SET = new Set(CANONICAL_SIGNS);
 
 function clampSeverity(v: unknown): number {
   const n = Math.round(Number(v));
@@ -294,6 +302,8 @@ export async function organizeNarrative(story: string): Promise<OrganizedItem[]>
           category: String(x?.category ?? "อื่น ๆ").trim(),
           text: String(x?.text ?? "").trim(),
           severity: clampSeverity(x?.severity),
+          // Keep only known tags — drop anything the model invents (guards against hallucination).
+          signs: Array.isArray(x?.signs) ? x.signs.map(String).filter((s: string) => CANONICAL_SET.has(s)) : [],
         }))
         .filter((x) => x.text);
       if (items.length) return items;
@@ -302,7 +312,7 @@ export async function organizeNarrative(story: string): Promise<OrganizedItem[]>
     }
   }
   // Fallback: keep the caregiver's words rather than losing them.
-  return [{ category: "อื่น ๆ", text: story.trim(), severity: 5 }];
+  return [{ category: "อื่น ๆ", text: story.trim(), severity: 5, signs: [] }];
 }
 
 // §4.4 Drug-label scan — the same multimodal model reads the image. Reads only, never prescribes.

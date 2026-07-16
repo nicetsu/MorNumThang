@@ -7,6 +7,17 @@ Entry format: date · what I did wrong · why it was wrong · the lesson/fix.
 
 ---
 
+## 2026-07-16 — Concrete few-shot example in a prompt got echoed verbatim by the 8B model
+The `organizeNarrative` prompt ended with `เช่น [{"category":"การกิน","text":"กินน้อยลง",...}]`.
+End-to-end eval (`scripts/risk-eval.mts`) against `typhoon-s-thaillm-8b-instruct` showed the model
+copying **"กินน้อยลง" into almost every response** regardless of input — fabricating a symptom that
+wasn't said, which then falsely escalated the risk score (e.g. a benign headache → "ควรสังเกต"). Adding
+a "ห้ามแต่งอาการ" rule did NOT fix it (it even dropped real content in one case). **Fix:** make the
+example a schema placeholder (`"text":"<สรุปสิ่งที่เล่าจริง>"`), never a real value → the echo vanished
+and 6/7 cases were correct. **Lesson:** small models copy few-shot examples literally; a concrete example
+value becomes a default answer. Use placeholders in format examples, and *test extraction prompts against
+the actual (small) model* — don't assume a prompt that reads well behaves well. See docs/risk-eval-results.md.
+
 ## 2026-07-16 — Overwrote `app/meds/list/actions.ts` when adding `markMedTaken`
 Created the new server action by writing a fresh `actions.ts` with only `markMedTaken`, wiping
 `addMedication`, `addAllergy`, `removeAllergy`, and `MedState` that other pages already imported.

@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "WeightLog" ADD COLUMN     "spo2" INTEGER,
+ADD COLUMN     "temp" DOUBLE PRECISION;

@@ -9,7 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { AI_DISCLAIMER } from "@/lib/disclaimer";
 
-type Item = { category: string; text: string; severity: number };
+// signs carried through from the AI extraction (not edited in review) → saved for the risk engine.
+type Item = { category: string; text: string; severity: number; signs: string[] };
 
 // Dot color by AI severity: 0-3 เขียว, 4-7 เหลือง, 8-10 แดง.
 function sevColor(s: number): string {

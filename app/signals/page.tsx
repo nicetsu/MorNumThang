@@ -4,8 +4,21 @@ export const dynamic = "force-dynamic";
 import { db } from "@/lib/db";
 import { getActivePatient } from "@/lib/patient";
 import { dotClass, scoreLevel, LEVEL } from "@/lib/severity";
+import { recentSeverityLevel, news2Level, observationEscalationLevel, weightTrendLevel, persistentSoftSignLevel, type Vitals } from "@/lib/risk";
 import { RecordsTabs } from "./records-tabs";
 import { BackLink } from "@/components/back-link";
+
+// Latest WeightLog vitals, only if ≤48h old (else stale — don't drive today's score).
+type VitalRow = { at: Date; systolic: number | null; pulse: number | null; temp: number | null; spo2: number | null };
+// ไล่หาค่าล่าสุดของแต่ละ vital แยกกัน ในกรอบ 48h — record ที่จดแค่น้ำหนักจะไม่บังค่า vital เก่าที่ยังใหม่พอ
+// (weights เรียง at desc มาแล้ว → .find ได้ค่าล่าสุดที่ไม่ null). ค่าที่ขาด → null; ครบ 48h ใหม่ล้วน → 0.
+// ponytail: 48h เป็น calibration knob (จูน 24/72h ได้), ไม่ใช่เกณฑ์การแพทย์ตายตัว
+function recentVitals(weights: VitalRow[]): Vitals {
+  const cutoff = Date.now() - 48 * 60 * 60 * 1000;
+  const fresh = weights.filter((w) => w.at.getTime() >= cutoff);
+  const latest = (k: keyof Omit<VitalRow, "at">) => fresh.find((w) => w[k] != null)?.[k] ?? null;
+  return { systolic: latest("systolic"), pulse: latest("pulse"), temp: latest("temp"), spo2: latest("spo2") };
+}
 
 // Grouped by day now, so the row only needs the time — the date lives on the day header.
 function hm(at: Date) {
@@ -33,15 +46,25 @@ export default async function Records({
   }
 
   const { view } = await searchParams;
-  const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
-  const [weights, obs, recent] = await Promise.all([
+  const [weights, obs] = await Promise.all([
     db.weightLog.findMany({ where: { patientId: patient.id }, orderBy: { at: "desc" } }),
     db.observation.findMany({ where: { patientId: patient.id }, orderBy: { at: "desc" } }),
-    db.observation.findMany({ where: { patientId: patient.id, at: { gte: weekAgo } }, select: { severity: true } }),
   ]);
 
-  const level = scoreLevel(recent.map((o) => o.severity));
+  // Doctor-score = max( อาการที่จด(worst-recent) , NEWS2 vitals ≤48h , escalation red-flag/soft-sign 48h ,
+  // weight-trend , persistence ) — bias to caution; ทุกตัวยกได้อย่างเดียว ไม่ลด.
+  const twoDaysAgo = Date.now() - 48 * 60 * 60 * 1000;
+  const obsEscalation = obs
+    .filter((o) => o.at.getTime() >= twoDaysAgo)
+    .reduce((m, o) => Math.max(m, observationEscalationLevel(o.text, patient.age, o.signs?.split("·").map((s) => s.trim()).filter(Boolean) ?? [])), 0);
+  const level = Math.max(
+    recentSeverityLevel(obs), // อาการที่จด — worst-recent (แทนค่าเฉลี่ย 7 วัน)
+    news2Level(recentVitals(weights)),
+    obsEscalation,
+    weightTrendLevel(weights), // W3: น้ำหนักลด ≥5% ใน ~30 วัน → ควรสังเกต
+    persistentSoftSignLevel(obs, patient.age), // soft sign เรื้อรัง ≥3/7 วัน → ควรปรึกษาหมอ
+  ) as 0 | 1 | 2 | 3;
   const score = LEVEL[level];
 
   const weightItems = weights.map((w, i) => {

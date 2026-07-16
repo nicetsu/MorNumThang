@@ -42,6 +42,22 @@ export default function Logs() {
           <b>ครั้ง/นาที</b>
         </div>
       </label>
+      <div className="form-grid">
+        <label>
+          <span>อุณหภูมิ (ไม่บังคับ)</span>
+          <div className="unit-input">
+            <Input className="pr-[58px]" name="temp" type="number" step="0.1" min="30" max="45" inputMode="decimal" placeholder="เช่น 37.0" aria-label="อุณหภูมิ" />
+            <b>°C</b>
+          </div>
+        </label>
+        <label>
+          <span>ออกซิเจนปลายนิ้ว (ไม่บังคับ)</span>
+          <div className="unit-input">
+            <Input className="pr-[58px]" name="spo2" type="number" min="50" max="100" inputMode="numeric" placeholder="เช่น 98" aria-label="ออกซิเจนปลายนิ้ว SpO2" />
+            <b>%</b>
+          </div>
+        </label>
+      </div>
       <label>
         <span>วันที่บันทึก</span>
         <Input name="date" type="date" />

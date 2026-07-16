@@ -7,8 +7,22 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { getActivePatient, PID_COOKIE } from "@/lib/patient";
-import { dotClass, scoreLevel, LEVEL } from "@/lib/severity";
+import { dotClass, LEVEL } from "@/lib/severity";
+import { recentSeverityLevel, news2Level, observationEscalationLevel, weightTrendLevel, persistentSoftSignLevel, type Vitals } from "@/lib/risk";
 import { RightsSuggestion } from "@/components/rights-suggestion";
+
+// Vitals from the latest WeightLog, but only if RECENT (≤48h) — stale vitals shouldn't
+// drive today's doctor-score. Returns undefined otherwise so NEWS2 contributes nothing.
+type VitalRow = { at: Date; systolic: number | null; pulse: number | null; temp: number | null; spo2: number | null };
+// ไล่หาค่าล่าสุดของแต่ละ vital แยกกัน ในกรอบ 48h — record ที่จดแค่น้ำหนักจะไม่บังค่า vital เก่าที่ยังใหม่พอ
+// (weights เรียง at desc มาแล้ว → .find ได้ค่าล่าสุดที่ไม่ null). ค่าที่ขาด → null; ครบ 48h ใหม่ล้วน → 0.
+// ponytail: 48h เป็น calibration knob (จูน 24/72h ได้), ไม่ใช่เกณฑ์การแพทย์ตายตัว
+function recentVitals(weights: VitalRow[]): Vitals {
+  const cutoff = Date.now() - 48 * 60 * 60 * 1000;
+  const fresh = weights.filter((w) => w.at.getTime() >= cutoff);
+  const latest = (k: keyof Omit<VitalRow, "at">) => fresh.find((w) => w[k] != null)?.[k] ?? null;
+  return { systolic: latest("systolic"), pulse: latest("pulse"), temp: latest("temp"), spo2: latest("spo2") };
+}
 
 function fmt(at: Date) {
   return new Intl.DateTimeFormat("th-TH", {
@@ -29,15 +43,9 @@ export default async function Home() {
     return <p className="py-8 text-muted-foreground">ยังไม่มีข้อมูลผู้รับการดูแลค่ะ</p>;
   }
 
-  const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-  const [weights, obs, recentSev, nextMed, nextAppt] = await Promise.all([
-    db.weightLog.findMany({ where: { patientId: patient.id }, orderBy: { at: "desc" }, take: 5 }),
-    db.observation.findMany({ where: { patientId: patient.id }, orderBy: { at: "desc" }, take: 5 }),
-    // Recent severities feed the doctor-score level (average band). LLM never gates safety.
-    db.observation.findMany({
-      where: { patientId: patient.id, at: { gte: weekAgo } },
-      select: { severity: true },
-    }),
+  const [weights, obs, nextMed, nextAppt] = await Promise.all([
+    db.weightLog.findMany({ where: { patientId: patient.id }, orderBy: { at: "desc" }, take: 20 }),
+    db.observation.findMany({ where: { patientId: patient.id }, orderBy: { at: "desc" }, take: 30 }),
     db.medication.findFirst({ where: { patientId: patient.id }, orderBy: { name: "asc" } }),
     db.appointment.findFirst({
       where: { patientId: patient.id, done: false, at: { gte: new Date(new Date().toDateString()) } },
@@ -45,7 +53,19 @@ export default async function Home() {
     }),
   ]);
 
-  const level = scoreLevel(recentSev.map((o) => o.severity));
+  // Doctor-score = max( อาการที่จด(worst-recent) , NEWS2 vitals≤48h , escalation red-flag/soft-sign(48h) ,
+  // weight-trend , persistence ) — bias to caution; ทุกตัวยกได้อย่างเดียว ไม่ลด (lib/risk.ts).
+  const twoDaysAgo = Date.now() - 48 * 60 * 60 * 1000;
+  const obsEscalation = obs
+    .filter((o) => o.at.getTime() >= twoDaysAgo)
+    .reduce((m, o) => Math.max(m, observationEscalationLevel(o.text, patient.age, o.signs?.split("·").map((s) => s.trim()).filter(Boolean) ?? [])), 0);
+  const level = Math.max(
+    recentSeverityLevel(obs), // อาการที่จด — worst-recent (แทนค่าเฉลี่ย 7 วัน)
+    news2Level(recentVitals(weights)),
+    obsEscalation,
+    weightTrendLevel(weights), // W3: น้ำหนักลด ≥5% ใน ~30 วัน → ควรสังเกต
+    persistentSoftSignLevel(obs, patient.age), // soft sign เรื้อรัง ≥3/7 วัน → ควรปรึกษาหมอ
+  ) as 0 | 1 | 2 | 3;
   const score = LEVEL[level];
 
   // Weight rows: trend arrow colored — ลดลง=แดง (น่าห่วง), เพิ่มขึ้น=เขียว.

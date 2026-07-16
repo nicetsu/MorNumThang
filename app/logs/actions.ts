@@ -13,12 +13,19 @@ function optInt(v: FormDataEntryValue | null, min: number, max: number): number 
   const n = parseInt(String(v ?? ""), 10);
   return Number.isFinite(n) && n >= min && n <= max ? n : null;
 }
+// Same, but keeps decimals (temperature).
+function optFloat(v: FormDataEntryValue | null, min: number, max: number): number | null {
+  const n = parseFloat(String(v ?? ""));
+  return Number.isFinite(n) && n >= min && n <= max ? n : null;
+}
 
 export async function addWeight(formData: FormData) {
   const kg = parseWeight(formData.get("kg"));
   const systolic = optInt(formData.get("systolic"), 40, 300);
   const diastolic = optInt(formData.get("diastolic"), 30, 200);
   const pulse = optInt(formData.get("pulse"), 20, 250);
+  const temp = optFloat(formData.get("temp"), 30, 45);
+  const spo2 = optInt(formData.get("spo2"), 50, 100);
 
   const note = String(formData.get("note") ?? "").trim() || null;
   const dateStr = String(formData.get("date") ?? "").trim();
@@ -29,13 +36,15 @@ export async function addWeight(formData: FormData) {
   // ponytail: single-patient v1 — attach to the one patient (PLAN §6).
   const patient = await getActivePatientOrThrow();
   await db.weightLog.create({
-    data: { patientId: patient.id, kg, systolic, diastolic, pulse, note, at },
+    data: { patientId: patient.id, kg, systolic, diastolic, pulse, temp, spo2, note, at },
   });
 
   await autoCheckVitalCareTasks(patient.id, checkDate, {
     weight: true,
     bp: systolic != null || diastolic != null,
     pulse: pulse != null,
+    temp: temp != null,
+    spo2: spo2 != null,
   });
 
   revalidatePath("/logs");
@@ -61,6 +70,8 @@ export async function saveObservations(items: OrganizedItem[]) {
       category: i.category.trim() || "อื่น ๆ",
       text: i.text.trim(),
       severity: typeof i.severity === "number" ? i.severity : 5,
+      // canonical danger/soft-sign tags → "·"-joined (unioned with keyword net at read, lib/risk.ts).
+      signs: Array.isArray(i.signs) && i.signs.length ? i.signs.join(" · ") : null,
     }))
     .filter((i) => i.text);
   if (!clean.length) return;

@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { Plus } from "lucide-react";
 import { getActivePatient, getUserId } from "@/lib/patient";
 import { HeaderChip } from "@/components/header-chip";
+import { HeaderUrgent } from "@/components/header-urgent";
 
 // App chrome — single row: brand · emergency · status chip (tap to switch).
 // Layout in utilities (the @layer components CSS was losing the cascade).
@@ -16,14 +16,7 @@ export async function AppHeader() {
         หมอนำทาง
       </Link>
 
-      <Link
-        href="/urgent"
-        aria-label="เกิดเรื่องแล้ว — ฉุกเฉิน"
-        className="ml-auto flex h-9 shrink-0 items-center gap-1.5 rounded-lg bg-red px-3 text-[14px] font-bold text-white active:scale-95"
-      >
-        <Plus aria-hidden className="size-4 shrink-0" />
-        ฉุกเฉิน
-      </Link>
+      <HeaderUrgent />
 
       {patient && <HeaderChip roleName={roleName!} isSelf={isSelf} />}
     </header>
