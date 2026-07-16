@@ -59,7 +59,7 @@ export default async function ProfileEdit() {
 
   return (
     <div className="space-y-4">
-      <BackLink href="/profile">โปรไฟล์</BackLink>
+      <BackLink fallback="/profile">กลับ</BackLink>
       <div>
         <p className="eyebrow">โปรไฟล์ของผู้รับการดูแล</p>
         <h2 className="screen-title">แก้ไขประวัติ</h2>

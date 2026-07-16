@@ -33,7 +33,7 @@ export default async function Appointments() {
 
   return (
     <div className="space-y-5">
-      <BackLink href="/meds">ยา &amp; นัด</BackLink>
+      <BackLink fallback="/meds">กลับ</BackLink>
       <div>
         <p className="eyebrow">นัดหมายของผู้รับการดูแล</p>
         <h2 className="screen-title">นัดของผู้รับการดูแล</h2>

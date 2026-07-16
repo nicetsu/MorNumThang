@@ -28,8 +28,11 @@ export async function addCareTask(category: string, title: string, time?: string
     where: { patientId: p.id, category },
     _max: { sortOrder: true },
   });
-  await db.careTask.create({
-    data: { patientId: p.id, category, title: t, time: time?.trim() || null, sortOrder: (max._max.sortOrder ?? 0) + 1 },
+  // createMany + skipDuplicates so a double-tapped "เพิ่ม" (or the same title added
+  // twice) is a no-op instead of a second row — the @@unique constraint backs this.
+  await db.careTask.createMany({
+    data: [{ patientId: p.id, category, title: t, time: time?.trim() || null, sortOrder: (max._max.sortOrder ?? 0) + 1 }],
+    skipDuplicates: true,
   });
   revalidatePath("/calendar");
 }

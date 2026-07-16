@@ -15,7 +15,7 @@ export default async function Urgent() {
 
   return (
     <div className="space-y-4">
-      <BackLink href="/">สมุดของผู้รับการดูแล</BackLink>
+      <BackLink fallback="/">กลับ</BackLink>
       <div>
         <p className="eyebrow">เมื่อเกิดเรื่อง</p>
         <h2 className="screen-title !text-red">ใจเย็น ๆ นะคะ<br />เราไปทีละขั้น</h2>

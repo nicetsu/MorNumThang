@@ -21,7 +21,7 @@ export default async function Summary() {
 
   return (
     <div className="space-y-4">
-      <BackLink href="/">สมุดของผู้รับการดูแล</BackLink>
+      <BackLink fallback="/">กลับ</BackLink>
       <div>
         <p className="eyebrow">จากภาษาที่บ้านเล่า</p>
         <h2 className="screen-title">สรุปให้หมอ</h2>

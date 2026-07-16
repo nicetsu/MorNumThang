@@ -58,7 +58,7 @@ export default async function CalendarPage() {
 
   return (
     <div className="space-y-4">
-      <BackLink href="/">สมุดของผู้รับการดูแล</BackLink>
+      <BackLink fallback="/">กลับ</BackLink>
       <CalendarView
         todayISO={dateKey(new Date())}
         medItems={medItems}

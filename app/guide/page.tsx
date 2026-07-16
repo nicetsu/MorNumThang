@@ -18,7 +18,7 @@ export default async function Guide() {
 
   return (
     <div className="space-y-4">
-      <BackLink href="/meds">รักษา</BackLink>
+      <BackLink fallback="/meds">กลับ</BackLink>
       <div>
         <p className="eyebrow">คู่มือดูแลผู้รับการดูแล · ฉบับบ้านเรา</p>
         <h2 className="screen-title">คู่มือดูแลผู้รับการดูแล</h2>

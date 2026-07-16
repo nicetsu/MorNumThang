@@ -12,7 +12,7 @@ export default async function GuideEdit() {
 
   return (
     <div className="space-y-4">
-      <BackLink href="/guide">คู่มือดูแลผู้รับการดูแล</BackLink>
+      <BackLink fallback="/guide">กลับ</BackLink>
       <div>
         <p className="eyebrow">คู่มือดูแลผู้รับการดูแล · ฉบับบ้านเรา</p>
         <h2 className="screen-title">อัปเดตวิธีดูแล</h2>

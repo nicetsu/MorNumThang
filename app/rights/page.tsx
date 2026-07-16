@@ -49,7 +49,7 @@ export default async function RightsNavigator() {
 
   return (
     <div className="space-y-4">
-      <BackLink href="/profile">โปรไฟล์</BackLink>
+      <BackLink fallback="/profile">กลับ</BackLink>
       <div>
         <p className="eyebrow">สิทธิการรักษาของผู้รับการดูแล</p>
         <h2 className="screen-title">สิทธิของผู้รับการดูแล</h2>

@@ -22,7 +22,7 @@ export function SelfFlow({
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-2">
-        <BackLink href="/patients">เปลี่ยนบทบาท</BackLink>
+        <BackLink fallback="/patients">กลับ</BackLink>
         <h2 className="screen-title">โปรไฟล์ของฉัน</h2>
         <p className="lead">แตะที่โปรไฟล์เพื่อเปิดสมุดของฉัน หรือเชิญคนมาช่วยดูแลได้ค่ะ</p>
       </div>
@@ -55,7 +55,7 @@ export function SelfFlow({
           className="min-h-12 w-full rounded-xl border-2 border-teal py-3 font-bold text-teal"
         />
 
-      <section className="people-section space-y-3">
+      <section className="people-section flex flex-col gap-2">
         <div className="section-heading !mb-0"><h3>คนที่ช่วยดูแลเรา</h3></div>
         {helpers.length === 0 ? (
           <p className="rounded-2xl border border-dashed border-line p-4 text-muted-foreground">

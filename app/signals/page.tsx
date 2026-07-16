@@ -104,7 +104,7 @@ export default async function Records({
 
   return (
     <div className="space-y-4">
-      <BackLink href="/">สมุดของผู้รับการดูแล</BackLink>
+      <BackLink fallback="/">กลับ</BackLink>
       <div>
         <p className="eyebrow">ประวัติการดูแลผู้รับการดูแล</p>
         <h2 className="screen-title">บันทึกของผู้รับการดูแล</h2>

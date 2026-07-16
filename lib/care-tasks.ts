@@ -12,8 +12,11 @@ export const DEFAULT_CARE_TASKS: { category: string; title: string }[] = [
 
 export async function ensureDefaultCareTasks(patientId: string) {
   if ((await db.careTask.count({ where: { patientId } })) === 0) {
+    // skipDuplicates + the @@unique([patientId, category, title]) constraint make this
+    // race-safe: two concurrent first-loads can't seed the defaults twice.
     await db.careTask.createMany({
       data: DEFAULT_CARE_TASKS.map((t, i) => ({ ...t, patientId, sortOrder: i })),
+      skipDuplicates: true,
     });
   }
 }

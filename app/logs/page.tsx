@@ -56,7 +56,7 @@ export default function Logs() {
 
   return (
     <div className="space-y-6">
-      <BackLink href="/">สมุดของผู้รับการดูแล</BackLink>
+      <BackLink fallback="/">กลับ</BackLink>
       <div>
         <p className="eyebrow">บันทึกลงสมุดของผู้รับการดูแล</p>
         <h2 className="screen-title">วันนี้อยากจดอะไรดีคะ</h2>

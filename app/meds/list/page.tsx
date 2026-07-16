@@ -83,7 +83,7 @@ export default async function MedSchedule() {
 
   return (
     <div className="space-y-4">
-      <BackLink href="/meds">ยา &amp; นัด</BackLink>
+      <BackLink fallback="/meds">กลับ</BackLink>
       <div>
         <p className="eyebrow">ตารางยาของผู้รับการดูแล</p>
         <h2 className="screen-title">ยาของผู้รับการดูแล</h2>

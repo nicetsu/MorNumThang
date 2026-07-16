@@ -21,7 +21,7 @@ export function CareFlow({
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-2">
-        <BackLink href="/patients">เปลี่ยนบทบาท</BackLink>
+        <BackLink fallback="/patients">กลับ</BackLink>
         <h2 className="screen-title">คนที่ฉันช่วยดูแล</h2>
         <p className="lead">
           {others.length

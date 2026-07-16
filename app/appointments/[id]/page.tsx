@@ -39,7 +39,7 @@ export default async function AppointmentDetail({
 
   return (
     <div className="space-y-4">
-      <BackLink href="/appointments">นัดของผู้รับการดูแล</BackLink>
+      <BackLink fallback="/appointments">กลับ</BackLink>
       <div>
         <p className="eyebrow">นัดถัดไปของผู้รับการดูแล</p>
         <h2 className="screen-title">{fmt(appt.at)}</h2>

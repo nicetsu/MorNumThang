@@ -61,6 +61,10 @@ model CareTask {
   sortOrder Int      @default(0)
   createdAt DateTime @default(now())
   patient   Patient  @relation(fields: [patientId], references: [id])
+
+  // One task title per category per patient — makes duplicate rows impossible
+  // (a concurrent seed or a double-tapped "เพิ่ม" can't create a second copy).
+  @@unique([patientId, category, title])
 }
 
 // One row = a calendar item ("med:<id>" | "task:<id>") was marked done on `date`

@@ -20,7 +20,14 @@ export const metadata: Metadata = {
   description: "สมุดสุขภาพสำหรับผู้ดูแล",
   manifest: "/manifest.webmanifest",
   appleWebApp: { capable: true, statusBarStyle: "default", title: "หมอนำทาง" },
-  icons: { apple: "/apple-icon-180.png" },
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon-192.png", type: "image/png", sizes: "192x192" },
+      { url: "/icon-512.png", type: "image/png", sizes: "512x512" },
+    ],
+    apple: "/apple-icon-180.png",
+  },
 };
 
 export const viewport: Viewport = {
