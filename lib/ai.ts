@@ -148,6 +148,49 @@ export function streamHealthSignals(data: SummaryData) {
   return run(SIGNALS_SYSTEM, buildUserPrompt(data, SIGNALS_CLOSING));
 }
 
+// Inline สิทธิ suggestion — one short sentence tailored to the current symptom + สิทธิ.
+// Eligibility (direction, free-med availability) is decided in code and handed in as fact;
+// the model only phrases it for the specific symptom (AGENTS.md rule 2).
+const RIGHTS_ADVICE_SYSTEM = `คุณช่วยบอกผู้ดูแลสั้น ๆ ว่าจะใช้สิทธิการรักษากับอาการตอนนี้อย่างไร เป็นภาษาไทย
+กฎ:
+- ใช้เฉพาะข้อเท็จจริงที่ให้มา สิทธิและการรับยาฟรีถูกตรวจสอบมาแล้ว ห้ามตัดสินสิทธิเอง ห้ามเดา
+- ทำตาม "แนวทาง" ที่ให้มา:
+  - ถ้าแนวทาง = รับยาฟรี และ "รับยาฟรีได้ = ใช่" ให้บอกว่าอาการเล็กน้อยนี้ไปรับยาฟรีที่ร้านยาคุณภาพที่เข้าร่วมได้เลย ไม่ต้องไปโรงพยาบาล ระบุชื่ออาการด้วย
+  - ถ้าแนวทาง = รับยาฟรี แต่ "รับยาฟรีได้ = ไม่" ให้บอกว่าซื้อยาสามัญที่ร้านยาใกล้บ้านได้ (แบบชำระเงินเอง)
+  - ถ้าแนวทาง = พบแพทย์ ให้บอกว่าควรพาไปพบแพทย์โดยใช้สิทธิที่มี
+- ห้ามวินิจฉัยโรค ห้ามสั่งยาหรือระบุชื่อยา น้ำเสียงอ่อนโยน
+- ตอบเป็นข้อความสั้นประโยคเดียว ไม่เกิน 1-2 บรรทัด ไม่ต้องมีหัวข้อหรือ bullet`;
+
+export type RightsAdviceData = {
+  name: string;
+  coverage?: string | null;
+  direction: "free-med" | "doctor";
+  freeMedAvailable: boolean; // deterministic: does their สิทธิ grant free meds
+  freeMedFacility: string;
+  symptom?: string | null; // the matched minor symptom, if any
+  recentSymptoms: string[]; // recent note texts (context for phrasing)
+  eligibleServices?: string | null; // deterministic เวชกรรม services (doctor direction)
+};
+
+function buildRightsPrompt(d: RightsAdviceData): string {
+  const lines = [
+    `ผู้ป่วย: ${d.name}`,
+    `สิทธิการรักษา: ${d.coverage ?? "ยังไม่ระบุ"}`,
+    `แนวทาง: ${d.direction === "free-med" ? "รับยาฟรี" : "พบแพทย์"}`,
+    `รับยาฟรีได้: ${d.freeMedAvailable ? "ใช่" : "ไม่"}`,
+    `ร้านรับยาฟรี: ${d.freeMedFacility}`,
+  ];
+  if (d.symptom) lines.push(`อาการเล็กน้อยที่ตรงรายการรับยาฟรี: ${d.symptom}`);
+  if (d.recentSymptoms.length) lines.push(`สิ่งที่บ้านจดล่าสุด: ${d.recentSymptoms.slice(0, 4).join("; ")}`);
+  if (d.eligibleServices) lines.push(`บริการที่มีสิทธิ (ระบบตรวจสอบแล้ว): ${d.eligibleServices}`);
+  lines.push("\nช่วยเขียนคำแนะนำสั้น ๆ ประโยคเดียวตามแนวทางข้างต้น");
+  return lines.join("\n");
+}
+
+export function streamRightsAdvice(data: RightsAdviceData) {
+  return run(RIGHTS_ADVICE_SYSTEM, buildRightsPrompt(data));
+}
+
 // §4.3 Care-guide suggestions — draft bullets the caregiver edits before saving.
 const CARE_SYSTEM = `คุณช่วยร่างหัวข้อ "คู่มือดูแล" เป็นภาษาไทย ให้ผู้ดูแลนำไปปรับแก้เองก่อนบันทึก
 กฎ:

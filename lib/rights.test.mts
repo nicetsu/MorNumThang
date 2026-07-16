@@ -1,5 +1,6 @@
 import assert from "node:assert";
-import { qualifies, recommendServices, facilityGuidance, type Rule } from "./rights.ts";
+import { qualifies, recommendServices, facilityGuidance, rightsDirection, type Rule } from "./rights.ts";
+import { matchFreeMedSymptom } from "./free-meds.ts";
 
 // Real rows from the RecommendationRules sheet.
 const R = {
@@ -41,5 +42,21 @@ assert.ok(!recs.some((r) => r.rule.serviceName === "ฝากครรภ์"));
 // facilityGuidance
 assert.match(facilityGuidance("โรงพยาบาลที่ลงทะเบียนไว้", "รพ.เจริญกรุง"), /รพ\.เจริญกรุง/);
 assert.match(facilityGuidance("ทุกโรงพยาบาล", "รพ.เจริญกรุง"), /ทุกโรงพยาบาล/);
+
+// --- matchFreeMedSymptom: free-text note → one of the 32 อาการ ---
+assert.equal(matchFreeMedSymptom(["แม่บ่นปวดท้องมาสองวัน"]), "ปวดท้อง", "matches ปวดท้อง in a sentence");
+assert.equal(matchFreeMedSymptom(["มีผื่นผิวหนังคัน"]), "ผื่นผิวหนัง", "matches a slash-alt symptom");
+assert.equal(matchFreeMedSymptom(["วันนี้อารมณ์ดีมาก"]), null, "no minor symptom → null");
+
+// --- rightsDirection: deterministic gate/direction (AI writes the wording) ---
+// Level 3 "ควรปรึกษาหมอ" → always doctor.
+assert.equal(rightsDirection(3, null), "doctor", "level 3 → doctor");
+assert.equal(rightsDirection(3, "ปวดท้อง"), "doctor", "level 3 → doctor even with a minor symptom");
+// Level 2 "ควรสังเกต" → free-med only when a minor symptom is present.
+assert.equal(rightsDirection(2, "ปวดท้อง"), "free-med", "level 2 + minor symptom → free-med");
+assert.equal(rightsDirection(2, null), null, "level 2, no minor symptom → nothing");
+// Levels 0/1 → สบายดี, no nagging.
+assert.equal(rightsDirection(1, "ปวดท้อง"), null, "level 1 → no card");
+assert.equal(rightsDirection(0, null), null, "level 0 → no card");
 
 console.log("rights.test: ok");

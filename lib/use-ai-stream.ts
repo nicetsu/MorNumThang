@@ -6,7 +6,7 @@ type State = "idle" | "loading" | "done" | "error";
 
 // Shared reader for the /api/ai text stream. onChunk gets the accumulated text so
 // callers can either display it or pipe it into an editable field.
-export function useAiStream(kind: "summary" | "signals" | "care") {
+export function useAiStream(kind: "summary" | "signals" | "care" | "rights") {
   const [text, setText] = useState("");
   const [state, setState] = useState<State>("idle");
 

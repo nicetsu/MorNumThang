@@ -1,12 +1,15 @@
 import { createTextStreamResponse, toTextStream } from "ai";
 import { db } from "@/lib/db";
 import { getActivePatient } from "@/lib/patient";
-import { recommendServices, facilityGuidance } from "@/lib/rights";
+import { recommendServices, facilityGuidance, rightsDirection } from "@/lib/rights";
 import { inferSuspectedDiseases } from "@/lib/infer";
+import { hasFreeMedRight, matchFreeMedSymptom, FREE_MED_FACILITY } from "@/lib/free-meds";
+import { scoreLevel } from "@/lib/severity";
 import {
   streamDoctorSummary,
   streamHealthSignals,
   streamCareSuggestions,
+  streamRightsAdvice,
   type SummaryData,
 } from "@/lib/ai";
 
@@ -20,7 +23,7 @@ const streamers = {
 export async function POST(req: Request) {
   const { kind = "summary" } = await req.json().catch(() => ({}));
   const streamer = streamers[kind as keyof typeof streamers];
-  if (!streamer) return new Response("bad kind", { status: 400 });
+  if (!streamer && kind !== "rights") return new Response("bad kind", { status: 400 });
 
   const patient = await getActivePatient();
   if (!patient) return new Response("no patient", { status: 404 });
@@ -73,6 +76,31 @@ export async function POST(req: Request) {
     kind === "summary"
       ? fmtRights(recsExpanded.filter((r) => isDiseaseRule(r.rule.condition)))
       : fmtRights(recs);
+
+  // Inline สิทธิ suggestion — direction decided deterministically (rule 2), AI phrases it.
+  if (kind === "rights") {
+    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const recentObs = observations.filter((o) => o.at >= weekAgo);
+    const level = scoreLevel(recentObs.map((o) => o.severity));
+    const symptomTexts = recentObs.filter((o) => o.category !== "เรื่องดี").map((o) => o.text);
+    const freeMedSymptom = matchFreeMedSymptom(symptomTexts);
+    const direction = rightsDirection(level, freeMedSymptom);
+    if (!direction) return new Response("", { status: 200 }); // nothing to advise → empty
+    return createTextStreamResponse({
+      stream: toTextStream({
+        stream: streamRightsAdvice({
+          name: patient.name,
+          coverage: patient.coverage,
+          direction,
+          freeMedAvailable: hasFreeMedRight(patient.coverage),
+          freeMedFacility: FREE_MED_FACILITY,
+          symptom: freeMedSymptom,
+          recentSymptoms: symptomTexts,
+          eligibleServices: rights,
+        }).stream,
+      }),
+    });
+  }
 
   const data: SummaryData = {
     name: patient.name,

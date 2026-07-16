@@ -1,9 +1,9 @@
 // ponytail: per-request DB read — never prerender a stale snapshot.
 export const dynamic = "force-dynamic";
 
-import Link from "next/link";
 import { db } from "@/lib/db";
 import { getActivePatient } from "@/lib/patient";
+import { BackLink } from "@/components/back-link";
 import { removeAllergy } from "../list/actions";
 import { AllergyForm } from "./allergy-form";
 import { MedAddTabs } from "./med-add-tabs";
@@ -22,7 +22,7 @@ export default async function MedAdd() {
 
   return (
     <div className="space-y-6">
-      <Link href="/meds/list" className="back-link">← ยาของผู้รับการดูแล</Link>
+      <BackLink fallback="/meds/list">← กลับ</BackLink>
       <div>
         <p className="eyebrow">เพิ่มเข้ารายการยา</p>
         <h2 className="screen-title">จดยาที่ใช้อยู่</h2>

@@ -42,6 +42,33 @@ model Patient {
   appointments Appointment[]
   visits       VisitNote[]
   observations Observation[]
+  careTasks    CareTask[]
+  dailyChecks  DailyCheck[]
+}
+
+// A recurring daily to-do for the care calendar — the non-med categories
+// (สุขภาพ = health tracking, ฟื้นฟู = rehab). ยา items come from Medication.
+model CareTask {
+  id        String   @id @default(cuid())
+  patientId String
+  category  String // "สุขภาพ" | "ฟื้นฟู"
+  title     String
+  time      String? // "HH:MM" — optional
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  patient   Patient  @relation(fields: [patientId], references: [id])
+}
+
+// One row = a calendar item ("med:<id>" | "task:<id>") was marked done on `date`
+// (YYYY-MM-DD, Thai-local). Presence = done; toggling off deletes the row.
+model DailyCheck {
+  id        String  @id @default(cuid())
+  patientId String
+  itemKey   String
+  date      String
+  patient   Patient @relation(fields: [patientId], references: [id])
+
+  @@unique([patientId, itemKey, date])
 }
 
 // A narrative observation the caregiver told, AI-organized into a category.

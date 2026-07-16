@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 # ponytail: one-off Excel -> JSON converter for the health-rights reference data.
 # Avoids an xlsx npm dependency. Re-run when the sheet updates, then `npx prisma db seed`.
-#   python3 scripts/import_rights.py "06.04.69 Mock_Health_Navigator_Full(1).xlsx"
+#   python3 scripts/import_rights.py "07-16-69 Mock_Health_Navigator_Full.xlsx"
+# NOTE: the Medicine sheet (32 free-med อาการ) is a static list kept in lib/free-meds.ts,
+# not seeded to the DB — refresh it there by hand if the sheet's symptoms change.
 import json
 import sys
 import openpyxl
 
-SRC = sys.argv[1] if len(sys.argv) > 1 else "06.04.69 Mock_Health_Navigator_Full(1).xlsx"
+SRC = sys.argv[1] if len(sys.argv) > 1 else "07-16-69 Mock_Health_Navigator_Full.xlsx"
 OUT = "prisma/rights-data.json"
 
 

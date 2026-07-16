@@ -102,3 +102,19 @@ export function facilityGuidance(ruleFacility: string, hospital?: string | null)
   }
   return "ไปได้ทุกโรงพยาบาลตามสิทธิ";
 }
+
+// --- Inline suggestion direction (home/record/treatment card) ---
+// Deterministic gate + direction only (AGENTS.md rule 2). The AI writes the actual
+// wording tailored to the current symptom; it never decides eligibility or direction.
+//   "free-med": a minor current symptom (in the 32-list) → รับยาที่ร้านยา
+//   "doctor":   status is severe → พบแพทย์โดยใช้สิทธิ
+//   null:       nothing worth surfacing right now
+// level: 3 = ควรปรึกษาหมอ, 2 = ควรสังเกต, 0-1 = สบายดี.
+export function rightsDirection(
+  level: 0 | 1 | 2 | 3,
+  freeMedSymptom: string | null,
+): "free-med" | "doctor" | null {
+  if (level >= 3) return "doctor";
+  if (level === 2) return freeMedSymptom ? "free-med" : null;
+  return null;
+}

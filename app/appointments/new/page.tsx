@@ -1,9 +1,9 @@
 // ponytail: per-request DB read — never prerender a stale snapshot.
 export const dynamic = "force-dynamic";
 
-import Link from "next/link";
 import { db } from "@/lib/db";
 import { getActivePatient } from "@/lib/patient";
+import { BackLink } from "@/components/back-link";
 import { AppointmentTabs } from "./appointment-tabs";
 
 // New-appointment screen (prototype screen 12) with followup cards from past appointments.
@@ -33,7 +33,7 @@ export default async function NewAppointment() {
 
   return (
     <div className="space-y-4">
-      <Link href="/appointments" className="back-link">← นัดของผู้รับการดูแล</Link>
+      <BackLink fallback="/appointments">← กลับ</BackLink>
       <div>
         <p className="eyebrow">เพิ่มเข้าปฏิทินของบ้าน</p>
         <h2 className="screen-title">จดนัดใหม่</h2>

@@ -26,6 +26,17 @@ export async function POST(req: NextRequest) {
     create: { lineId: p.sub, name: p.name ?? null },
   });
 
+  // Swap the default (logged-out) rich menu for the member menu now that we know who they are.
+  // ponytail: fire-and-forget — a failed link (e.g. user hasn't added the OA) must not block login.
+  const memberMenu = process.env.LINE_RICHMENU_MEMBER;
+  const oaToken = process.env.LINE_CHANNEL_ACCESS_TOKEN;
+  if (memberMenu && oaToken) {
+    fetch(`https://api.line.me/v2/bot/user/${p.sub}/richmenu/${memberMenu}`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${oaToken}`, "Content-Length": "0" },
+    }).catch(() => {});
+  }
+
   const res = NextResponse.json({ ok: true });
   res.cookies.set(UID_COOKIE, user.id, { maxAge: 60 * 60 * 24 * 365, path: "/" });
   return res;

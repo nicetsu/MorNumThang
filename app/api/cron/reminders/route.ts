@@ -40,15 +40,18 @@ async function buildDaily(now: Date, round: "morning" | "evening") {
   const apptFrom = round === "evening" ? new Date(todayStart.getTime() + DAY) : todayStart;
   const apptTo = new Date(todayStart.getTime() + 2 * DAY);
 
-  const [appts, meds] = await Promise.all([
+  const [appts, meds, tasks] = await Promise.all([
     db.appointment.findMany({ where: { done: false, at: { gte: apptFrom, lt: apptTo } }, include: withCaregivers }),
     db.medication.findMany({ include: withCaregivers }),
+    // ponytail: care tasks are the daily routine, not date-stamped — remind the whole list in the morning only.
+    round === "morning" ? db.careTask.findMany({ orderBy: { sortOrder: "asc" }, include: withCaregivers }) : [],
   ]);
 
-  // one bucket of {appts[], medsByPatient} per user
-  type B = { appts: string[]; meds: Map<string, string[]> };
+  // one bucket of {appts[], medsByPatient, tasksByPatient} per user
+  type B = { appts: string[]; meds: Map<string, string[]>; tasks: Map<string, string[]> };
   const buckets = new Map<string, B>();
-  const bucket = (id: string) => buckets.get(id) ?? buckets.set(id, { appts: [], meds: new Map() }).get(id)!;
+  const bucket = (id: string) =>
+    buckets.get(id) ?? buckets.set(id, { appts: [], meds: new Map(), tasks: new Map() }).get(id)!;
 
   for (const a of appts) {
     const when = dayKeyFmt.format(a.at) === todayKey ? "วันนี้" : "พรุ่งนี้";
@@ -65,17 +68,29 @@ async function buildDaily(now: Date, round: "morning" | "evening") {
     }
   }
 
+  for (const t of tasks) {
+    const line = `• ${t.title}${t.time ? ` · ${t.time} น.` : ""}`;
+    for (const c of t.patient.caregivers) {
+      const map = bucket(c.lineId).tasks;
+      (map.get(t.patient.name) ?? map.set(t.patient.name, []).get(t.patient.name)!).push(line);
+    }
+  }
+
   const head = round === "evening" ? "หมอนำทาง · เตือนช่วงเย็น" : "หมอนำทาง · เตือนเช้านี้";
   const medHead = round === "evening" ? "ยามื้อเย็น/ก่อนนอน" : "ยาวันนี้";
   const apptHead = round === "evening" ? "นัดพรุ่งนี้" : "นัดหมอ";
   const out: { to: string; text: string }[] = [];
   for (const [lineId, b] of buckets) {
-    if (b.appts.length === 0 && b.meds.size === 0) continue;
+    if (b.appts.length === 0 && b.meds.size === 0 && b.tasks.size === 0) continue;
     const parts = [head];
     if (b.appts.length) parts.push(`\n${apptHead}\n` + b.appts.join("\n"));
     if (b.meds.size) {
       const blocks = [...b.meds].map(([name, lines]) => `${name}\n${lines.join("\n")}`);
       parts.push(`\n${medHead}\n` + blocks.join("\n"));
+    }
+    if (b.tasks.size) {
+      const blocks = [...b.tasks].map(([name, lines]) => `${name}\n${lines.join("\n")}`);
+      parts.push(`\nกิจกรรมวันนี้\n` + blocks.join("\n"));
     }
     out.push({ to: lineId, text: parts.join("\n") });
   }

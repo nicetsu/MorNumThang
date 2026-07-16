@@ -14,6 +14,13 @@ type Liff = {
 };
 
 export function LineLogin({ redirectTo = "/patients" }: { redirectTo?: string }) {
+  // Rich-menu buttons deep-link as ?next=/logs etc. so every tap lands on the right page after login.
+  // ponytail: same-origin path only — reject absolute URLs so ?next can't become an open redirect.
+  function nextPath(fallback: string) {
+    if (typeof window === "undefined") return fallback;
+    const n = new URLSearchParams(window.location.search).get("next");
+    return n && n.startsWith("/") && !n.startsWith("//") ? n : fallback;
+  }
   const liffRef = useRef<Liff | null>(null);
   const [status, setStatus] = useState<"init" | "ready" | "error">("init");
   const [msg, setMsg] = useState("");
@@ -30,7 +37,7 @@ export function LineLogin({ redirectTo = "/patients" }: { redirectTo?: string })
       body: JSON.stringify({ idToken }),
     });
     if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error ?? `login ล้มเหลว (${r.status})`);
-    window.location.replace(redirectTo); // hard nav so the fresh cookie is sent
+    window.location.replace(nextPath(redirectTo)); // hard nav so the fresh cookie is sent
   }
 
   useEffect(() => {
@@ -82,7 +89,10 @@ export function LineLogin({ redirectTo = "/patients" }: { redirectTo?: string })
         setMsg(e instanceof Error ? e.message : String(e));
       });
     } else {
-      liff.login({ redirectUri: window.location.origin + window.location.pathname });
+      // Keep ?next through the OAuth round-trip (but drop ?logout=1) so the deep link survives login.
+      const n = nextPath("");
+      const back = window.location.origin + window.location.pathname + (n ? `?next=${encodeURIComponent(n)}` : "");
+      liff.login({ redirectUri: back });
     }
   }
 

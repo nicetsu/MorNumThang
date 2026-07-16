@@ -49,17 +49,18 @@ async function seedPatient() {
   }
 }
 
-// ponytail: guarded by a count check so re-seeding is idempotent; re-run
-// scripts/import_rights.py then `db seed` to refresh when the sheet updates.
+// Re-run scripts/import_rights.py then `db seed` to refresh when the sheet updates.
 async function seedRights() {
-  if ((await prisma.recommendationRule.count()) > 0) return;
   const d: RightsData = JSON.parse(readFileSync(new URL("./rights-data.json", import.meta.url), "utf-8"));
-  await prisma.healthRight.createMany({ data: d.rights });
-  await prisma.service.createMany({ data: d.services });
-  await prisma.agency.createMany({ data: d.agencies });
-  await prisma.facility.createMany({ data: d.facilities });
-  await prisma.recommendationRule.createMany({ data: d.rules });
-  await prisma.requiredDoc.createMany({ data: d.docs });
+  // String-id tables (R001/S001/A001/F001…): skipDuplicates adds only new rows, so a
+  // sheet update (e.g. the 30 new facilities) flows in on re-seed without wiping the rest.
+  await prisma.healthRight.createMany({ data: d.rights, skipDuplicates: true });
+  await prisma.service.createMany({ data: d.services, skipDuplicates: true });
+  await prisma.agency.createMany({ data: d.agencies, skipDuplicates: true });
+  await prisma.facility.createMany({ data: d.facilities, skipDuplicates: true });
+  // Autoincrement PKs — skipDuplicates can't dedupe by content, so guard against re-insert.
+  if ((await prisma.recommendationRule.count()) === 0) await prisma.recommendationRule.createMany({ data: d.rules });
+  if ((await prisma.requiredDoc.count()) === 0) await prisma.requiredDoc.createMany({ data: d.docs });
 }
 
 // ponytail: one seeded patient ("ผู้รับการดูแล") + the health-rights reference tables.

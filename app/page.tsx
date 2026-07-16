@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { getActivePatient, PID_COOKIE } from "@/lib/patient";
 import { dotClass, scoreLevel, LEVEL } from "@/lib/severity";
+import { RightsSuggestion } from "@/components/rights-suggestion";
 
 function fmt(at: Date) {
   return new Intl.DateTimeFormat("th-TH", {
@@ -86,6 +87,9 @@ export default async function Home() {
         <em>แตะเพื่อดูผลวิเคราะห์จาก AI →</em>
       </Link>
 
+      {/* Inline สิทธิ hint — AI phrases it for the current อาการ; direction decided in code. */}
+      <RightsSuggestion />
+
       {/* Reminder cards: next med + next appointment — always both, like the prototype. */}
       <div className="reminder-cards">
         <Link href="/meds/list" className="reminder-card">
@@ -117,6 +121,14 @@ export default async function Home() {
           )}
         </Link>
       </div>
+
+      <Link
+        href="/calendar"
+        className="flex items-center justify-between rounded-[18px] bg-teal px-5 py-4 font-bold text-white"
+      >
+        <span>วันนี้ต้องทำอะไรบ้าง</span>
+        <span aria-hidden>→</span>
+      </Link>
 
       <section>
         <div className="section-heading">
