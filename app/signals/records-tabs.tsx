@@ -11,17 +11,18 @@ type Item = {
   trend: { text: string; up: boolean } | null;
   dotClass: string;
 };
+type DayGroup = { key: string; label: string; level: number; badge: string; cls: string; items: Item[] };
 type Aeh = { id: string; icon: string; text: string; category: string; risk: { label: string; cls: string } };
 
-// "บันทึกของผู้รับการดูแล" (prototype screen 15): event timeline + AI "เอ๊ะ" analysis.
+// "บันทึกของผู้รับการดูแล" (prototype screen 15): 7-day-by-day timeline + AI "เอ๊ะ" analysis.
 export function RecordsTabs({
-  timeline,
+  days,
   aeh,
   score,
   level,
   defaultView,
 }: {
-  timeline: Item[];
+  days: DayGroup[];
   aeh: Aeh[];
   score: { badge: string; label: string; cls: string };
   level: number;
@@ -42,30 +43,38 @@ export function RecordsTabs({
 
       {view === "all" ? (
         <>
-          <p className="lead">ทุกเรื่องที่ครอบครัวช่วยกันจดไว้ เรียงตามเวลา</p>
-          {timeline.length === 0 ? (
-            <p className="rounded-[18px] border border-dashed border-line p-6 text-center text-muted-foreground">
-              ยังไม่มีบันทึก
-            </p>
-          ) : (
-            <div className="timeline">
-              {timeline.map((e) => (
-                <article key={e.id}>
-                  <time>{e.time}</time>
-                  <span className={`dot ${e.dotClass}`} aria-hidden />
-                  <div>
-                    <small>{e.label}</small>
-                    <strong>
-                      {e.text}
-                      {e.trend && (
-                        <b className={e.trend.up ? "text-[#2f9e44]" : "text-red"}> {e.trend.text}</b>
-                      )}
-                    </strong>
+          <p className="lead">บันทึก 7 วันย้อนหลัง แยกตามวัน · สีของแต่ละวันมาจากอาการที่ควรใส่ใจที่สุดของวันนั้น</p>
+          <div className="day-groups">
+            {days.map((d) => (
+              <section key={d.key} className={`day-card ${d.cls}`}>
+                <header className="day-card-head">
+                  <strong>{d.label}</strong>
+                  {d.level > 0 && <span className="day-badge">{d.badge}</span>}
+                </header>
+                {d.items.length === 0 ? (
+                  <p className="day-empty">ไม่มีบันทึกวันนี้</p>
+                ) : (
+                  <div className="timeline">
+                    {d.items.map((e) => (
+                      <article key={e.id}>
+                        <time>{e.time}</time>
+                        <span className={`dot ${e.dotClass}`} aria-hidden />
+                        <div>
+                          <small>{e.label}</small>
+                          <strong>
+                            {e.text}
+                            {e.trend && (
+                              <b className={e.trend.up ? "text-[#2f9e44]" : "text-red"}> {e.trend.text}</b>
+                            )}
+                          </strong>
+                        </div>
+                      </article>
+                    ))}
                   </div>
-                </article>
-              ))}
-            </div>
-          )}
+                )}
+              </section>
+            ))}
+          </div>
           <Link href="/summary" className="btn-primary grid place-items-center">สรุปให้หมอ</Link>
         </>
       ) : (

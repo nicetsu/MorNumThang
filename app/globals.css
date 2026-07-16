@@ -477,6 +477,82 @@
     font-style: normal;
   }
 
+  /* Per-day groups (7-day view). Box color = floor level of that day's symptoms:
+     0 white, 1 green, 2 yellow, 3 orange — same palette as .doctor-score. */
+  .day-groups {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .day-card {
+    padding: 14px 16px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: #fff;
+  }
+  .day-card.lvl-1 {
+    background: #e8f5ec;
+    border-color: #b7e0c4;
+  }
+  .day-card.lvl-2 {
+    background: var(--amber-soft);
+    border-color: #f0d9a6;
+  }
+  .day-card.lvl-3 {
+    background: var(--clay-soft);
+    border-color: #e8b8b2;
+  }
+  .day-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .day-card-head strong {
+    font-size: 17px;
+  }
+  .day-badge {
+    flex: none;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 800;
+    background: rgba(43, 43, 40, 0.08);
+    color: var(--ink);
+  }
+  .day-card.lvl-1 .day-badge {
+    background: #2f9e44;
+    color: #fff;
+  }
+  .day-card.lvl-2 .day-badge {
+    background: var(--amber);
+    color: #5d4a23;
+  }
+  .day-card.lvl-3 .day-badge {
+    background: var(--clay);
+    color: #fff;
+  }
+  .day-empty {
+    padding: 2px 0;
+    color: var(--muted-foreground);
+    font-size: 15px;
+  }
+  /* Inside a day card the timeline needs no date column — tighten the time gutter. */
+  .day-card .timeline article {
+    min-height: 60px;
+    padding: 0 0 14px 64px;
+  }
+  .day-card .timeline article::after {
+    left: 44px;
+  }
+  .day-card .timeline time {
+    width: 40px;
+  }
+  .day-card .timeline .dot {
+    left: 37px;
+  }
+
   /* Reminder cards */
   .reminder-cards {
     display: grid;
