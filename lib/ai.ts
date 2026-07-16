@@ -269,16 +269,19 @@ const LABEL_SYSTEM = `คุณช่วยอ่านฉลากยาจา�
 - ถ้ารูปอ่านไม่ออก ไม่สมเหตุสมผล หรือไม่ใช่ฉลากยาเลย
   ห้ามคิดชื่อยาหรือข้อมูลใด ๆ ขึ้นเองเด็ดขาด ให้ตอบค่าว่างทุกช่องแทน
 - ตอบกลับเป็น JSON เท่านั้น ห้ามมีข้อความอื่น รูปแบบ:
-  {"name":"","quantity":"","usage":"","mealTiming":""}
+  {"name":"","quantity":"","usage":"","mealTiming":"","times":[]}
   - name: ชื่อยาพร้อมความแรงถ้ามีระบุ เช่น "Paracetamol 500 mg"
   - quantity: จำนวนที่ระบุ เช่น "20 เม็ด"
   - usage: วิธีใช้ตามฉลาก เช่น "รับประทานครั้งละ 1 เม็ด ทุก 6 ชั่วโมง เมื่อมีอาการปวด"
   - mealTiming: หนึ่งใน "ก่อนอาหาร", "หลังอาหาร", "ไม่ระบุ"
-  ช่องไหนไม่มีข้อมูลให้เป็นสตริงว่าง ""`;
+  - times: ช่วงเวลาที่ต้องกินยาตามที่ระบุบนฉลาก เป็น array เลือกจาก ["เช้า","กลางวัน","เย็น","ก่อนนอน"]
+    ใส่เฉพาะช่วงที่ฉลากทำเครื่องหมายถูก/ระบายทึบ/เขียนคำไว้จริงเท่านั้น (เช่น "วันละ 3 ครั้ง เช้า กลางวัน เย็น" → ["เช้า","กลางวัน","เย็น"])
+    ถ้าฉลากไม่ได้ระบุช่วงเวลาชัดเจน ให้เป็น [] ห้ามเดา
+  ช่องไหนไม่มีข้อมูลให้เป็นสตริงว่าง "" (ยกเว้น times ที่ให้เป็น [])`;
 
-export type DrugLabelInfo = { name: string; quantity: string; usage: string; mealTiming: string };
+export type DrugLabelInfo = { name: string; quantity: string; usage: string; mealTiming: string; times: string[] };
 
-const emptyLabel: DrugLabelInfo = { name: "", quantity: "", usage: "", mealTiming: "ไม่ระบุ" };
+const emptyLabel: DrugLabelInfo = { name: "", quantity: "", usage: "", mealTiming: "ไม่ระบุ", times: [] };
 
 // Direct fetch keeps the image payload explicit and lets us disable thinking for compact JSON.
 async function visionExtract(system: string, ask: string, imageDataUrl: string): Promise<string> {
@@ -313,11 +316,13 @@ export async function structureDrugLabel(imageDataUrl: string): Promise<DrugLabe
   if (match) {
     try {
       const obj = JSON.parse(match[0]);
+      const allowed = ["เช้า", "กลางวัน", "เย็น", "ก่อนนอน"];
       return {
         name: String(obj?.name ?? "").trim(),
         quantity: String(obj?.quantity ?? "").trim(),
         usage: String(obj?.usage ?? "").trim(),
         mealTiming: String(obj?.mealTiming ?? "ไม่ระบุ").trim() || "ไม่ระบุ",
+        times: (Array.isArray(obj?.times) ? obj.times : []).map((t: unknown) => String(t).trim()).filter((t: string) => allowed.includes(t)),
       };
     } catch {
       // fall through to fallback

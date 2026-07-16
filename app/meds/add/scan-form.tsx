@@ -1,12 +1,14 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { toWhenTimes } from "@/lib/meds";
 
 export type ScannedLabel = {
   name: string;
   quantity: string;
   usage: string;
   mealTiming: string;
+  times: string[];
   rawText?: string;
   disclaimer?: string;
 };
@@ -113,6 +115,11 @@ export function ScanForm({ onUse }: { onUse: (label: ScannedLabel) => void }) {
               <b>ก่อน/หลังอาหาร</b>
               <br />
               {result.mealTiming || "ไม่ระบุ"}
+            </p>
+            <p>
+              <b>เวลาที่ต้องทาน</b>
+              <br />
+              {toWhenTimes(result.mealTiming, result.times).join(" · ") || "— ไม่ระบุบนฉลาก —"}
             </p>
           </div>
           <p className="border-t border-line pt-2 text-xs text-muted-foreground">{result.disclaimer}</p>

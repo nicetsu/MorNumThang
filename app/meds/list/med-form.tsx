@@ -147,7 +147,13 @@ function ThaiTimePicker({
   );
 }
 
-export type MedPrefill = { name?: string; remaining?: string; whenTime?: string; dose?: number };
+export type MedPrefill = {
+  name?: string;
+  remaining?: string;
+  whenTime?: string; // single-slot prefill (legacy)
+  dose?: number;
+  schedules?: { whenTime: string; dose: number }[]; // multi-slot prefill (from a scanned label)
+};
 
 export function MedForm({
   allergies,
@@ -163,11 +169,15 @@ export function MedForm({
     {},
   );
   const [med, setMed] = useState(prefill?.name ?? "");
-  const [schedules, setSchedules] = useState<{ whenTime: string; customTime: string; dose: number }[]>([
-    prefill?.whenTime
-      ? { whenTime: prefill.whenTime, customTime: "08:00", dose: prefill.dose ?? 1 }
-      : { whenTime: "หลังอาหารเช้า", customTime: "08:00", dose: 1 },
-  ]);
+  const [schedules, setSchedules] = useState<{ whenTime: string; customTime: string; dose: number }[]>(
+    prefill?.schedules?.length
+      ? prefill.schedules.map((s) => ({ whenTime: s.whenTime, customTime: "08:00", dose: s.dose }))
+      : [
+          prefill?.whenTime
+            ? { whenTime: prefill.whenTime, customTime: "08:00", dose: prefill.dose ?? 1 }
+            : { whenTime: "หลังอาหารเช้า", customTime: "08:00", dose: 1 },
+        ],
+  );
 
   useEffect(() => {
     if (state.ok) toast.success(state.ok);

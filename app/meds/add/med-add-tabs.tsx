@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toWhenTimes } from "@/lib/meds";
 import { MedForm, type MedPrefill } from "../list/med-form";
 import { ScanForm, type ScannedLabel } from "./scan-form";
 
@@ -22,12 +23,16 @@ export function MedAddTabs({ allergies, drugs }: { allergies: string[]; drugs: s
   const [formKey, setFormKey] = useState(0);
 
   function handleUse(label: ScannedLabel) {
+    const dose = parseDose(label.usage) ?? 1;
+    // Turn the label's marked periods (เช้า/กลางวัน/เย็น/ก่อนนอน) + ก่อน/หลังอาหาร into
+    // one schedule per slot. Nothing marked → single "ตามแพทย์สั่ง" for the caregiver to set.
+    const whenTimes = toWhenTimes(label.mealTiming, label.times);
     setPrefill({
       name: label.name || undefined,
       remaining: parseRemaining(label.quantity),
-      // ไม่เดามื้อที่แน่ชัด (เช้า/กลางวัน/เย็น) จาก OCR — ให้ผู้ดูแลเลือกเองจากวิธีใช้ที่แสดงไว้
-      whenTime: "ตามแพทย์สั่ง",
-      dose: parseDose(label.usage),
+      schedules: whenTimes.length
+        ? whenTimes.map((whenTime) => ({ whenTime, dose }))
+        : [{ whenTime: "ตามแพทย์สั่ง", dose }],
     });
     setFormKey((k) => k + 1);
     setMode("manual");
