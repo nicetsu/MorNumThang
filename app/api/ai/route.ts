@@ -10,6 +10,7 @@ import {
   streamHealthSignals,
   streamCareSuggestions,
   streamRightsAdvice,
+  stripDenyRightsLines,
   type SummaryData,
 } from "@/lib/ai";
 
@@ -115,5 +116,7 @@ export async function POST(req: Request) {
     suspected: kind === "summary" && suspectedNew.length ? suspectedNew.join(", ") : null,
   };
 
-  return createTextStreamResponse({ stream: toTextStream({ stream: streamer(data).stream }) });
+  return createTextStreamResponse({
+    stream: stripDenyRightsLines(toTextStream({ stream: streamer(data).stream })),
+  });
 }

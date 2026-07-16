@@ -1,10 +1,11 @@
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { streamText, generateText } from "ai";
 
-// Two providers, picked by AI_PROVIDER (default "nvidia"). Each preset is base+key+model as a
-// set so you never mix one provider's URL with another's model. Any single value can still be
-// overridden by AI_BASE_URL / AI_API_KEY / AI_MODEL. (AGENTS.md rule 1: server-side only.)
-// ponytail: two hardcoded presets, not a plugin registry — add a third the day there is one.
+// Preset = base+key+model as a set so you never mix one provider's URL with another's model.
+// Two independent lanes: TEXT (summaries/organize) and VISION (photo OCR) — each picks its own
+// preset and can be overridden per-value by env. Text is Thai chat (typhoon on thaillm.or.th);
+// vision needs a multimodal model (glm-4.5v on z.ai). (AGENTS.md rule 1: server-side only.)
+// ponytail: three hardcoded presets, not a plugin registry — add one the day there is a fourth.
 const PRESETS = {
   nvidia: {
     baseURL: "https://integrate.api.nvidia.com/v1",
@@ -12,24 +13,39 @@ const PRESETS = {
     model: "google/diffusiongemma-26b-a4b-it",
   },
   zai: {
-    // Vision (drug-label / appointment OCR) needs a vision model — set AI_MODEL=glm-4.5v for those.
     baseURL: "https://api.z.ai/api/paas/v4",
     apiKey: process.env.ZAI_API_KEY,
-    model: "glm-4.6",
+    model: "glm-4.5v", // vision-capable
+  },
+  thaillm: {
+    baseURL: "http://thaillm.or.th/api/v1",
+    apiKey: process.env.THAILLM_API_KEY,
+    model: "typhoon-s-thaillm-8b-instruct", // Thai chat, fast, no <think> block
   },
 };
-const PROVIDER = (process.env.AI_PROVIDER ?? "nvidia") as keyof typeof PRESETS;
-const preset = PRESETS[PROVIDER] ?? PRESETS.nvidia;
 
-const AI_BASE_URL = process.env.AI_BASE_URL || preset.baseURL;
-const AI_API_KEY = process.env.AI_API_KEY || preset.apiKey;
-const AI_MODEL = process.env.AI_MODEL || preset.model;
+// TEXT lane — Thai summaries/organize. Default thaillm/typhoon.
+const TEXT_PROVIDER = (process.env.AI_PROVIDER ?? "thaillm") as keyof typeof PRESETS;
+const textPreset = PRESETS[TEXT_PROVIDER] ?? PRESETS.thaillm;
+const AI_BASE_URL = process.env.AI_BASE_URL || textPreset.baseURL;
+const AI_API_KEY = process.env.AI_API_KEY || textPreset.apiKey;
+const AI_MODEL = process.env.AI_MODEL || textPreset.model;
+
+// VISION lane — photo OCR (drug label / appointment slip). Default zai/glm-4.5v.
+const VISION_PROVIDER = (process.env.VISION_PROVIDER ?? "zai") as keyof typeof PRESETS;
+const visionPreset = PRESETS[VISION_PROVIDER] ?? PRESETS.zai;
+const VISION_BASE_URL = process.env.VISION_BASE_URL || visionPreset.baseURL;
+const VISION_API_KEY = process.env.VISION_API_KEY || visionPreset.apiKey;
+const VISION_MODEL = process.env.VISION_MODEL || visionPreset.model;
 
 // Disable model "thinking": each provider spells it differently. Reasoning eats the response
 // budget and truncates short Thai summaries; medical safety stays deterministic code regardless.
-function disableThinking(b: Record<string, unknown>) {
-  if (PROVIDER === "zai") {
+function disableThinking(b: Record<string, unknown>, kind: keyof typeof PRESETS) {
+  if (kind === "zai") {
     b.thinking = { type: "disabled" };
+  } else if (kind === "thaillm") {
+    // vLLM: rejects reasoning_effort:"none"; typhoon emits no think anyway. Flag is belt-and-suspenders.
+    b.chat_template_kwargs = { ...(b.chat_template_kwargs as object), enable_thinking: false };
   } else {
     b.reasoning_effort ??= "none";
     b.chat_template_kwargs = { ...(b.chat_template_kwargs as object), enable_thinking: false };
@@ -39,13 +55,13 @@ function disableThinking(b: Record<string, unknown>) {
 
 // Server-side only. Endpoint + key live in env, never shipped to the client (AGENTS.md rule 1).
 const provider = createOpenAICompatible({
-  name: PROVIDER,
+  name: TEXT_PROVIDER,
   baseURL: AI_BASE_URL,
   apiKey: AI_API_KEY,
   fetch: async (url, init) => {
     if (typeof init?.body === "string" && String(url).includes("/chat/completions")) {
       try {
-        init = { ...init, body: JSON.stringify(disableThinking(JSON.parse(init.body))) };
+        init = { ...init, body: JSON.stringify(disableThinking(JSON.parse(init.body), TEXT_PROVIDER)) };
       } catch {}
     }
     return fetch(url, init);
@@ -59,11 +75,13 @@ export const AI_DISCLAIMER =
 // The model summarizes/organizes — it does not diagnose or prescribe (AGENTS.md rule 2).
 const SYSTEM_PROMPT = `คุณคือผู้ช่วยเรียบเรียงข้อมูลสุขภาพเป็นภาษาไทย สำหรับให้ผู้ดูแลนำไปเล่าให้คุณหมอฟัง
 กฎที่ต้องทำตามเสมอ:
-- สรุปและจัดระเบียบข้อมูลที่ได้รับเท่านั้น ห้ามวินิจฉัยโรคหรือสั่ง/แนะนำยาเด็ดขาด
+- สรุปและจัดระเบียบเฉพาะข้อมูลที่ได้รับเท่านั้น ห้ามวินิจฉัยโรคหรือสั่ง/แนะนำยาเด็ดขาด
 - ใช้เฉพาะข้อมูลที่ให้มา ห้ามเดาหรือเติมข้อมูลที่ไม่มี
-- เขียนสั้น กระชับ อ่านง่าย เป็นหัวข้อ ด้วยน้ำเสียงอ่อนโยน
-- ถ้าข้อมูลไม่พอ ให้บอกว่ายังไม่มีข้อมูลในส่วนนั้น
-- เรื่องสิทธิ/บริการ: อ้างอิงได้เฉพาะรายการที่ระบบตรวจสอบสิทธิให้มาแล้วเท่านั้น ห้ามตัดสินเองว่าใครมีสิทธิหรือไม่ ห้ามเดาบริการที่ไม่ได้ให้มา
+- ห้ามเพิ่มหัวข้อที่ไม่มีข้อมูลรองรับ ถ้าเรื่องใดไม่มีข้อมูล ให้ข้ามไปเลย ไม่ต้องเขียนถึง
+- เขียนสั้น กระชับ อ่านง่าย เป็นหัวข้อ ด้วยน้ำเสียงอ่อนโยน ไม่ต้องมีคำเตือนหรือหัวข้อสรุปซ้ำท้าย
+- เรื่องสิทธิ/บริการการรักษา: เขียนถึงได้เฉพาะเมื่อมีรายการที่ระบบตรวจสอบสิทธิให้มาในข้อมูลเท่านั้น
+  ถ้าข้อมูลที่ให้มาไม่มีเรื่องสิทธิ/บริการ ห้ามเขียนถึงสิทธิหรือบริการใด ๆ เลย แม้แต่จะบอกว่า "ยังไม่มีข้อมูลสิทธิ" ก็ห้ามเขียน ให้ข้ามเรื่องนี้ไปทั้งหมด
+  ห้ามเดาชื่อสิทธิ เช่น บัตรทอง ประกันสังคม สปสช. โดยเด็ดขาด
 - โรคที่ "อาจเกี่ยวข้อง": เป็นการชวนสังเกตจากอาการ ไม่ใช่การวินิจฉัย ให้เขียนทำนอง "อาการนี้อาจเกี่ยวข้องกับ X ควรให้คุณหมอตรวจยืนยัน" ห้ามระบุว่าผู้ป่วยเป็นโรคนั้นแน่นอน`;
 
 export type SummaryData = {
@@ -135,6 +153,32 @@ function run(system: string, prompt: string) {
 
 export function streamDoctorSummary(data: SummaryData) {
   return run(SYSTEM_PROMPT, buildUserPrompt(data, SUMMARY_CLOSING));
+}
+
+// Belt-and-suspenders: the prompt forbids it, but ~1/6 of the time typhoon still slips in a line
+// denying it has สิทธิ data ("ไม่มีข้อมูลสิทธิ…") when none was provided. Drop any such line.
+// Line-buffered so it works mid-stream without peeking at the tail. Kept lines keep their newline.
+// ponytail: string filter over a couple of stock phrasings — ceiling: won't split a mixed line, and
+// would drop a genuine "ไม่มี…สิทธิ" observation; neither occurs in this app's data. Tighten if one does.
+const DENY_RIGHTS_LINE = /(ไม่มี|ยังไม่)[^\n]{0,12}สิทธิ/;
+export function stripDenyRightsLines(src: ReadableStream<string>): ReadableStream<string> {
+  let buf = "";
+  return src.pipeThrough(
+    new TransformStream<string, string>({
+      transform(chunk, ctrl) {
+        buf += chunk;
+        let nl: number;
+        while ((nl = buf.indexOf("\n")) !== -1) {
+          const line = buf.slice(0, nl + 1);
+          buf = buf.slice(nl + 1);
+          if (!DENY_RIGHTS_LINE.test(line)) ctrl.enqueue(line);
+        }
+      },
+      flush(ctrl) {
+        if (buf && !DENY_RIGHTS_LINE.test(buf)) ctrl.enqueue(buf);
+      },
+    }),
+  );
 }
 
 // §4.2 Health signals — observe recurring patterns, never diagnose.
@@ -285,11 +329,11 @@ const emptyLabel: DrugLabelInfo = { name: "", quantity: "", usage: "", mealTimin
 
 // Direct fetch keeps the image payload explicit and lets us disable thinking for compact JSON.
 async function visionExtract(system: string, ask: string, imageDataUrl: string): Promise<string> {
-  const res = await fetch(`${AI_BASE_URL}/chat/completions`, {
+  const res = await fetch(`${VISION_BASE_URL}/chat/completions`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${AI_API_KEY}` },
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${VISION_API_KEY}` },
     body: JSON.stringify(disableThinking({
-      model: AI_MODEL,
+      model: VISION_MODEL,
       messages: [
         { role: "system", content: system },
         { role: "user", content: [
@@ -300,7 +344,7 @@ async function visionExtract(system: string, ask: string, imageDataUrl: string):
       temperature: 0.1,
       max_tokens: 1024,
       stream: false,
-    })),
+    }, VISION_PROVIDER)),
   });
   if (!res.ok) throw new Error(`OCR vision error ${res.status}`);
   const data = await res.json();
