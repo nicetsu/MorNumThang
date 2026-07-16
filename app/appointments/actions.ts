@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
+import { notifyCaregivers } from "@/lib/line";
 import { getActivePatientOrThrow } from "@/lib/patient";
 
 async function patientId() {
@@ -22,14 +23,31 @@ function parseAt(formData: FormData) {
   return at;
 }
 
+function fmtAt(at: Date) {
+  return new Intl.DateTimeFormat("th-TH", {
+    timeZone: "Asia/Bangkok",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(at);
+}
+
+function apptMessage(head: string, note: string | null, at: Date, place: string | null) {
+  return [head, note ?? "นัดหมอ", fmtAt(at), place].filter(Boolean).join("\n");
+}
+
 export async function addAppointment(formData: FormData) {
   const note = String(formData.get("note") ?? "").trim() || null;
   const place = String(formData.get("place") ?? "").trim() || null;
   const at = parseAt(formData);
+  const pid = await patientId();
 
   await db.appointment.create({
-    data: { patientId: await patientId(), at, note, place },
+    data: { patientId: pid, at, note, place },
   });
+  await notifyCaregivers(pid, apptMessage("หมอนำทาง · นัดใหม่", note, at, place));
   revalidatePath("/appointments");
   revalidatePath("/");
   redirect("/appointments");
@@ -47,7 +65,12 @@ export async function rescheduleAppointment(formData: FormData) {
   const id = String(formData.get("id") ?? "");
   if (!id) return;
   const at = parseAt(formData);
-  await db.appointment.update({ where: { id }, data: { at } });
+  const appt = await db.appointment.update({
+    where: { id },
+    data: { at },
+    select: { patientId: true, note: true, place: true },
+  });
+  await notifyCaregivers(appt.patientId, apptMessage("หมอนำทาง · เลื่อนนัดแล้ว", appt.note, at, appt.place));
   revalidatePath("/appointments");
   revalidatePath("/");
 }

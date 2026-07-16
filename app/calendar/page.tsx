@@ -18,7 +18,6 @@ const DEFAULT_TASKS: { category: string; title: string }[] = [
   { category: "สุขภาพ", title: "วัดความดัน" },
   { category: "สุขภาพ", title: "ตรวจน้ำตาล" },
   { category: "สุขภาพ", title: "วัดไข้" },
-  { category: "สุขภาพ", title: "วัดออกซิเจนปลายนิ้ว" },
   { category: "ฟื้นฟู", title: "กายภาพบำบัด" },
   { category: "ฟื้นฟู", title: "เดินออกกำลังกาย" },
   { category: "ฟื้นฟู", title: "ยืดเหยียด" },
