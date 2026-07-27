@@ -32,14 +32,3 @@ export function isAllergic(name: string, allergies: string[]): boolean {
     return nameTokens(a).some((t) => medLower.includes(t) || medTokens.includes(t));
   });
 }
-
-// Fixed pick-list from the prototype.
-export const MED_OPTIONS = [
-  "ยาความดัน",
-  "แอสไพริน",
-  "ยาลดไขมัน",
-  "ยาละลายลิ่มเลือด",
-  "พาราเซตามอล",
-  "เพนิซิลลิน",
-  "ยาแก้อักเสบ (NSAIDs)",
-];

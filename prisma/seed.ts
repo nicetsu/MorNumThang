@@ -49,6 +49,29 @@ async function seedPatient() {
   }
 }
 
+// Pick-list for the เพิ่มยา dropdown — generic names an elderly-care caregiver would
+// recognize, ported from the prototype's MED_OPTIONS (lib/allergy.ts, now removed as
+// dead code) plus a few more common categories seen in the seeded patients' diseases.
+const DRUGS: { name: string; category: string }[] = [
+  { name: "ยาความดัน", category: "หัวใจและหลอดเลือด" },
+  { name: "ยาเบาหวาน", category: "เบาหวาน" },
+  { name: "แอสไพริน", category: "หัวใจและหลอดเลือด" },
+  { name: "ยาลดไขมัน", category: "หัวใจและหลอดเลือด" },
+  { name: "ยาละลายลิ่มเลือด", category: "หัวใจและหลอดเลือด" },
+  { name: "พาราเซตามอล", category: "แก้ปวดลดไข้" },
+  { name: "เพนิซิลลิน", category: "ยาปฏิชีวนะ" },
+  { name: "ยาแก้อักเสบ (NSAIDs)", category: "แก้ปวดลดอักเสบ" },
+  { name: "ยาลดกรดในกระเพาะ", category: "ระบบทางเดินอาหาร" },
+  { name: "ยาบำรุงกระดูก (แคลเซียม)", category: "กระดูกและข้อ" },
+  { name: "ยาแก้แพ้", category: "ภูมิแพ้" },
+  { name: "ยาระบาย", category: "ระบบขับถ่าย" },
+];
+
+// ponytail: plain skipDuplicates upsert — same idempotent shape as the rights tables below.
+async function seedDrugs() {
+  await prisma.drug.createMany({ data: DRUGS, skipDuplicates: true });
+}
+
 // Re-run scripts/import_rights.py then `db seed` to refresh when the sheet updates.
 async function seedRights() {
   const d: RightsData = JSON.parse(readFileSync(new URL("./rights-data.json", import.meta.url), "utf-8"));
@@ -66,6 +89,7 @@ async function seedRights() {
 // ponytail: one seeded patient ("ผู้รับการดูแล") + the health-rights reference tables.
 async function main() {
   await seedPatient();
+  await seedDrugs();
   await seedRights();
 }
 
