@@ -12,8 +12,10 @@ for large touch targets and low-literacy users. Reference prototype: `mornumthan
 - Tailwind + shadcn/ui. Add components with `npx shadcn@latest add <name>` — only when needed.
 - Prisma + **PostgreSQL** (Supabase; one DB for dev and prod). Migrate with `migrate dev --create-only`
   then `migrate deploy` so the shared DB isn't reseeded. Generated client: `app/generated/prisma/`.
-- AI: **google/diffusiongemma-26b-a4b-it** via NVIDIA's OpenAI-compatible endpoint, **server-side only**.
-  The same multimodal model handles text and photo scans with thinking disabled.
+- AI over OpenAI-compatible endpoints, **server-side only**, in two lanes (`PRESETS` in `lib/ai.ts`, thinking
+  disabled on both): **TEXT** = `thaillm`/`typhoon-s-thaillm-8b-instruct` for Thai summaries/organizing,
+  **VISION** = `zai`/`glm-4.5v` for drug-label and appointment-slip photo scans. Provider/model/key are all
+  env-overridable; an `nvidia`/`diffusiongemma` preset is also available.
 
 ## Golden rules
 1. **Server-side AI only.** Model endpoint/key live in env (`AI_BASE_URL`, `NVIDIA_API_KEY`, `AI_MODEL`).
@@ -30,20 +32,26 @@ for large touch targets and low-literacy users. Reference prototype: `mornumthan
    (`HealthRight` = สิทธิ์, `Facility` = สถานพยาบาล, `Service`, `RecommendationRule`) instead of hardcoding
    lists in the component. Grep `components/` and `prisma/schema.prisma` before you invent either.
 
-## Layout (target)
+## Layout
 ```
-app/            routes/screens + Server Actions; app/api/ai/route.ts for streaming AI
-components/      shadcn ui/ + app components
-lib/            ai.ts (DiffusionGemma text + vision client), db.ts (prisma), allergy.ts (deterministic checks)
-prisma/         schema.prisma, migrations, seed.ts
+app/            routes/screens + Server Actions; api/ai (streaming), api/{meds,appointments}/scan (vision),
+                api/auth/line, api/cron/reminders
+components/     shadcn ui/ + app components
+lib/            ai.ts (text + vision client), db.ts (prisma), patient.ts (cookie scoping), line.ts,
+                + deterministic decision modules: allergy · risk · severity · rights · free-meds · infer
+prisma/         schema.prisma, migrations, seed.ts, rights-data.json
 ```
 
 ## Commands
 ```bash
-npm run dev                 # dev server
-npx prisma migrate dev      # apply schema changes
-npx prisma studio           # inspect data
-npx shadcn@latest add X     # add a UI component
+npm run dev                              # dev server
+npx prisma migrate dev --create-only     # author a migration (shared DB — never reset it)
+npx prisma migrate deploy                # apply it
+npx prisma db seed                       # idempotent seed
+npx prisma studio                        # inspect data
+npx shadcn@latest add X                  # add a UI component
+
+node --experimental-strip-types lib/risk.test.mts   # tests: node:assert files, no runner, no `npm test`
 ```
 
 ## Mistakes ledger — READ AND MAINTAIN

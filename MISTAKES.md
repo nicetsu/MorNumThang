@@ -7,6 +7,18 @@ Entry format: date · what I did wrong · why it was wrong · the lesson/fix.
 
 ---
 
+## 2026-07-28 — Let CLAUDE.md/README/PLAN drift ~3 weeks behind the code
+Docs still said "Slice 0 (scaffold) is done", "Prisma + SQLite / better-sqlite3 adapter", and
+"AI = DiffusionGemma via NVIDIA" — while the app had shipped slices 0–7, moved to Postgres/Supabase,
+split AI into typhoon-8b (text) + glm-4.5v (vision), and grown LINE login, multi-patient, a risk engine
+and a rights knowledge base. `.env.example` still had `DATABASE_URL="file:./dev.db"`, which would send
+anyone following the README straight into a broken setup. Anyone (human or agent) trusting the docs
+would have worked from a stack that no longer exists. **Lesson:** the onboarding docs are part of the
+change, not a follow-up — when a commit swaps a datasource, a model, or an auth model, update
+CLAUDE.md/README/.env.example in the same commit. Also found while verifying: `lib/ai.test.mts` can't
+run standalone (`lib/ai.ts` imports `./risk` extensionless + the `@/lib/meds` alias), so it had been
+silently non-running — a "test" nobody runs is worse than no test, because the docs claim coverage.
+
 ## 2026-07-16 — Concrete few-shot example in a prompt got echoed verbatim by the 8B model
 The `organizeNarrative` prompt ended with `เช่น [{"category":"การกิน","text":"กินน้อยลง",...}]`.
 End-to-end eval (`scripts/risk-eval.mts`) against `typhoon-s-thaillm-8b-instruct` showed the model
