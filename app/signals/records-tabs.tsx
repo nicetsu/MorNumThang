@@ -22,12 +22,15 @@ export function RecordsTabs({
   score,
   level,
   defaultView,
+  allRange = false,
 }: {
   days: DayGroup[];
   aeh: Aeh[];
   score: { badge: string; label: string; cls: string };
   level: number;
   defaultView: "all" | "signal";
+  /** true = กำลังดูประวัติทั้งหมด (?range=all), false = 7 วันล่าสุด */
+  allRange?: boolean;
 }) {
   const [view, setView] = useState<"all" | "signal">(defaultView);
 
@@ -44,7 +47,16 @@ export function RecordsTabs({
 
       {view === "all" ? (
         <>
-          <p className="lead">บันทึก 7 วันย้อนหลัง แยกตามวัน · สีของแต่ละวันมาจากอาการที่ควรใส่ใจที่สุดของวันนั้น</p>
+          <p className="lead">
+            {allRange
+              ? "บันทึกทั้งหมดที่ผ่านมา แยกตามวัน · สีของแต่ละวันมาจากอาการที่ควรใส่ใจที่สุดของวันนั้น"
+              : "บันทึก 7 วันย้อนหลัง แยกตามวัน · สีของแต่ละวันมาจากอาการที่ควรใส่ใจที่สุดของวันนั้น"}
+          </p>
+          {allRange && days.length === 0 && (
+            <p className="rounded-[18px] border border-dashed border-line p-6 text-center text-muted-foreground">
+              ยังไม่มีบันทึกเลยค่ะ
+            </p>
+          )}
           <div className="day-groups">
             {days.map((d) => (
               <section key={d.key} className={`day-card ${d.cls}`}>
@@ -83,6 +95,13 @@ export function RecordsTabs({
               </section>
             ))}
           </div>
+          {/* สลับช่วงเวลาได้สองทาง — เป็น Link เพราะช่วงเวลาตัดสินที่ฝั่งเซิร์ฟเวอร์ (?range=) */}
+          <Link
+            href={allRange ? "/signals" : "/signals?range=all"}
+            className="btn-outline grid place-items-center"
+          >
+            {allRange ? "ดูเฉพาะ 7 วันล่าสุด" : "ดูบันทึกทั้งหมด"}
+          </Link>
           <Link href="/summary" className="btn-primary grid place-items-center">สรุปให้หมอ</Link>
         </>
       ) : (

@@ -38,14 +38,15 @@ function iconOf(cat: string): string {
 export default async function Records({
   searchParams,
 }: {
-  searchParams: Promise<{ view?: string }>;
+  searchParams: Promise<{ view?: string; range?: string }>;
 }) {
   const patient = await getActivePatient();
   if (!patient) {
     return <p className="py-8 text-muted-foreground">ยังไม่มีข้อมูลผู้รับการดูแลค่ะ</p>;
   }
 
-  const { view } = await searchParams;
+  const { view, range } = await searchParams;
+  const allRange = range === "all"; // ?range=all = ประวัติทั้งหมด (ปุ่ม "บันทึกทั้งหมด" ที่หน้าแรก)
 
   const [weights, obs] = await Promise.all([
     db.weightLog.findMany({ where: { patientId: patient.id }, orderBy: { at: "desc" } }),
@@ -84,19 +85,32 @@ export default async function Records({
       : { id: o.id, at: o.at, time: hm(o.at), label: `เอ๊ะ · ${o.category}`, text: o.text, trend: null, dotClass: dotClass(o.severity) },
   );
 
-  // แยกบันทึกตามวัน 7 วันย้อนหลัง (วันนี้บนสุด). สีของแต่ละวัน = floor ระดับอาการของวันนั้น
+  // แยกบันทึกตามวัน (วันนี้/วันล่าสุดบนสุด). สีของแต่ละวัน = floor ระดับอาการของวันนั้น
   // (lib/severity.scoreLevel) — 1 เขียว, 2 เหลือง, 3 ส้ม; 0 = ยังไม่มีอาการบันทึกไว้.
   const dayStart = (d: Date) => { const x = new Date(d); x.setHours(0, 0, 0, 0); return x.getTime(); };
   const todayStart = dayStart(new Date());
-  const days = Array.from({ length: 7 }, (_, i) => {
-    const key = todayStart - i * 86_400_000;
-    return {
-      key,
-      label: new Intl.DateTimeFormat("th-TH", { weekday: "short", day: "numeric", month: "short" }).format(new Date(key)),
-      severities: [] as (number | null)[],
-      items: [] as (typeof weightItems)[number][],
-    };
-  });
+  // 7 วัน: ช่วงคงที่ รวมวันที่ยังไม่ได้จด (เห็นได้ว่าวันไหนขาดบันทึก).
+  // ทั้งหมด: เฉพาะวันที่มีบันทึกจริง — ประวัติยาว ๆ ไม่ควรเรนเดอร์การ์ดเปล่าเป็นร้อยใบ.
+  const dayKeys = allRange
+    ? [...new Set([...weights, ...obs].map((r) => dayStart(r.at)))].sort((a, b) => b - a)
+    : Array.from({ length: 7 }, (_, i) => todayStart - i * 86_400_000);
+  // ใส่ปีเฉพาะบันทึกข้ามปี — มุมมอง "ทั้งหมด" ย้อนได้ไกล วันที่เปล่า ๆ จะกำกวม
+  const thisYear = new Date().getFullYear();
+  const dayLabel = (key: number) => {
+    const d = new Date(key);
+    return new Intl.DateTimeFormat("th-TH", {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+      ...(d.getFullYear() !== thisYear ? { year: "numeric" as const } : {}),
+    }).format(d);
+  };
+  const days = dayKeys.map((key) => ({
+    key,
+    label: dayLabel(key),
+    severities: [] as (number | null)[],
+    items: [] as (typeof weightItems)[number][],
+  }));
   const byDay = new Map(days.map((d) => [d.key, d]));
   for (const o of obs) byDay.get(dayStart(o.at))?.severities.push(o.severity);
   for (const it of [...weightItems, ...obsItems]) byDay.get(dayStart(it.at))?.items.push(it);
@@ -132,7 +146,7 @@ export default async function Records({
       <BackLink fallback="/">กลับ</BackLink>
       <div>
         <p className="eyebrow">ประวัติการดูแลผู้รับการดูแล</p>
-        <h2 className="screen-title">บันทึกของผู้รับการดูแล</h2>
+        <h2 className="screen-title">{allRange ? "บันทึกทั้งหมด" : "บันทึกของผู้รับการดูแล"}</h2>
       </div>
       <RecordsTabs
         days={dayGroups}
@@ -140,6 +154,7 @@ export default async function Records({
         score={score}
         level={level}
         defaultView={view === "signal" ? "signal" : "all"}
+        allRange={allRange}
       />
     </div>
   );

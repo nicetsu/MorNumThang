@@ -164,6 +164,7 @@ export default async function Home() {
             ยังไม่มีบันทึก แตะ “+ บันทึก” เพื่อเริ่มค่ะ
           </p>
         ) : (
+          <>
           <div className="timeline">
             {timeline.map((e) => (
               <Link key={e.id} href="/signals">
@@ -190,6 +191,10 @@ export default async function Home() {
               </Link>
             ))}
           </div>
+          <Link href="/signals?range=all" className="btn-outline mt-3 grid place-items-center">
+            บันทึกทั้งหมด
+          </Link>
+          </>
         )}
       </section>
     </div>
