@@ -7,6 +7,20 @@ Entry format: date · what I did wrong · why it was wrong · the lesson/fix.
 
 ---
 
+## 2026-07-28 — Pushed to a Vercel-linked repo without checking the commit author matched the Vercel account
+Three commits pushed clean, `next build` passed locally, and the deploy still never ran: Vercel emailed
+"Archan-nor attempted to deploy a commit to nicetsu … but they're not a member of the team." The repo and
+the Vercel project belong to GitHub account `nicetsu`, but `git config user.email` in this clone was
+`archan.n@ku.th`, which GitHub resolves to a *different* account (`Archan-nor`). **Vercel's Hobby plan only
+builds commits authored by the account owner** — a mismatched author is silently a failed deploy, not a
+failed build, so nothing in the build logs explains it. **Fix:** set the repo-local author to the owning
+account's GitHub noreply address (`git config user.email "<id>+<login>@users.noreply.github.com"`), then
+land a new commit so HEAD has the right author. **Lesson:** when a repo is wired to Vercel/Netlify on a
+free plan, `git config user.email` is part of the deploy configuration, not just metadata — verify it
+matches the hosting account *before* the first push, especially when the machine has several GitHub
+identities. Also: a green local build proves nothing about whether the deploy was even attempted; confirm
+the deployment actually started rather than polling the live URL for the new content.
+
 ## 2026-07-28 — Let CLAUDE.md/README/PLAN drift ~3 weeks behind the code
 Docs still said "Slice 0 (scaffold) is done", "Prisma + SQLite / better-sqlite3 adapter", and
 "AI = DiffusionGemma via NVIDIA" — while the app had shipped slices 0–7, moved to Postgres/Supabase,
