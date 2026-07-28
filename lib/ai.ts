@@ -7,7 +7,7 @@ import { WHEN_TIME_VALUES } from "@/lib/meds";
 // Two independent lanes: TEXT (summaries/organize) and VISION (photo OCR) — each picks its own
 // preset and can be overridden per-value by env. Text is Thai chat (typhoon on thaillm.or.th);
 // vision needs a multimodal model (glm-4.5v on z.ai). (AGENTS.md rule 1: server-side only.)
-// ponytail: three hardcoded presets, not a plugin registry — add one the day there is a fourth.
+// ponytail: hardcoded presets, not a plugin registry — flat object is still fine at four.
 const PRESETS = {
   nvidia: {
     baseURL: "https://integrate.api.nvidia.com/v1",
@@ -23,6 +23,11 @@ const PRESETS = {
     baseURL: "http://thaillm.or.th/api/v1",
     apiKey: process.env.THAILLM_API_KEY,
     model: "typhoon-s-thaillm-8b-instruct", // Thai chat, fast, no <think> block
+  },
+  gemini: {
+    baseURL: "https://generativelanguage.googleapis.com/v1beta/openai",
+    apiKey: process.env.GEMINI_API_KEY,
+    model: "gemini-2.0-flash", // vision-capable, generous free tier
   },
 };
 
