@@ -14,8 +14,10 @@ for large touch targets and low-literacy users. Reference prototype: `mornumthan
   then `migrate deploy` so the shared DB isn't reseeded. Generated client: `app/generated/prisma/`.
 - AI over OpenAI-compatible endpoints, **server-side only**, in two lanes (`PRESETS` in `lib/ai.ts`, thinking
   disabled on both): **TEXT** = `thaillm`/`typhoon-s-thaillm-8b-instruct` for Thai summaries/organizing,
-  **VISION** = `zai`/`glm-4.5v` for drug-label and appointment-slip photo scans. Provider/model/key are all
-  env-overridable; an `nvidia`/`diffusiongemma` preset is also available.
+  **VISION** = `zai`/`glm-4.5v` for drug-label and appointment-slip photo scans. Four presets exist
+  (`thaillm`, `zai`, `gemini`, `nvidia`); provider/model/key are all env-overridable. Only the TEXT lane
+  currently has a funded key — photo scanning is offline (`docs/deployment.md`).
+- Deployed on **Vercel** (`nicetsu/BDI_BKK` → https://bdi-bkk.vercel.app) with Supabase Postgres.
 
 ## Golden rules
 1. **Server-side AI only.** Model endpoint/key live in env (`AI_BASE_URL`, `NVIDIA_API_KEY`, `AI_MODEL`).

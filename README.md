@@ -3,8 +3,11 @@
 แอปช่วยลูกดูแลม้า (ผู้สูงอายุ): น้ำหนัก/สัญญาณชีพ ยา ยาที่แพ้ นัดหมอ บันทึกอาการประจำวัน สิทธิการรักษา
 และสรุปข้อมูลให้หมอ · เข้าใช้งานผ่าน LINE (LIFF) · UI ไทยล้วน ปุ่มใหญ่ อ่านง่าย
 
+🌐 **ใช้งานจริงที่ [bdi-bkk.vercel.app](https://bdi-bkk.vercel.app)** — เข้าด้วย LINE หรือรหัสทดสอบ `demo`
+
 **อ่านก่อนเริ่มทำงาน:** [CLAUDE.md](CLAUDE.md) / [AGENTS.md](AGENTS.md) มีกฎของโปรเจกต์ (โดยเฉพาะเรื่องความปลอดภัยของ AI),
-[MISTAKES.md](MISTAKES.md) มีบทเรียนจากความผิดพลาดที่เคยเกิด — ควรอ่านก่อนแก้โค้ด
+[MISTAKES.md](MISTAKES.md) มีบทเรียนจากความผิดพลาดที่เคยเกิด, [docs/deployment.md](docs/deployment.md) มีรายละเอียด
+production + กับดักที่เจอมาแล้ว — **ควรอ่านก่อนแตะอะไรที่เกี่ยวกับ production**
 ([PLAN.md](PLAN.md) เป็นแผนตั้งต้น ตอนนี้เป็นเอกสารเชิงประวัติแล้ว — โค้ดคือแหล่งอ้างอิงจริง)
 
 ## สแตก
@@ -41,17 +44,21 @@ npx prisma migrate deploy              # ค่อย apply
 
 ### AI (จำเป็นสำหรับฟีเจอร์ AI ทั้งหมด)
 
-ค่า default คือ typhoon-8b (ไทย, เลน TEXT) + glm-4.5v (มองรูป, เลน VISION) ตั้งใน `.env`:
+แยกเป็น 2 เลน ตั้งใน `.env`:
 
 ```env
-AI_PROVIDER="thaillm"       # thaillm | zai | nvidia
+AI_PROVIDER="thaillm"       # เลน TEXT — thaillm | zai | gemini | nvidia
 THAILLM_API_KEY="xxxxx"
-VISION_PROVIDER="zai"
+VISION_PROVIDER="zai"       # เลน VISION — ต้องเป็นโมเดลที่มองรูปได้
 ZAI_API_KEY="xxxxx"
 ```
 
 จะ override รายค่าเองก็ได้ (`AI_BASE_URL` / `AI_MODEL` / `AI_API_KEY` และชุด `VISION_*`)
 ทุกการเรียกโมเดลอยู่ฝั่งเซิร์ฟเวอร์ **ห้ามใส่ key ใน client component หรือ commit `.env`**
+
+> ⚠️ **เลน VISION ยังใช้งานไม่ได้** — ยังไม่มี provider ไหนที่มีคีย์พร้อมใช้ (z.ai ไม่มีเครดิต,
+> Gemini free tier quota เป็น 0, NVIDIA ยังไม่ได้สมัคร) ฟีเจอร์สแกนรูปฉลากยา/ใบนัดจึงยังไม่ทำงาน
+> ส่วนฟีเจอร์อื่นปกติทั้งหมด · รายละเอียดใน [docs/deployment.md](docs/deployment.md)
 
 > โมเดล TEXT ตัวเล็ก (8B) — เวลาแก้ prompt ให้ทดสอบกับโมเดลจริงเสมอ มีสคริปต์ eval ให้ใน `scripts/`
 > (`risk-eval.mts`, `severity-eval.mts`) และบทเรียนที่เคยพลาดอยู่ใน [MISTAKES.md](MISTAKES.md)
@@ -108,7 +115,7 @@ lib/            ai.ts · db.ts · patient.ts (cookie/สโคปผู้ใช
                 + โมดูลตัดสินใจแบบ deterministic: allergy · risk · severity · rights · free-meds · infer
 prisma/         schema.prisma, migrations, seed.ts, rights-data.json
 scripts/        risk-eval.mts, severity-eval.mts (eval prompt), import_rights.py
-docs/           risk-score-plan.md, record-system-flow.md
+docs/           deployment.md · risk-score-plan.md · record-system-flow.md · market-research.md
 mornumthang2/   ต้นแบบ static (index.html/app.js/styles.css) — ใช้เป็น design reference
 ```
 

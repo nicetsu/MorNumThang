@@ -1,6 +1,6 @@
 # หมอนำทาง (Mor Num Thang) — Next.js Fullstack Rebuild Plan
 
-> **Status: slices 0–7 are built; this is now a historical document.** The app has outgrown the plan
+> **Status: slices 0–8 are built and the app is live; this is now a historical document.** The app has outgrown the plan
 > (LINE login, multi-patient, a deterministic risk engine, a health-rights knowledge base, a daily care
 > calendar, photo scans). **The code is the source of truth** — see CLAUDE.md for what actually exists,
 > and §7 below for what shipped beyond this plan. Kept for the reasoning behind each slice.
@@ -143,8 +143,13 @@ The three planned uses all shipped, plus three more:
 - [ ] Formal accessibility pass — touch targets and Thai font are in place, but contrast/AT verification
       was never done as a deliberate step. _Open._
 
-### Slice 8 — Deploy — ✅ infrastructure done
+### Slice 8 — Deploy — ✅ done, live
 - [x] SQLite → Postgres (Supabase), env for AI endpoints, Vercel deploy config + crons (`vercel.json`).
+- [x] **Live at https://bdi-bkk.vercel.app** — LINE login + LIFF working against the real deployment,
+      16 migrations applied to Supabase, cron endpoint verified (auth + query, `preview=1` mode).
+- [ ] VISION lane still unfunded, so photo scanning is offline. _Open — see `docs/deployment.md`._
+- Environment specifics, the env-var matrix, and three deployment traps already hit are documented in
+  **`docs/deployment.md`** rather than here.
 
 ---
 

@@ -11,8 +11,13 @@ doctor-ready summary. UI is **Thai**, built for large touch targets and low-lite
 
 ## Current state
 
-Slices 0–7 of `PLAN.md` are built and the app is wired for Vercel + Supabase (see `vercel.json` crons).
-Several features shipped that were never in PLAN.md — treat the code, not the plan, as the source of truth:
+**Live at https://bdi-bkk.vercel.app** (Vercel + Supabase, repo `nicetsu/BDI_BKK`). LINE login works;
+the deterministic + TEXT-AI features all work. **Photo scanning (VISION lane) does not** — no provider
+has a funded key yet. Deployment specifics and the traps already hit live in `docs/deployment.md` —
+**read it before touching anything production-related.**
+
+Slices 0–8 of `PLAN.md` are built. Several features shipped that were never in PLAN.md — treat the code,
+not the plan, as the source of truth:
 
 - **LINE login + LIFF** entry, rich-menu deep links, invite codes (`/join/<code>`) so relatives can co-care
 - **Multi-patient** — one caregiver ↔ many ผู้รับการดูแล (m-n), plus a "โปรไฟล์ตัวเอง" record
@@ -53,6 +58,14 @@ library-specific fix.
 - **Dev and prod share one Supabase DB.** Author migrations with `migrate dev --create-only`, then
   `migrate deploy` — so the shared data isn't reset. `npx prisma db seed` is idempotent (upserts +
   `skipDuplicates`).
+- **`DATABASE_URL` differs between local and Vercel**: local uses Supabase's session pooler (`:5432`,
+  required for migrations), Vercel uses the transaction pooler (`:6543`, survives serverless
+  concurrency). Getting this wrong exhausts the 15-connection session pool and 500s the whole site —
+  `docs/deployment.md` § trap #2.
+
+`prisma/seed.ts` creates **one demo patient with a full record set** (สมชาย ใจดี, 76 — 8 vitals rows,
+10 observations, 4 meds, 2 appointments over 15 days) shaped to land on doctor-score level 2. Log in
+with the code `demo` at `/enter` to see it.
 
 ### AI — two independent lanes (`lib/ai.ts`)
 
@@ -60,12 +73,14 @@ Each lane picks a preset (baseURL + key + model as a set, so one provider's URL 
 overridable per-value by env. Thinking is disabled on both — reasoning eats the budget and truncates short
 Thai output.
 
-| Lane | Default preset | Used for |
-|---|---|---|
-| TEXT (`AI_PROVIDER`) | `thaillm` / `typhoon-s-thaillm-8b-instruct` | doctor summary, health signals, care guide, rights advice, narrative organizing |
-| VISION (`VISION_PROVIDER`) | `zai` / `glm-4.5v` | drug-label + appointment-slip photo scans |
+| Lane | Default preset | Used for | Status |
+|---|---|---|---|
+| TEXT (`AI_PROVIDER`) | `thaillm` / `typhoon-s-thaillm-8b-instruct` | doctor summary, health signals, care guide, rights advice, narrative organizing | ✅ working |
+| VISION (`VISION_PROVIDER`) | `zai` / `glm-4.5v` | drug-label + appointment-slip photo scans | ❌ no funded key |
 
-An `nvidia` preset (`google/diffusiongemma-26b-a4b-it`) also exists and can be selected by env.
+Four presets exist: `thaillm`, `zai`, `gemini` (`gemini-2.0-flash`, via Google's OpenAI-compatible
+endpoint), `nvidia` (`google/diffusiongemma-26b-a4b-it`). Only `thaillm` has a working key — see
+`docs/deployment.md` § "สถานะ VISION" for what each one returned when tested.
 
 **The TEXT model is only 8B — assume it misbehaves and guard the output in code.** Existing guards:
 `statedSigns()` drops danger signs the model invented that aren't literally in the caregiver's text;
@@ -108,6 +123,11 @@ mornumthang2/   the original static prototype — design reference
 รักษา (`/meds`, `/appointments`, `/guide`), โปรไฟล์ (`/profile`, `/rights`). Entry and switching live outside
 the tabs: `/enter`, `/patients`, `/join/[code]`.
 
+`/signals` serves two ranges off one page: default = a fixed 7-day window including days with no
+records (so a missed day is visible); `?range=all` = every day that actually has a record, newest
+first, with the year added to headers once records cross into a previous year. The doctor-score stays
+7-day in both — that window is the score's definition, not a property of the view.
+
 **Auth is two cookies, no real sessions yet** (`lib/patient.ts`): `uid` = the logged-in ผู้ดูแล (`User.id`),
 `pid` = the active ผู้รับการดูแล. `middleware.ts` bounces anyone without `uid` to `/enter`. Every read goes
 through `getActivePatient()`, which scopes by caregiver so a stray `pid` cookie can't read someone else's
@@ -146,10 +166,14 @@ an extensionless `./risk` import and the `@/lib/meds` alias — neither resolves
 ## Docs to read before working
 
 - `AGENTS.md` — golden rules + stack. **Binding**, especially the AI-safety rules.
-- `PLAN.md` — the original build plan. Historical: slices 0–7 are done and the app outgrew the plan.
 - `MISTAKES.md` — running ledger of past mistakes. **Read it before working, and append a new entry every
   time you make a mistake** (wrong assumption, shipped bug, wasted effort on a bad theory).
+- `docs/deployment.md` — live environment, the env-var matrix, and three traps already hit (Vercel
+  commit-author block, Supabase pooler ports, why curl can't verify a deploy). **Read before touching prod.**
 - `docs/risk-score-plan.md`, `docs/record-system-flow.md` — the risk engine's evidence + the record data flow.
+- `PLAN.md` — the original build plan. Historical: slices 0–8 are done and the app outgrew the plan.
+- `docs/market-research.md` — business/GTM research (market sizing, competitors, three go-to-market
+  plans). Not needed for code work.
 
 ## Definition of done (per slice)
 

@@ -7,6 +7,25 @@ Entry format: date · what I did wrong · why it was wrong · the lesson/fix.
 
 ---
 
+## 2026-07-28 — Put the session-pooler URL in Vercel's DATABASE_URL and 500'd the whole site
+Production started returning Vercel's "This page couldn't load — a server error occurred" on every
+page. `lib/db.ts` had a comment saying exactly what to do — *"Prefer DATABASE_URL (local dev /
+migrations, session pooler); on Vercel fall back to POSTGRES_PRISMA_URL (transaction pooler, right
+for serverless)"* — but the Vercel env got `DATABASE_URL` set via "Import .env", which **beat the
+fallback** and forced production onto Supabase's session pooler. That pooler caps at 15 clients
+(`FATAL: (EMAXCONNSESSION) max clients reached in session mode`), and serverless instances each open
+their own connection, so it exhausted almost immediately. **Fix:** Vercel uses `:6543` (transaction
+pooler), local `.env` keeps `:5432` (session pooler, required by `prisma migrate`). **Lessons:**
+(1) when code documents an env-var contract in a comment, importing a whole `.env` file wholesale can
+silently violate it — check what the import actually set; (2) a variable that "works locally" can be
+exactly wrong in serverless, where connection count scales with traffic, not with developers.
+**Also, a diagnosis mistake inside the same incident:** I verified the deploy by curling
+`/signals?range=all` for new copy — but `middleware.ts` 307s any request without a `uid` cookie, so
+that check returns the same result whether the deploy succeeded or failed. It reported "not deployed"
+for a deploy that had actually completed. Verify deploys via the deployments API
+(`gh api repos/<owner>/<repo>/deployments/<id>/statuses`) or an unauthenticated route, never by
+grepping HTML from a page behind auth.
+
 ## 2026-07-28 — Pushed to a Vercel-linked repo without checking the commit author matched the Vercel account
 Three commits pushed clean, `next build` passed locally, and the deploy still never ran: Vercel emailed
 "Archan-nor attempted to deploy a commit to nicetsu … but they're not a member of the team." The repo and
