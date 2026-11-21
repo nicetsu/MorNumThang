@@ -3,7 +3,7 @@
 แอปช่วยลูกดูแลม้า (ผู้สูงอายุ): น้ำหนัก/สัญญาณชีพ ยา ยาที่แพ้ นัดหมอ บันทึกอาการประจำวัน สิทธิการรักษา
 และสรุปข้อมูลให้หมอ · เข้าใช้งานผ่าน LINE (LIFF) · UI ไทยล้วน ปุ่มใหญ่ อ่านง่าย
 
-🌐 **ใช้งานจริงที่ [bdi-bkk.vercel.app](https://bdi-bkk.vercel.app)** - เข้าด้วย LINE หรือ ใช้รหัสทดสอบ `demo`
+**ใช้งานจริงที่ : [bdi-bkk.vercel.app](https://bdi-bkk.vercel.app)** - เข้าด้วย LINE หรือ ใช้รหัสทดสอบ `demo`
 
 **อ่านก่อนเริ่มทำงาน:** [CLAUDE.md](CLAUDE.md) / [AGENTS.md](AGENTS.md) มีกฎของโปรเจกต์ (โดยเฉพาะเรื่องความปลอดภัยของ AI),
 [MISTAKES.md](MISTAKES.md) มีบทเรียนจากความผิดพลาดที่เคยเกิด, [docs/deployment.md](docs/deployment.md) มีรายละเอียด
@@ -24,7 +24,7 @@ AI แยกเป็น 2 เลน: **TEXT** (สรุป/จัดหมว�
 npm install
 cp .env.example .env        # แล้วกรอกค่าจริง (อย่างน้อย DATABASE_URL + คีย์ AI ฝั่ง TEXT)
 npx prisma generate
-npx prisma migrate deploy   # ⚠️ ไม่ใช่ migrate dev — dev/prod ใช้ DB Supabase ตัวเดียวกัน
+npx prisma migrate deploy   # ไม่ใช่ migrate dev — dev/prod ใช้ DB Supabase ตัวเดียวกัน
 npx prisma db seed          # รันซ้ำได้ ไม่ล้างข้อมูลเดิม
 npm run dev                 # http://localhost:3000
 ```
@@ -56,7 +56,7 @@ ZAI_API_KEY="xxxxx"
 จะ override รายค่าเองก็ได้ (`AI_BASE_URL` / `AI_MODEL` / `AI_API_KEY` และชุด `VISION_*`)
 ทุกการเรียกโมเดลอยู่ฝั่งเซิร์ฟเวอร์ **ห้ามใส่ key ใน client component หรือ commit `.env`**
 
-> ⚠️ **เลน VISION ยังใช้งานไม่ได้** - ยังไม่มี provider ไหนที่มีคีย์พร้อมใช้ (z.ai ไม่มีเครดิต,
+> **เลน VISION ยังใช้งานไม่ได้** - ยังไม่มี provider ไหนที่มีคีย์พร้อมใช้ (z.ai ไม่มีเครดิต,
 > Gemini free tier quota เป็น 0, NVIDIA ยังไม่ได้สมัคร) ฟีเจอร์สแกนรูปฉลากยา/ใบนัดจึงยังไม่ทำงาน
 > ส่วนฟีเจอร์อื่นปกติทั้งหมด · รายละเอียดใน [docs/deployment.md](docs/deployment.md)
 
@@ -95,7 +95,7 @@ node --experimental-strip-types lib/risk.test.mts
 ไฟล์ที่ผ่าน: `lib/{risk,severity,allergy,rights,meds}.test.mts`, `app/logs/weight.test.mts`
 (ถูก exclude จาก `tsconfig.json` → `next build` ไม่จับให้ ต้องรันเองหลังแก้ logic ความปลอดภัย)
 
-⚠️ `lib/ai.test.mts` รันไม่ผ่านตอนนี้ (`ERR_MODULE_NOT_FOUND`) เพราะ `lib/ai.ts` import `./risk` แบบไม่มีนามสกุล
+`lib/ai.test.mts` รันไม่ผ่านตอนนี้ (`ERR_MODULE_NOT_FOUND`) เพราะ `lib/ai.ts` import `./risk` แบบไม่มีนามสกุล
 และใช้ alias `@/lib/meds` ซึ่ง node เปล่า ๆ resolve ไม่ได้ — เหตุผลเดียวกับที่ `lib/risk.ts` ตั้งใจไม่ import อะไรเลย
 
 ## ให้คนอื่นเข้าถึงจากมือถือ (dev เท่านั้น)
