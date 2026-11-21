@@ -3,14 +3,14 @@
 แอปช่วยลูกดูแลม้า (ผู้สูงอายุ): น้ำหนัก/สัญญาณชีพ ยา ยาที่แพ้ นัดหมอ บันทึกอาการประจำวัน สิทธิการรักษา
 และสรุปข้อมูลให้หมอ · เข้าใช้งานผ่าน LINE (LIFF) · UI ไทยล้วน ปุ่มใหญ่ อ่านง่าย
 
-🌐 **ใช้งานจริงที่ [bdi-bkk.vercel.app](https://bdi-bkk.vercel.app)** — เข้าด้วย LINE หรือรหัสทดสอบ `demo`
+🌐 **ใช้งานจริงที่ [bdi-bkk.vercel.app](https://bdi-bkk.vercel.app)** - เข้าด้วย LINE หรือ ใช้รหัสทดสอบ `demo`
 
 **อ่านก่อนเริ่มทำงาน:** [CLAUDE.md](CLAUDE.md) / [AGENTS.md](AGENTS.md) มีกฎของโปรเจกต์ (โดยเฉพาะเรื่องความปลอดภัยของ AI),
 [MISTAKES.md](MISTAKES.md) มีบทเรียนจากความผิดพลาดที่เคยเกิด, [docs/deployment.md](docs/deployment.md) มีรายละเอียด
 production + กับดักที่เจอมาแล้ว — **ควรอ่านก่อนแตะอะไรที่เกี่ยวกับ production**
 ([PLAN.md](PLAN.md) เป็นแผนตั้งต้น ตอนนี้เป็นเอกสารเชิงประวัติแล้ว — โค้ดคือแหล่งอ้างอิงจริง)
 
-## สแตก
+## Tech stack
 
 Next.js 16 (App Router, TS) + Tailwind v4 + shadcn/ui (ฐานเป็น Base UI ไม่ใช่ Radix)
 + Prisma 7 / **PostgreSQL (Supabase)** + AI ผ่าน OpenAI-compatible endpoint (server-side เท่านั้น) · deploy บน Vercel
@@ -29,7 +29,7 @@ npx prisma db seed          # รันซ้ำได้ ไม่ล้าง�
 npm run dev                 # http://localhost:3000
 ```
 
-เข้าครั้งแรกจะเจอหน้า `/enter` — พิมพ์รหัส `demo` เพื่อ login เป็นผู้ดูแลตัวอย่าง (ถ้ายังไม่ได้ตั้ง LIFF)
+เข้าครั้งแรกจะเจอหน้า `/enter` - พิมพ์รหัส `demo` เพื่อ login เป็นผู้ดูแลตัวอย่าง (ถ้ายังไม่ได้ตั้ง LIFF)
 
 ### ฐานข้อมูล
 
@@ -56,11 +56,11 @@ ZAI_API_KEY="xxxxx"
 จะ override รายค่าเองก็ได้ (`AI_BASE_URL` / `AI_MODEL` / `AI_API_KEY` และชุด `VISION_*`)
 ทุกการเรียกโมเดลอยู่ฝั่งเซิร์ฟเวอร์ **ห้ามใส่ key ใน client component หรือ commit `.env`**
 
-> ⚠️ **เลน VISION ยังใช้งานไม่ได้** — ยังไม่มี provider ไหนที่มีคีย์พร้อมใช้ (z.ai ไม่มีเครดิต,
+> ⚠️ **เลน VISION ยังใช้งานไม่ได้** - ยังไม่มี provider ไหนที่มีคีย์พร้อมใช้ (z.ai ไม่มีเครดิต,
 > Gemini free tier quota เป็น 0, NVIDIA ยังไม่ได้สมัคร) ฟีเจอร์สแกนรูปฉลากยา/ใบนัดจึงยังไม่ทำงาน
 > ส่วนฟีเจอร์อื่นปกติทั้งหมด · รายละเอียดใน [docs/deployment.md](docs/deployment.md)
 
-> โมเดล TEXT ตัวเล็ก (8B) — เวลาแก้ prompt ให้ทดสอบกับโมเดลจริงเสมอ มีสคริปต์ eval ให้ใน `scripts/`
+> โมเดล TEXT ตัวเล็ก (8B) - เวลาแก้ prompt ให้ทดสอบกับโมเดลจริงเสมอ มีสคริปต์ eval ให้ใน `scripts/`
 > (`risk-eval.mts`, `severity-eval.mts`) และบทเรียนที่เคยพลาดอยู่ใน [MISTAKES.md](MISTAKES.md)
 
 ### LINE (ไม่ใส่ก็รันได้ แต่จะ login ด้วยรหัสแทน)
@@ -73,7 +73,7 @@ LINE_RICHMENU_MEMBER="richmenu-xxxxx"
 CRON_SECRET="xxxxx"                  # กัน /api/cron/reminders ถูกยิงจากข้างนอก
 ```
 
-แจ้งเตือนรายวันตั้งไว้ใน [vercel.json](vercel.json) — รอบเช้า 07:00 และรอบเย็น 19:00 เวลาไทย
+แจ้งเตือนรายวันตั้งไว้ใน [vercel.json](vercel.json) - รอบเช้า 07:00 และรอบเย็น 19:00 เวลาไทย
 
 ## คำสั่งที่ใช้บ่อย
 
@@ -121,6 +121,6 @@ mornumthang2/   ต้นแบบ static (index.html/app.js/styles.css) — ใ
 
 ## หลักการที่ห้ามแตะ
 
-**AI ไม่เคยตัดสินเรื่องความปลอดภัย** — การแพ้ยา คะแนนความเสี่ยง สิทธิการรักษา และการคำนวณวันที่ อยู่ใน
+**AI ไม่เคยตัดสินเรื่องความปลอดภัย** - การแพ้ยา คะแนนความเสี่ยง สิทธิการรักษา และการคำนวณวันที่ อยู่ใน
 โค้ด deterministic ที่มีเทสกำกับทั้งหมด โมเดลทำแค่เรียบเรียง จัดหมวด และอ่านรูป · ผลลัพธ์จาก AI ต้องมี
 disclaimer เสมอ · รายละเอียดอยู่ใน [AGENTS.md](AGENTS.md)
